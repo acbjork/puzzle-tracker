@@ -368,11 +368,92 @@ function updateScoreboard() {
   }
 }
 
-
 document.getElementById("userSelect").addEventListener("change", e => {
       currentUser = e.target.value;
       renderTable();
     });
   </script>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const supabase = createClient(
+    "https://iqhgsdpqqshfeiqrkrqw.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  );
+
+  const today = new Date().toISOString().slice(0, 10);
+  const table = "results";
+
+  const currentUser = localStorage.getItem("user") || "Adam";
+  document.querySelector("#userSelect")?.value = currentUser;
+  document.querySelector("#userSelect")?.addEventListener("change", (e) => {
+    localStorage.setItem("user", e.target.value);
+    location.reload();
+  });
+
+  function getPuzzleRows() {
+    return Array.from(document.querySelectorAll("[data-puzzle]"));
+  }
+
+  function renderResult(cellId, text) {
+    const el = document.querySelector(`[data-cell="${cellId}"]`);
+    if (el) el.innerText = text;
+  }
+
+  async function loadResults() {
+    const { data } = await supabase
+      .from(table)
+      .select("*")
+      .eq("date", today);
+
+    if (data) {
+      for (const entry of data) {
+        const cellId = `${entry.puzzle_name}-${entry.player}`;
+        renderResult(cellId, entry.raw_result);
+      }
+    }
+  }
+
+  async function saveResult(puzzleName, user, rawText) {
+    await supabase.from(table).upsert({
+      date: today,
+      puzzle_name: puzzleName,
+      player: user,
+      raw_result: rawText
+    });
+  }
+
+  function setupSubmitHandlers() {
+    getPuzzleRows().forEach(row => {
+      const puzzle = row.dataset.puzzle;
+      const input = row.querySelector("textarea");
+      const button = row.querySelector(".submit-btn");
+      button?.addEventListener("click", async () => {
+        const value = input?.value?.trim();
+        if (value) {
+          await saveResult(puzzle, localStorage.getItem("user"), value);
+        }
+      });
+    });
+  }
+
+  function subscribeToChanges() {
+    supabase
+      .channel("realtime:results")
+      .on("postgres_changes", { event: "*", schema: "public", table }, payload => {
+        if (payload.new?.date === today) {
+          const cellId = `${payload.new.puzzle_name}-${payload.new.player}`;
+          renderResult(cellId, payload.new.raw_result);
+        }
+      })
+      .subscribe();
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    loadResults();
+    setupSubmitHandlers();
+    subscribeToChanges();
+  });
+</script>
 </body>
 </html>
