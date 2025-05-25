@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.2 – call results</div>
+  <div class="version">v0.2.3</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -454,10 +454,11 @@ document.getElementById("userSelect").addEventListener("change", e => {
     });
   }
 
-  function renderTextInput(cell, puzzle) {
+function renderTextInput(cell, puzzle, existingValue = "") {
     const textarea = document.createElement("textarea");
-    textarea.placeholder = "Paste result...";
-    textarea.style.width = "100%";
+textarea.placeholder = "Paste result...";
+textarea.style.width = "95%";
+textarea.value = existingValue; // support editing
 
     const button = document.createElement("button");
     button.innerText = "Submit";
@@ -497,10 +498,26 @@ if (error) {
 
     if (data) {
       for (const entry of data) {
-        const cell = document.querySelector(`[data-cell="${entry.puzzle_name}-${entry.player}"]`);
         if (cell) {
-          cell.innerHTML = entry.raw_result;
-        }
+  // Replace with formatted display of the result
+  cell.innerHTML = "";
+
+  const block = document.createElement("div");
+  block.className = "submitted";
+  block.innerText = entry.raw_result;
+  cell.appendChild(block);
+
+  if (entry.player === currentUser) {
+    // Add Edit button only for the current user
+    const editBtn = document.createElement("button");
+    editBtn.innerText = "Edit";
+    editBtn.className = "edit-btn";
+    editBtn.addEventListener("click", () => {
+      renderTextInput(cell, entry.puzzle_name, entry.raw_result); // pass existing value to re-edit
+    });
+    cell.appendChild(editBtn);
+  }
+}
       }
     }
 
