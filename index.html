@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.1 – specify index for conflict resolution</div>
+  <div class="version">v0.2.2 – call results</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -482,8 +482,8 @@ if (error) {
   alert("Submission failed. See console.");
 } else {
   console.log("Submission succeeded.");
-}
-    });
+  loadResults(); // Refresh display with new result
+}    });
 
     cell.appendChild(textarea);
     cell.appendChild(button);
