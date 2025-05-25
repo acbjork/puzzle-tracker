@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.3</div>
+  <div class="version">v0.2.4</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -157,8 +157,12 @@ window.addEventListener("DOMContentLoaded", () => {
       console.error("Failed to load saved results:", e);
     }
   }
+
+  renderPuzzleTable(currentUser);  // <-- insert this line here
+  loadResults();
+  subscribeToChanges();
 });
- // { puzzle: { Adam: "...", Jonathan: "..." } }
+  // { puzzle: { Adam: "...", Jonathan: "..." } }
     let currentUser = null;
 
     function renderTable() {
@@ -550,10 +554,6 @@ if (error) {
       .subscribe();
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    loadResults();
-    subscribeToChanges();
-  });
 </script>
 </body>
 </html>
