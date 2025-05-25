@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.5</div>
+  <div class="version">v0.2.6</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -236,9 +236,13 @@ function renderPuzzleTable(currentUser) {
         tr.appendChild(tdPuzzle);
 
         ["Adam", "Jonathan"].forEach(user => {
-          const td = document.createElement("td");
-          const result = results[puzzle][user];
+  const td = document.createElement("td");
+  const result = results[puzzle][user];
 
+  // Save a reference to this cell
+  if (!cellMap[puzzle]) cellMap[puzzle] = {};
+  cellMap[puzzle][user] = td;
+          
           if (user === currentUser) {
             if (result) {
               const div = document.createElement("div");
@@ -548,9 +552,9 @@ if (error) {
   loadResults(); // Refresh display with new result
 }    });
 
-    cell.appendChild(textarea);
-    cell.appendChild(button);
-  }
+    cellToEdit.appendChild(textarea);
+cellToEdit.appendChild(submit);
+}
 
   async function loadResults() {
     const { data } = await supabase
@@ -560,7 +564,8 @@ if (error) {
 
     if (data) {
       for (const entry of data) {
-        if (cell) {
+const cell = cellMap?.[entry.puzzle_name]?.[entry.player];
+if (cell) {
   // Replace with formatted display of the result
   cell.innerHTML = "";
 
