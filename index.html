@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.6</div>
+  <div class="version">v0.2.7</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -142,6 +142,37 @@ textarea {
 window.addEventListener("beforeunload", () => {
   localStorage.setItem("puzzleResults", JSON.stringify(results));
 });
+  async function loadResults() {
+    const { data } = await supabase
+      .from("results")
+      .select("*")
+      .eq("date", today);
+
+    if (data) {
+      for (const entry of data) {
+const cell = cellMap?.[entry.puzzle_name]?.[entry.player];
+if (cell) {
+  // Replace with formatted display of the result
+  cell.innerHTML = "";
+
+  const block = document.createElement("div");
+  block.className = "submitted";
+  block.innerText = entry.raw_result;
+  cell.appendChild(block);
+
+  if (entry.player === currentUser) {
+    // Add Edit button only for the current user
+    const editBtn = document.createElement("button");
+    editBtn.innerText = "Edit";
+    editBtn.className = "edit-btn";
+    editBtn.addEventListener("click", () => {
+      renderTextInput(cell, entry.puzzle_name, entry.raw_result); // pass existing value to re-edit
+    });
+    cell.appendChild(editBtn);
+  }
+}
+      }
+    }
 
 window.addEventListener("DOMContentLoaded", () => {
   const saved = localStorage.getItem("puzzleResults");
@@ -556,37 +587,6 @@ if (error) {
 cellToEdit.appendChild(submit);
 }
 
-  async function loadResults() {
-    const { data } = await supabase
-      .from("results")
-      .select("*")
-      .eq("date", today);
-
-    if (data) {
-      for (const entry of data) {
-const cell = cellMap?.[entry.puzzle_name]?.[entry.player];
-if (cell) {
-  // Replace with formatted display of the result
-  cell.innerHTML = "";
-
-  const block = document.createElement("div");
-  block.className = "submitted";
-  block.innerText = entry.raw_result;
-  cell.appendChild(block);
-
-  if (entry.player === currentUser) {
-    // Add Edit button only for the current user
-    const editBtn = document.createElement("button");
-    editBtn.innerText = "Edit";
-    editBtn.className = "edit-btn";
-    editBtn.addEventListener("click", () => {
-      renderTextInput(cell, entry.puzzle_name, entry.raw_result); // pass existing value to re-edit
-    });
-    cell.appendChild(editBtn);
-  }
-}
-      }
-    }
 
     // Now inject input fields into the signed-in user's column
     document.querySelectorAll("tr[data-puzzle]").forEach(row => {
