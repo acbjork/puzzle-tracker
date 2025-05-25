@@ -443,74 +443,74 @@ document.getElementById("userSelect").addEventListener("change", e => {
   );
 
   const today = new Date().toISOString().slice(0, 10);
-  const table = "results";
-
   const currentUser = localStorage.getItem("user") || "Adam";
-  const userSelect = document.querySelector("#userSelect");
-if (userSelect) userSelect.value = currentUser;
+  const otherUser = currentUser === "Adam" ? "Jonathan" : "Adam";
 
-userSelect?.addEventListener("change", (e) => {
-  localStorage.setItem("user", e.target.value);
-  location.reload();
-});
+  document.querySelector("#userSelect")?.value = currentUser;
   document.querySelector("#userSelect")?.addEventListener("change", (e) => {
     localStorage.setItem("user", e.target.value);
     location.reload();
   });
 
-  function getPuzzleRows() {
-    return Array.from(document.querySelectorAll("[data-puzzle]"));
-  }
+  function renderTextInput(cell, puzzle) {
+    const textarea = document.createElement("textarea");
+    textarea.placeholder = "Paste result...";
+    textarea.style.width = "100%";
 
-  function renderResult(cellId, text) {
-    const el = document.querySelector(`[data-cell="${cellId}"]`);
-    if (el) el.innerText = text;
+    const button = document.createElement("button");
+    button.innerText = "Submit";
+    button.className = "submit-btn";
+
+    button.addEventListener("click", async () => {
+      const val = textarea.value.trim();
+      if (!val) return;
+      await supabase.from("results").upsert({
+        date: today,
+        puzzle_name: puzzle,
+        player: currentUser,
+        raw_result: val,
+      });
+    });
+
+    cell.appendChild(textarea);
+    cell.appendChild(button);
   }
 
   async function loadResults() {
     const { data } = await supabase
-      .from(table)
+      .from("results")
       .select("*")
       .eq("date", today);
 
     if (data) {
       for (const entry of data) {
-        const cellId = `${entry.puzzle_name}-${entry.player}`;
-        renderResult(cellId, entry.raw_result);
+        const cell = document.querySelector(`[data-cell="${entry.puzzle_name}-${entry.player}"]`);
+        if (cell) {
+          cell.innerHTML = entry.raw_result;
+        }
       }
     }
-  }
 
-  async function saveResult(puzzleName, user, rawText) {
-    await supabase.from(table).upsert({
-      date: today,
-      puzzle_name: puzzleName,
-      player: user,
-      raw_result: rawText
-    });
-  }
-
-  function setupSubmitHandlers() {
-    getPuzzleRows().forEach(row => {
-      const puzzle = row.dataset.puzzle;
-      const input = row.querySelector("textarea");
-      const button = row.querySelector(".submit-btn");
-      button?.addEventListener("click", async () => {
-        const value = input?.value?.trim();
-        if (value) {
-          await saveResult(puzzle, localStorage.getItem("user"), value);
-        }
-      });
+    // Inject inputs into the current user’s column
+    document.querySelectorAll("tr[data-puzzle]").forEach(row => {
+      const puzzle = row.getAttribute("data-puzzle");
+      const cell = row.querySelector(`[data-cell="${puzzle}-${currentUser}"]`);
+      if (cell) {
+        cell.innerHTML = ""; // clear previous content
+        renderTextInput(cell, puzzle);
+      }
     });
   }
 
   function subscribeToChanges() {
     supabase
       .channel("realtime:results")
-      .on("postgres_changes", { event: "*", schema: "public", table }, payload => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "results" }, payload => {
         if (payload.new?.date === today) {
-          const cellId = `${payload.new.puzzle_name}-${payload.new.player}`;
-          renderResult(cellId, payload.new.raw_result);
+          const cell = document.querySelector(`[data-cell="${payload.new.puzzle_name}-${payload.new.player}"]`);
+          if (cell && payload.new.player !== currentUser) {
+            cell.innerHTML = payload.new.raw_result;
+          }
         }
       })
       .subscribe();
@@ -518,7 +518,6 @@ userSelect?.addEventListener("change", (e) => {
 
   window.addEventListener("DOMContentLoaded", () => {
     loadResults();
-    setupSubmitHandlers();
     subscribeToChanges();
   });
 </script>
