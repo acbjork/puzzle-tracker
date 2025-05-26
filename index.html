@@ -143,7 +143,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.81</div>
+  <div class="version">v0.2.82</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -196,14 +196,18 @@ textarea {
   async function loadResults() {
     if (!shouldRenderTable()) return;
     
+    console.log("Loading results from Supabase...");
+    
     try {
+      // Clear existing data
       Object.keys(results).forEach(key => delete results[key]);
       Object.keys(cellMap).forEach(key => delete cellMap[key]);
 
       const { data, error } = await supabase
         .from("results")
         .select("*")
-        .eq("date", today);
+        .eq("date", today)
+        .order("created_at", { ascending: true });
 
       if (error) {
         console.error("Error loading Supabase results:", error.message);
@@ -216,13 +220,16 @@ textarea {
       });
 
       // Populate with actual results if we got data
-      if (data) {
+      if (data && data.length > 0) {
+        console.log(`Loaded ${data.length} results from Supabase`);
         for (const entry of data) {
           const { puzzle_name, player, raw_result } = entry;
-          if (results[puzzle_name]) {
-            results[puzzle_name][player] = raw_result;
+          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan")) {
+            results[puzzle_name][player] = raw_result || "";
           }
         }
+      } else {
+        console.log("No results found in Supabase for today");
       }
 
       renderTable();
@@ -465,23 +472,36 @@ textarea {
   }
 
   async function deleteResult(puzzle, user) {
-    // Clear the local result
-    results[puzzle][user] = "";
+    console.log(`Deleting result for ${user} on ${puzzle}`);
+    
+    // Clear the local result immediately
+    if (results[puzzle]) {
+      results[puzzle][user] = "";
+    }
 
-    // DELETE from Supabase
-    const { error } = await supabase
-      .from("results")
-      .delete()
-      .eq("date", today)
-      .eq("puzzle_name", puzzle)
-      .eq("player", user);
-      
-    if (error) {
-      console.error("Deletion failed:", error.message);
-      alert("Could not delete the result. Try again.");
-    } else {
-      console.log("Result deleted from Supabase");
-      renderTable();
+    try {
+      // DELETE from Supabase with explicit matching
+      const { error, count } = await supabase
+        .from("results")
+        .delete({ count: 'exact' })
+        .eq("date", today)
+        .eq("puzzle_name", puzzle)
+        .eq("player", user);
+        
+      if (error) {
+        console.error("Deletion failed:", error.message);
+        alert("Could not delete the result. Try again.");
+        // Reload to get fresh data on error
+        await loadResults();
+      } else {
+        console.log(`Successfully deleted ${count} row(s) from Supabase`);
+        // Force a fresh render to ensure UI is updated
+        renderTable();
+      }
+    } catch (error) {
+      console.error("Delete operation failed:", error);
+      alert("Network error during deletion. Try again.");
+      await loadResults();
     }
   }
 
@@ -586,26 +606,45 @@ textarea {
 
   function subscribeToChanges() {
     try {
-      supabase
-        .channel("realtime:results")
+      const channel = supabase
+        .channel("puzzle-results-realtime")
         .on("postgres_changes", {
           event: "*",
           schema: "public",
-          table: "results"
+          table: "results",
+          filter: `date=eq.${today}`
         }, (payload) => {
+          console.log("Realtime update received:", payload);
+          
           const puzzle = payload.new?.puzzle_name || payload.old?.puzzle_name;
           const player = payload.new?.player || payload.old?.player;
 
-          if (payload.eventType === "DELETE" && puzzle && player) {
-            if (results[puzzle]) results[puzzle][player] = "";
+          if (!puzzle || !player) {
+            console.log("Invalid payload data, skipping");
+            return;
+          }
+
+          // Ensure results structure exists
+          if (!results[puzzle]) {
+            results[puzzle] = { Adam: "", Jonathan: "" };
+          }
+
+          if (payload.eventType === "DELETE") {
+            console.log(`Realtime DELETE: ${player} - ${puzzle}`);
+            results[puzzle][player] = "";
             renderTable();
           }
-          else if (payload.new?.date === today && puzzle && player) {
-            results[puzzle][player] = payload.new.raw_result;
+          else if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            console.log(`Realtime ${payload.eventType}: ${player} - ${puzzle}`);
+            results[puzzle][player] = payload.new.raw_result || "";
             renderTable();
           }
         })
-        .subscribe();
+        .subscribe((status) => {
+          console.log("Realtime subscription status:", status);
+        });
+        
+      console.log("Subscribed to realtime changes");
     } catch (error) {
       console.error("Failed to subscribe to realtime changes:", error);
       // App will still work without realtime updates
