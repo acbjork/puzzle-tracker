@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.7</div>
+  <div class="version">v0.2.8 - dealing with bracket counts</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -173,6 +173,7 @@ if (cell) {
 }
       }
     }
+  }
 
 window.addEventListener("DOMContentLoaded", () => {
   const saved = localStorage.getItem("puzzleResults");
