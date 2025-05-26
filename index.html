@@ -143,7 +143,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.85</div>
+  <div class="version">v0.2.86</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -203,13 +203,11 @@ textarea {
       Object.keys(results).forEach(key => delete results[key]);
       Object.keys(cellMap).forEach(key => delete cellMap[key]);
 
-      // Load results, excluding empty or deleted ones
+      // Load results normally - don't filter for deleted column that may not exist
       const { data, error } = await supabase
         .from("results")
         .select("*")
         .eq("date", today)
-        .neq("raw_result", "")
-        .is("deleted", null)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -226,9 +224,8 @@ textarea {
       if (data && data.length > 0) {
         console.log(`Loaded ${data.length} results from Supabase`);
         for (const entry of data) {
-          const { puzzle_name, player, raw_result, deleted } = entry;
-          // Only load non-deleted, non-empty results
-          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan") && raw_result && !deleted) {
+          const { puzzle_name, player, raw_result } = entry;
+          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan") && raw_result) {
             results[puzzle_name][player] = raw_result;
           }
         }
@@ -521,86 +518,39 @@ textarea {
         return true;
       }
 
-      // Try multiple deletion approaches
-      let deleteSuccess = false;
+      // Try simple direct delete with .match() approach
+      console.log("Attempting direct delete with match...");
       
-      // Approach 1: Try RPC/SQL function call (if available)
-      console.log("Attempting RPC deletion...");
-      try {
-        const { data: rpcData, error: rpcError } = await supabase
-          .rpc('delete_result', {
-            target_date: today,
-            target_puzzle: puzzle,
-            target_player: user
-          });
-        
-        if (!rpcError) {
-          console.log("RPC deletion successful");
-          deleteSuccess = true;
-        } else {
-          console.log("RPC not available, trying direct delete:", rpcError.message);
-        }
-      } catch (rpcErr) {
-        console.log("RPC method not available, continuing with direct delete");
-      }
+      const { data: deleteData, error: deleteError, count } = await supabase
+        .from("results")
+        .delete({ count: 'exact' })
+        .match({
+          date: today,
+          puzzle_name: puzzle,
+          player: user
+        });
 
-      // Approach 2: If RPC failed, try direct delete with different syntax
-      if (!deleteSuccess) {
-        console.log("Attempting direct delete with composite key...");
-        
-        const { data: deleteData, error: deleteError, count } = await supabase
-          .from("results")
-          .delete({ count: 'exact' })
-          .match({
-            date: today,
-            puzzle_name: puzzle,
-            player: user
-          });
-
-        if (deleteError) {
-          console.error("Composite delete failed:", deleteError);
-        } else {
-          console.log(`Composite delete completed. Rows affected: ${count}`);
-          if (count > 0) {
-            deleteSuccess = true;
-          }
-        }
-      }
-
-      // Approach 3: If still not working, try updating to empty value instead of deleting
-      if (!deleteSuccess) {
-        console.log("Attempting to update record to empty value instead of delete...");
-        
-        const { data: updateData, error: updateError } = await supabase
-          .from("results")
-          .update({ raw_result: "", deleted: true })
-          .eq("date", today)
-          .eq("puzzle_name", puzzle)
-          .eq("player", user);
-
-        if (updateError) {
-          console.error("Update to empty failed:", updateError);
-          alert(`Cannot delete or update record: ${updateError.message}`);
-          return false;
-        } else {
-          console.log("Successfully marked record as deleted");
-          deleteSuccess = true;
-        }
-      }
-
-      if (!deleteSuccess) {
-        alert("All deletion methods failed. This may be a permissions issue with your Supabase table.");
+      if (deleteError) {
+        console.error("Delete failed:", deleteError);
+        alert(`Cannot delete record: ${deleteError.message}. This may be a permissions issue.`);
         return false;
       }
 
-      // Verify the result
+      console.log(`Delete completed. Rows affected: ${count}`);
+      
+      if (count === 0) {
+        console.log("No rows were deleted - this suggests a permissions issue");
+        alert("Deletion failed: No rows affected. Your Supabase table may have Row Level Security that prevents deletion.");
+        return false;
+      }
+
+      // Verify deletion worked
       const { data: afterData, error: afterError } = await supabase
         .from("results")
         .select("*")
         .eq("date", today)
         .eq("puzzle_name", puzzle)
-        .eq("player", user)
-        .neq("raw_result", ""); // Only get non-empty results
+        .eq("player", user);
 
       if (afterError) {
         console.error("Error verifying deletion:", afterError);
@@ -608,7 +558,7 @@ textarea {
         console.log("Data after deletion:", afterData);
         if (afterData && afterData.length > 0) {
           console.error("WARNING: Data still exists after deletion!");
-          alert("Deletion verification failed - data may still exist");
+          alert("Deletion verification failed - data still exists");
           return false;
         }
       }
