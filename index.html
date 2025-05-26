@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.75</div>
+  <div class="version">v0.2.76</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -202,7 +202,8 @@ window.location.href = window.location.href;
     }
   }
 
-setTimeout(renderTable, 0);
+renderTable();
+updateScoreboard();
 }
   function highlightWinner(tr, puzzle) {
     function markWinner(cell) {
@@ -532,7 +533,6 @@ if (error) {
       tbody.appendChild(tr);
     });
 
-    updateScoreboard(); // Now runs after all winners are marked
   } 
 
 function renderTextInput(cell, puzzle, existingValue = "") {
