@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.17 - improved renderTextInput</div>
+  <div class="version">v0.2.18 - getting annoyed</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -337,7 +337,7 @@ function renderTextInput(cell, puzzle, existingValue = "") {
         remaining++;
         return;
       }
-      const row = [...document.querySelectorAll("#puzzleRows tr")].find(tr => tr.firstChild.textContent === puzzle);
+const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
       const [aCell, jCell] = [row.children[1], row.children[2]];
       if (aCell.classList.contains("winner")) acb++;
       else if (jCell.classList.contains("winner")) jbb++;
