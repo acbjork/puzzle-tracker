@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.71</div>
+  <div class="version">v0.2.73</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -469,7 +469,7 @@ if (error) {
             ta.placeholder = "Paste result...";
             const btn = document.createElement("button");
             btn.textContent = "Submit";
-            btn.onclick = async () => {
+         btn.onclick = async () => {
   const newVal = ta.value.trim();
 
   if (!newVal) {
@@ -513,16 +513,8 @@ if (error) {
   } else {
     renderTable();
   }
-};
+}; // <-- this ends the btn.onclick function
 
-              results[puzzle][user] = newVal;
-              const { error } = await supabase
-                .from("results")
-                .upsert({ date: today, puzzle_name: puzzle, player: user, raw_result: newVal },
-                        { onConflict: ["date", "puzzle_name", "player"] });
-
-              if (!error) renderTable();
-            };
             td.appendChild(ta);
             td.appendChild(btn);
           }
