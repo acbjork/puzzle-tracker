@@ -220,8 +220,8 @@ textarea {
 
 .message.other {
   align-self: flex-start;
-  background: #6c757d;
-  color: white;
+  background: #f1f3f4;
+  color: #000000;
   border-bottom-left-radius: 0.3em;
   animation: slideIn 0.3s ease;
 }
@@ -301,6 +301,111 @@ textarea {
   background: #ccc;
   cursor: not-allowed;
 }
+
+.message-delete {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  font-size: 0.8em;
+  margin-left: 0.5em;
+  padding: 0.2em;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+.message-delete:hover {
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+.puzzle-note {
+  font-size: 0.75em;
+  color: #856404;
+  background: #fff3cd;
+  padding: 0.3em;
+  border-radius: 3px;
+  margin-top: 0.3em;
+  border-left: 3px solid #ffc107;
+}
+
+.dnf-result {
+  color: #dc3545;
+  font-weight: bold;
+  font-style: italic;
+}
+
+.history-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  z-index: 3000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-modal.show {
+  display: flex;
+}
+
+.history-panel {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  height: 80%;
+  max-height: 700px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  overflow: hidden;
+}
+
+.history-header {
+  background: #28a745;
+  color: white;
+  padding: 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1em;
+}
+
+.streak-info {
+  background: #f8f9fa;
+  padding: 1em;
+  border-radius: 8px;
+  margin-bottom: 1em;
+  text-align: center;
+}
+
+.history-day {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 1em;
+  padding: 1em;
+}
+
+.history-day.winner-adam {
+  border-left: 5px solid #28a745;
+}
+
+.history-day.winner-jonathan {
+  border-left: 5px solid #007bff;
+}
+
+.history-day.tie {
+  border-left: 5px solid #ffc107;
+}
     
 </style>
 </head>
@@ -317,9 +422,24 @@ textarea {
     </select>
   </label>
 
+  <div style="margin: 1em 0; text-align: center;">
+    <button id="newDayButton" style="display: none; padding: 0.7em 1.5em; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer;" onclick="startNewDay()">
+      🌅 Begin Today's Puzzles
+    </button>
+    <button id="historyButton" style="margin-left: 1em; padding: 0.7em 1.5em; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;" onclick="showHistory()">
+      📊 Puzzle History
+    </button>
+  </div>
+
 <div id="scoreboard">
-  <div class="scoreboard-label">ACB<span id="acbCount" class="scoreboard-value">0</span></div>
-  <div class="scoreboard-label">JBB<span id="jbbCount" class="scoreboard-value">0</span></div>
+  <div class="scoreboard-label">
+    <div id="adamCrown" style="display: none; font-size: 1.2em;">👑</div>
+    ACB<span id="acbCount" class="scoreboard-value">0</span>
+  </div>
+  <div class="scoreboard-label">
+    <div id="jonathanCrown" style="display: none; font-size: 1.2em;">👑</div>
+    JBB<span id="jbbCount" class="scoreboard-value">0</span>
+  </div>
   <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
   <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
 </div>
@@ -416,7 +536,20 @@ textarea {
     </div>
   </div>
 
-  <div class="version">v0.3.0 - Complete Edition</div>
+  <!-- History Modal -->
+  <div class="history-modal" id="historyModal" onclick="closeHistory(event)">
+    <div class="history-panel" onclick="event.stopPropagation()">
+      <div class="history-header">
+        <div style="font-weight: bold; font-size: 1.1em;">📊 Puzzle History</div>
+        <button style="background: none; border: none; color: white; cursor: pointer; font-size: 1.5em;" onclick="closeHistory()">&times;</button>
+      </div>
+      <div class="history-content" id="historyContent">
+        <!-- History will be loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <div class="version">v0.4.0 - Daily Competition Edition</div>
 
 <!-- Load Supabase via CDN script tag instead of ES6 import -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -453,8 +586,94 @@ textarea {
   let chatOpen = false;
   let unreadCount = 0;
   let soundEnabled = true;
+  let currentGameDate = today;
+  let dailyHistory = [];
 
   console.log("✅ Variables initialized");
+
+  // Time zone and deadline functions
+  function getUserMidnight() {
+    const now = new Date();
+    const midnight = new Date(now);
+    midnight.setHours(0, 30, 0, 0); // 12:30 AM
+    if (now.getHours() >= 0 && now.getMinutes() >= 30) {
+      midnight.setDate(midnight.getDate() + 1);
+    }
+    return midnight;
+  }
+
+  function isAfterDeadline() {
+    const now = new Date();
+    const deadline = getUserMidnight();
+    return now > deadline;
+  }
+
+  function isOnTheRecordWeekend() {
+    const gameDate = new Date(currentGameDate);
+    return gameDate.getDay() === 5; // Friday = weekend edition
+  }
+
+  function getOnTheRecordDeadline() {
+    if (isOnTheRecordWeekend()) {
+      // Weekend edition deadline is Monday 12:30 AM
+      const friday = new Date(currentGameDate);
+      const monday = new Date(friday);
+      monday.setDate(friday.getDate() + 3);
+      monday.setHours(0, 30, 0, 0);
+      return monday;
+    }
+    return getUserMidnight();
+  }
+
+  function extractDateFromResult(puzzle, result) {
+    if (!result) return null;
+    
+    // Extract dates/numbers from different puzzle types
+    switch (puzzle) {
+      case "NYT Mini":
+        const nytMatch = result.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
+        return nytMatch ? nytMatch[1] : null;
+      
+      case "Connections":
+        const connMatch = result.match(/Connections\s*\n*(.+?)\n/);
+        return connMatch ? connMatch[1].trim() : null;
+      
+      case "Strands":
+        const strandsMatch = result.match(/Strands\s*#(\d+)/);
+        return strandsMatch ? `#${strandsMatch[1]}` : null;
+      
+      case "Wordle":
+        const wordleMatch = result.match(/Wordle\s*(\d+)/);
+        return wordleMatch ? wordleMatch[1] : null;
+      
+      case "Globle":
+        const globleMatch = result.match(/#(\d+)/);
+        return globleMatch ? `#${globleMatch[1]}` : null;
+      
+      case "Flagle":
+        const flagleMatch = result.match(/#(\d+)/);
+        return flagleMatch ? `#${flagleMatch[1]}` : null;
+      
+      default:
+        return null;
+    }
+  }
+
+  function checkDateDiscordance(puzzle) {
+    const adamResult = results[puzzle]?.Adam || "";
+    const jonathanResult = results[puzzle]?.Jonathan || "";
+    
+    if (!adamResult || !jonathanResult) return null;
+    
+    const adamDate = extractDateFromResult(puzzle, adamResult);
+    const jonathanDate = extractDateFromResult(puzzle, jonathanResult);
+    
+    if (adamDate && jonathanDate && adamDate !== jonathanDate) {
+      return `⚠️ Date mismatch: ${adamDate} vs ${jonathanDate}`;
+    }
+    
+    return null;
+  }
 
   const userSelect = document.querySelector("#userSelect");
   if (userSelect) {
