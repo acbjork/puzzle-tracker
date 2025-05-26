@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.59</div>
+  <div class="version">v0.2.60</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -273,20 +273,54 @@ function markBothAs(cls, a, b) {
   }
 
   if (puzzle === "Apple Mini") {
-    const aMatch = aVal.match(/(\d+)m\s*(\d+)s/);
-    const jMatch = jVal.match(/(\d+)m\s*(\d+)s/);
-    const aTime = aMatch ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2]) : 9999;
-    const jTime = jMatch ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2]) : 9999;
-    if (aTime < jTime) markWinner(adamCell);
-    else if (jTime < aTime) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
+  let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+  let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+
+  if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+  if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+
+  const aSecs = aVal.match(/^(\d+)\s*s$/i);
+  const jSecs = jVal.match(/^(\d+)\s*s$/i);
+
+  const aTime = aMatch
+    ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
+    : aSecs
+    ? parseInt(aSecs[1])
+    : 9999;
+
+  const jTime = jMatch
+    ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
+    : jSecs
+    ? parseInt(jSecs[1])
+    : 9999;
+
+  if (aTime < jTime) markWinner(adamCell);
+  else if (jTime < aTime) markWinner(jonCell);
+  else markBothAs("tie", adamCell, jonCell);
+}
 
   if (puzzle === "NYT Mini") {
-  const aMatch = aVal.match(/(\d+)m\s*(\d+)s/);
-  const jMatch = jVal.match(/(\d+)m\s*(\d+)s/);
-  const aTime = aMatch ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2]) : 9999;
-  const jTime = jMatch ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2]) : 9999;
+  let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+  let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+
+  if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+  if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+
+  const aSecs = aVal.match(/^(\d+)\s*s$/i);
+  const jSecs = jVal.match(/^(\d+)\s*s$/i);
+
+  const aTime = aMatch
+    ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
+    : aSecs
+    ? parseInt(aSecs[1])
+    : 9999;
+
+  const jTime = jMatch
+    ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
+    : jSecs
+    ? parseInt(jSecs[1])
+    : 9999;
+
   if (aTime < jTime) markWinner(adamCell);
   else if (jTime < aTime) markWinner(jonCell);
   else markBothAs("tie", adamCell, jonCell);
@@ -395,6 +429,9 @@ if (error) {
 }
   function renderTable() {
     const tbody = document.getElementById("puzzleRows");
+    document.querySelectorAll("td").forEach(td => {
+  td.classList.remove("winner", "tie");
+});
     tbody.innerHTML = "";
 
     puzzles.forEach(puzzle => {
@@ -486,7 +523,7 @@ if (error) {
       tbody.appendChild(tr);
     });
 
-updateScoreboard();
+setTimeout(updateScoreboard, 0);
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
@@ -546,9 +583,10 @@ function renderTextInput(cell, puzzle, existingValue = "") {
       const player = payload.new?.player || payload.old?.player;
 
       if (payload.eventType === "DELETE" && puzzle && player) {
-        results[puzzle][player] = "";
-        renderTable();
-      } else if (payload.new?.date === today && puzzle && player) {
+  if (results[puzzle]) results[puzzle][player] = "";
+  renderTable();
+}
+      else if (payload.new?.date === today && puzzle && player) {
         results[puzzle][player] = payload.new.raw_result;
         renderTable();
       }
