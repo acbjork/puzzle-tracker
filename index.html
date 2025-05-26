@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.27</div>
+  <div class="version">v0.2.28</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -193,7 +193,126 @@ textarea {
       }
     }
   }
+function highlightWinner(tr, puzzle) {
+  const [adamCell, jonCell] = [tr.children[1], tr.children[2]];
+  const aVal = results[puzzle].Adam;
+  const jVal = results[puzzle].Jonathan;
 
+  if (!aVal || !jVal) return;
+
+  if (puzzle === "Connections") {
+    if (aVal === jVal) return markBothAs("tie", adamCell, jonCell);
+    const aLines = aVal.split("\n");
+    const jLines = jVal.split("\n");
+    const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
+    const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
+    if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
+    else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
+    else markBothAs("tie", adamCell, jonCell);
+  }
+
+  if (puzzle === "Strands") {
+    const aHints = (aVal.match(/💡/g) || []).length;
+    const jHints = (jVal.match(/💡/g) || []).length;
+    const aTotal = aVal.split("\n").length;
+    const jTotal = jVal.split("\n").length;
+    if (aTotal < jTotal) markWinner(adamCell);
+    else if (jTotal < aTotal) markWinner(jonCell);
+    else if (aHints < jHints) markWinner(adamCell);
+    else if (jHints < aHints) markWinner(jonCell);
+    else {
+      const aIndex = aVal.indexOf("🟡");
+      const jIndex = jVal.indexOf("🟡");
+      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
+      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+  }
+
+  if (puzzle === "Keyword") {
+    const aGuesses = parseInt(aVal.match(/(\d+) guesses/)?.[1] || "999");
+    const jGuesses = parseInt(jVal.match(/(\d+) guesses/)?.[1] || "999");
+    if (aGuesses < jGuesses) markWinner(adamCell);
+    else if (jGuesses < aGuesses) markWinner(jonCell);
+    else {
+      const aTime = parseTime(aVal.match(/(\d+:\d+)/)?.[1] || "99:99");
+      const jTime = parseTime(jVal.match(/(\d+:\d+)/)?.[1] || "99:99");
+      if (aTime < jTime) markWinner(adamCell);
+      else if (jTime < aTime) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+  }
+
+  if (puzzle === "Wordle") {
+    const aScore = parseInt(aVal.match(/\b(\d)\/6/)?.[1] || "7");
+    const jScore = parseInt(jVal.match(/\b(\d)\/6/)?.[1] || "7");
+    if (aScore < jScore) markWinner(adamCell);
+    else if (jScore < aScore) markWinner(jonCell);
+    else markBothAs("tie", adamCell, jonCell);
+  }
+
+  if (puzzle === "On The Record") {
+    const aScore = parseInt(aVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
+    const jScore = parseInt(jVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
+    if (aScore > jScore) markWinner(adamCell);
+    else if (jScore > aScore) markWinner(jonCell);
+    else markBothAs("tie", adamCell, jonCell);
+  }
+
+  if (puzzle === "Apple Mini") {
+    const aMatch = aVal.match(/(\d+)m\s*(\d+)s/);
+    const jMatch = jVal.match(/(\d+)m\s*(\d+)s/);
+    const aTime = aMatch ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2]) : 9999;
+    const jTime = jMatch ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2]) : 9999;
+    if (aTime < jTime) markWinner(adamCell);
+    else if (jTime < aTime) markWinner(jonCell);
+    else markBothAs("tie", adamCell, jonCell);
+  }
+
+  if (puzzle === "Globle") {
+    const aGuesses = parseInt(aVal.match(/=\s*(\d+)/)?.[1] || "999");
+    const jGuesses = parseInt(jVal.match(/=\s*(\d+)/)?.[1] || "999");
+    if (aGuesses < jGuesses) markWinner(adamCell);
+    else if (jGuesses < aGuesses) markWinner(jonCell);
+    else markBothAs("tie", adamCell, jonCell);
+  }
+
+  if (puzzle === "Flagle") {
+    const aScore = aVal.includes("X") ? 7 : parseInt(aVal.match(/\b(\d)/)?.[1] || "7");
+    const jScore = jVal.includes("X") ? 7 : parseInt(jVal.match(/\b(\d)/)?.[1] || "7");
+    if (aScore < jScore) markWinner(adamCell);
+    else if (jScore < aScore) markWinner(jonCell);
+    else markBothAs("tie", adamCell, jonCell);
+  }
+
+  if (puzzle === "Tightrope") {
+    const aChecks = (aVal.match(/✅/g) || []).length;
+    const jChecks = (jVal.match(/✅/g) || []).length;
+    if (aChecks > jChecks) markWinner(adamCell);
+    else if (jChecks > aChecks) markWinner(jonCell);
+    else {
+      const aScore = parseInt(aVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
+      const jScore = parseInt(jVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
+      if (aScore > jScore) markWinner(adamCell);
+      else if (jScore > aScore) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+  }
+}
+
+function parseTime(t) {
+  const [min, sec] = t.split(":").map(Number);
+  return min * 60 + sec;
+}
+
+function markWinner(cell) {
+  cell.classList.add("winner");
+}
+
+function markBothAs(cls, a, b) {
+  a.classList.add(cls);
+  b.classList.add(cls);
+}
   function renderTable() {
     const tbody = document.getElementById("puzzleRows");
     tbody.innerHTML = "";
