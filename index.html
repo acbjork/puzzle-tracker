@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.74</div>
+  <div class="version">v0.2.75</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -202,7 +202,7 @@ window.location.href = window.location.href;
     }
   }
 
-  renderTable(); // Rebuild table with synced data
+setTimeout(renderTable, 0);
 }
   function highlightWinner(tr, puzzle) {
     function markWinner(cell) {
@@ -653,7 +653,6 @@ function renderTextInput(cell, puzzle, existingValue = "") {
   const overlay = document.getElementById("loadingOverlay");
   try {
     await loadResults();      // Wait for Supabase to populate `results`
-    renderTable();            // Use it to build the UI
     subscribeToChanges();     // Listen for new data
   } finally {
     overlay.style.display = "none";
