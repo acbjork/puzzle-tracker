@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.19 - losing my grip</div>
+  <div class="version">v0.2.20</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -193,14 +193,6 @@ textarea {
     }
   }
 
-
-    if (error) {
-      console.error("Submit failed:", error.message);
-      alert("Submission failed. Try again.");
-    } else {
-      console.log("Submission succeeded.");
-    }
-  });
 
   cell.innerHTML = "";
   cell.appendChild(textarea);
@@ -286,19 +278,31 @@ setTimeout(() => {
   renderTable();
 }, 0);
 
-    // 3. Still sync to Supabase in background
-    const { error } = await supabase
-      .from("results")
-      .upsert(
-        {
-          date: today,
-          puzzle_name: puzzle,
-          player: currentUser,
-          raw_result: val,
-        },
-        { onConflict: ["date", "puzzle_name", "player"] }
-      );
+// 3. Still sync to Supabase in background
+const { error } = await supabase
+  .from("results")
+  .upsert(
+    {
+      date: today,
+      puzzle_name: puzzle,
+      player: currentUser,
+      raw_result: val,
+    },
+    { onConflict: ["date", "puzzle_name", "player"] }
+  );
 
+if (error) {
+  console.error("Submit failed:", error.message);
+  alert("Submission failed. Try again.");
+} else {
+  console.log("Submission succeeded.");
+}
+  }); // This closes the async click handler
+
+  cell.innerHTML = "";
+  cell.appendChild(textarea);
+  cell.appendChild(button);
+}
   function enableEdit(td, puzzle, user, oldVal) {
     td.innerHTML = "";
     const ta = document.createElement("textarea");
