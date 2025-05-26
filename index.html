@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.76</div>
+  <div class="version">v0.2.77</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -529,11 +529,12 @@ if (error) {
         tr.appendChild(td);
       });
 
-      highlightWinner(tr, puzzle); // Inline instead of async to ensure scoreboard sees it
+            highlightWinner(tr, puzzle); // Inline instead of async to ensure scoreboard sees it
       tbody.appendChild(tr);
     });
 
-  } 
+    updateScoreboard(); // <- THIS IS THE FIX
+  }
 
 function renderTextInput(cell, puzzle, existingValue = "") {
   const textarea = document.createElement("textarea");
