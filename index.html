@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.20</div>
+  <div class="version">v0.2.21</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -290,14 +290,6 @@ const { error } = await supabase
     },
     { onConflict: ["date", "puzzle_name", "player"] }
   );
-
-if (error) {
-  console.error("Submit failed:", error.message);
-  alert("Submission failed. Try again.");
-} else {
-  console.log("Submission succeeded.");
-}
-  }); // This closes the async click handler
 
   cell.innerHTML = "";
   cell.appendChild(textarea);
