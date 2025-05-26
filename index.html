@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.67</div>
+  <div class="version">v0.2.69</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -581,28 +581,28 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 
   function updateScoreboard() {
   let acb = 0, jbb = 0, tie = 0, remaining = 0;
+
   puzzles.forEach(puzzle => {
-    const aVal = results[puzzle]?.Adam || "";
-    const jVal = results[puzzle]?.Jonathan || "";
-
-    if (!aVal || !jVal) {
-      remaining++;
-      return;
-    }
-
     const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
     if (!row) return;
 
-    const aCell = row.children[1];
-    const jCell = row.children[2];
+    const [aCell, jCell] = [row.children[1], row.children[2]];
+    const aVal = results[puzzle]?.Adam || "";
+    const jVal = results[puzzle]?.Jonathan || "";
 
     const aIsWin = aCell.classList.contains("winner");
     const jIsWin = jCell.classList.contains("winner");
-    const bothTie = aCell.classList.contains("tie") && jCell.classList.contains("tie");
+    const isTie = aCell.classList.contains("tie") && jCell.classList.contains("tie");
 
-    if (aIsWin && !jIsWin) acb++;
-    else if (jIsWin && !aIsWin) jbb++;
-    else if (bothTie) tie++;
+    if (!aVal || !jVal) {
+      remaining++;
+    } else if (aIsWin && !jIsWin) {
+      acb++;
+    } else if (jIsWin && !aIsWin) {
+      jbb++;
+    } else if (isTie) {
+      tie++;
+    }
   });
 
   document.getElementById("acbCount").textContent = acb;
