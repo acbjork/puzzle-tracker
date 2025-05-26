@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.49</div>
+  <div class="version">v0.2.51</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -332,22 +332,41 @@ function enableEdit(td, puzzle, user, oldVal) {
   const btn = document.createElement("button");
   btn.textContent = "Submit"
   btn.onclick = async () => {
-    const newVal = ta.value.trim();
-  if (!newVal) return;
+  const newVal = ta.value.trim();
 
+  if (newVal === "") {
+    // If user clears result, delete the record from Supabase
+    const { error } = await supabase
+      .from("results")
+      .delete()
+      .match({
+        date: today,
+        puzzle_name: puzzle,
+        player: user,
+      });
+
+    if (error) {
+      console.error("Deletion failed:", error.message);
+      alert("Clearing the result failed. Try again.");
+    } else {
+      results[puzzle][user] = "";
+      renderTable();
+    }
+
+    return;
+  }
+
+  // Otherwise, update the result as usual
   results[puzzle][user] = newVal;
 
   const { error } = await supabase
     .from("results")
-    .upsert(
-      {
-        date: today,
-        puzzle_name: puzzle,
-        player: user,
-        raw_result: newVal,
-      },
-      { onConflict: ["date", "puzzle_name", "player"] }
-    );
+    .upsert({
+      date: today,
+      puzzle_name: puzzle,
+      player: user,
+      raw_result: newVal,
+    }, { onConflict: ["date", "puzzle_name", "player"] });
 
   if (error) {
     console.error("Submission failed:", error.message);
@@ -394,23 +413,49 @@ function enableEdit(td, puzzle, user, oldVal) {
             const btn = document.createElement("button");
             btn.textContent = "Submit";
             btn.onclick = async () => {
-              const newVal = ta.value.trim();
-if (!newVal) return;
-results[puzzle][user] = newVal;
+  const newVal = ta.value.trim();
 
-await supabase
-  .from("results")
-  .upsert(
-    {
+  if (newVal === "") {
+    // User wants to clear the result — delete from Supabase
+    const { error } = await supabase
+      .from("results")
+      .delete()
+      .match({
+        date: today,
+        puzzle_name: puzzle,
+        player: user,
+      });
+
+    if (error) {
+      console.error("Deletion failed:", error.message);
+      alert("Clearing the result failed. Try again.");
+    } else {
+      results[puzzle][user] = "";
+      renderTable();
+    }
+
+    return;
+  }
+
+  // Otherwise, save as normal
+  results[puzzle][user] = newVal;
+
+  const { error } = await supabase
+    .from("results")
+    .upsert({
       date: today,
       puzzle_name: puzzle,
       player: user,
       raw_result: newVal,
-    },
-    { onConflict: ["date", "puzzle_name", "player"] }
-  );
+    }, { onConflict: ["date", "puzzle_name", "player"] });
 
-renderTable();            };
+  if (error) {
+    console.error("Submission failed:", error.message);
+    alert("Submission failed. Try again.");
+  } else {
+    renderTable();
+  }
+};
             td.appendChild(ta);
             td.appendChild(btn);
           }
@@ -506,9 +551,9 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
 if (!row) return; // Skip this puzzle if row is not found
 const [aCell, jCell] = [row.children[1], row.children[2]];
-      if (aCell.classList.contains("winner")) acb++;
-      else if (jCell.classList.contains("winner")) jbb++;
-      else if (aCell.classList.contains("tie")) tie++;
+      if (aCell.querySelector(".winner")) acb++;
+else if (jCell.querySelector(".winner")) jbb++;
+else if (aCell.querySelector(".tie") || jCell.querySelector(".tie")) tie++;
     });
 
     const acbEl = document.getElementById("acbCount");
