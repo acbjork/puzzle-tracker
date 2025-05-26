@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.51</div>
+  <div class="version">v0.2.53</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -334,15 +334,15 @@ function enableEdit(td, puzzle, user, oldVal) {
   btn.onclick = async () => {
   const newVal = ta.value.trim();
 
-  if (newVal === "") {
-    // If user clears result, delete the record from Supabase
+  if (!newVal) {
+    // Delete from Supabase if cleared
     const { error } = await supabase
       .from("results")
       .delete()
       .match({
         date: today,
         puzzle_name: puzzle,
-        player: user,
+        player: user
       });
 
     if (error) {
@@ -353,6 +353,31 @@ function enableEdit(td, puzzle, user, oldVal) {
       renderTable();
     }
 
+    return;
+  }
+
+  // Else: save normally
+  results[puzzle][user] = newVal;
+
+  const { error } = await supabase
+    .from("results")
+    .upsert(
+      {
+        date: today,
+        puzzle_name: puzzle,
+        player: user,
+        raw_result: newVal,
+      },
+      { onConflict: ["date", "puzzle_name", "player"] }
+    );
+
+  if (error) {
+    console.error("Submission failed:", error.message);
+    alert("Submission failed. Try again.");
+  } else {
+    renderTable();
+  }
+};
     return;
   }
 
@@ -473,7 +498,7 @@ function enableEdit(td, puzzle, user, oldVal) {
       tbody.appendChild(tr);
     });
 
-    updateScoreboard();
+setTimeout(updateScoreboard, 0);
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
