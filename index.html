@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.38</div>
+  <div class="version">v0.2.40</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -188,10 +188,12 @@ window.location.href = window.location.href;
   }
 
   for (const entry of data) {
-    if (!results[entry.puzzle_name]) {
-      results[entry.puzzle_name] = { Adam: "", Jonathan: "" };
-    }
-    results[entry.puzzle_name][entry.player] = entry.raw_result;
+    const puzzle = entry.puzzle_name;
+    const player = entry.player;
+    const result = entry.raw_result;
+
+    if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+    results[puzzle][player] = result;
   }
 }
   function highlightWinner(tr, puzzle) {
@@ -378,13 +380,50 @@ function enableEdit(td, puzzle, user, oldVal) {
         tr.appendChild(td);
       });
 
-      highlightWinner(tr, puzzle);
-      tbody.appendChild(tr);
-    });
+     function highlightWinner(tr, puzzle) {
+  const [adamCell, jonCell] = [tr.children[1], tr.children[2]];
+  const aVal = results[puzzle].Adam;
+  const jVal = results[puzzle].Jonathan;
 
-    document.getElementById("puzzleTable").style.display = "table";
-    updateScoreboard();
+  // Remove any prior win/tie classes
+  adamCell.classList.remove("winner", "tie");
+  jonCell.classList.remove("winner", "tie");
+
+  if (!aVal || !jVal) return;
+
+  let winner = null;
+
+  if (puzzle === "Connections") {
+    if (aVal === jVal) return markBothAs("tie", adamCell, jonCell);
+    const aIndex = aVal.split("\n").findIndex(line => line.includes("🟪🟪🟪🟪"));
+    const jIndex = jVal.split("\n").findIndex(line => line.includes("🟪🟪🟪🟪"));
+    if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) winner = "Adam";
+    else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) winner = "Jonathan";
   }
+
+  if (puzzle === "Strands") {
+    const aHints = (aVal.match(/💡/g) || []).length;
+    const jHints = (jVal.match(/💡/g) || []).length;
+    const aTotal = aVal.split("\n").length;
+    const jTotal = jVal.split("\n").length;
+    if (aTotal < jTotal) winner = "Adam";
+    else if (jTotal < aTotal) winner = "Jonathan";
+    else if (aHints < jHints) winner = "Adam";
+    else if (jHints < aHints) winner = "Jonathan";
+    else {
+      const aIndex = aVal.indexOf("🟡");
+      const jIndex = jVal.indexOf("🟡");
+      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) winner = "Adam";
+      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) winner = "Jonathan";
+    }
+  }
+
+  // (Optional: Add more logic for other puzzles…)
+
+  if (winner === "Adam") markWinner(adamCell);
+  else if (winner === "Jonathan") markWinner(jonCell);
+  else markBothAs("tie", adamCell, jonCell);
+}
 
 function renderTextInput(cell, puzzle, existingValue = "") {
   const textarea = document.createElement("textarea");
@@ -489,11 +528,11 @@ const [aCell, jCell] = [row.children[1], row.children[2]];
   window.addEventListener("DOMContentLoaded", async () => {
   const overlay = document.getElementById("loadingOverlay");
   try {
-    await loadResults();      // wait for Supabase
-    renderTable();            // then build UI
-    subscribeToChanges();     // and listen for live updates
+    await loadResults();      // Wait for Supabase to populate `results`
+    renderTable();            // Use it to build the UI
+    subscribeToChanges();     // Listen for new data
   } finally {
-    overlay.style.display = "none";  // hide "Loading…" no matter what
+    overlay.style.display = "none";
   }
 });
   /*
