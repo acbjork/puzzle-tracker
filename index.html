@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.18 - getting annoyed</div>
+  <div class="version">v0.2.19 - losing my grip</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -193,37 +193,6 @@ textarea {
     }
   }
 
-function renderTextInput(cell, puzzle, existingValue = "") {
-  const textarea = document.createElement("textarea");
-  textarea.placeholder = "Paste result...";
-  textarea.style.width = "95%";
-  textarea.value = existingValue;
-
-  const button = document.createElement("button");
-  button.innerText = "Submit";
-  button.className = "submit-btn";
-
-  button.addEventListener("click", async () => {
-    const val = textarea.value.trim();
-    if (!val) return;
-
-    // 1. Update local results for faster UI feedback
-    if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-    results[puzzle][currentUser] = val;
-    renderTable();  // 2. Immediately re-render the table
-
-    // 3. Still sync to Supabase in background
-    const { error } = await supabase
-      .from("results")
-      .upsert(
-        {
-          date: today,
-          puzzle_name: puzzle,
-          player: currentUser,
-          raw_result: val,
-        },
-        { onConflict: ["date", "puzzle_name", "player"] }
-      );
 
     if (error) {
       console.error("Submit failed:", error.message);
@@ -295,6 +264,40 @@ function renderTextInput(cell, puzzle, existingValue = "") {
     document.getElementById("puzzleTable").style.display = "table";
     updateScoreboard();
   }
+
+  function renderTextInput(cell, puzzle, existingValue = "") {
+  const textarea = document.createElement("textarea");
+  textarea.placeholder = "Paste result...";
+  textarea.style.width = "95%";
+  textarea.value = existingValue;
+
+  const button = document.createElement("button");
+  button.innerText = "Submit";
+  button.className = "submit-btn";
+
+  button.addEventListener("click", async () => {
+    const val = textarea.value.trim();
+    if (!val) return;
+
+    // 1. Update local results for faster UI feedback
+    if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+    results[puzzle][currentUser] = val;
+setTimeout(() => {
+  renderTable();
+}, 0);
+
+    // 3. Still sync to Supabase in background
+    const { error } = await supabase
+      .from("results")
+      .upsert(
+        {
+          date: today,
+          puzzle_name: puzzle,
+          player: currentUser,
+          raw_result: val,
+        },
+        { onConflict: ["date", "puzzle_name", "player"] }
+      );
 
   function enableEdit(td, puzzle, user, oldVal) {
     td.innerHTML = "";
