@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.26</div>
+  <div class="version">v0.2.27</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -194,11 +194,6 @@ textarea {
     }
   }
 
-
-   cell.innerHTML = "";
-  cell.appendChild(textarea);
-  cell.appendChild(button);
-}); // <-- CLOSE the click listener properly
   function renderTable() {
     const tbody = document.getElementById("puzzleRows");
     tbody.innerHTML = "";
