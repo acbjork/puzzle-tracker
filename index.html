@@ -23,8 +23,8 @@ textarea {
   line-height: 1.2;
   border-radius: 4px;
 }
-    .winner { background: #d6f5d6; }
-    .tie { background: #fff9c4; }
+    .winner { background-color: #d6f5d6 !important; }
+.tie { background-color: #fff9c4 !important; }
     .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
   
 .tie { background-color: #fff9c4 !important; }
@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.58</div>
+  <div class="version">v0.2.59</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -414,10 +414,7 @@ if (error) {
 
         if (user === currentUser) {
           if (result) {
-            const div = document.createElement("div");
-            div.className = "submitted";
-            div.textContent = result;
-            td.appendChild(div);
+            td.innerHTML = `<div class="submitted">${result}</div>`;
             const editBtn = document.createElement("button");
             editBtn.textContent = "Edit";
             editBtn.onclick = () => enableEdit(td, puzzle, user, result);
@@ -489,7 +486,7 @@ if (error) {
       tbody.appendChild(tr);
     });
 
-setTimeout(updateScoreboard, 0);
+updateScoreboard();
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
@@ -538,30 +535,26 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 }
 
   function subscribeToChanges() {
-    supabase
-      .channel("realtime:results")
-      .on("postgres_changes", {
-        event: "*", // or "INSERT,UPDATE,DELETE"
-        schema: "public",
-        table: "results"
-      }, (payload) => {
-        if (payload.eventType === "DELETE") {
-  const cell = document.querySelector(`[data-cell="${payload.old.puzzle_name}-${payload.old.player}"]`);
-  if (cell) {
-    results[payload.old.puzzle_name][payload.old.player] = "";
-    cell.innerHTML = ""; // Clear the cell visually
-    renderTable(); // Recalculate winners and scoreboard
-  }
-} else if (payload.new?.date === today) {
-  const cell = document.querySelector(`[data-cell="${payload.new.puzzle_name}-${payload.new.player}"]`);
-  if (cell && payload.new.player !== currentUser) {
-    results[payload.new.puzzle_name][payload.new.player] = payload.new.raw_result;
-    renderTable();
-  }
+  supabase
+    .channel("realtime:results")
+    .on("postgres_changes", {
+      event: "*",
+      schema: "public",
+      table: "results"
+    }, (payload) => {
+      const puzzle = payload.new?.puzzle_name || payload.old?.puzzle_name;
+      const player = payload.new?.player || payload.old?.player;
+
+      if (payload.eventType === "DELETE" && puzzle && player) {
+        results[puzzle][player] = "";
+        renderTable();
+      } else if (payload.new?.date === today && puzzle && player) {
+        results[puzzle][player] = payload.new.raw_result;
+        renderTable();
+      }
+    })
+    .subscribe();
 }
-      })
-      .subscribe();
-  }
 
   function updateScoreboard() {
     let acb = 0, jbb = 0, tie = 0, remaining = 0;
@@ -575,9 +568,9 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
 if (!row) return; // Skip this puzzle if row is not found
 const [aCell, jCell] = [row.children[1], row.children[2]];
-      if (aCell.classList.contains("winner")) acb++;
-else if (jCell.classList.contains("winner")) jbb++;
-else if (aCell.classList.contains("tie") || jCell.classList.contains("tie")) tie++;
+      if (aCell.classList.contains("winner") && !jCell.classList.contains("winner")) acb++;
+else if (jCell.classList.contains("winner") && !aCell.classList.contains("winner")) jbb++;
+else if (aCell.classList.contains("tie") && jCell.classList.contains("tie")) tie++;
     });
 
     const acbEl = document.getElementById("acbCount");
