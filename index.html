@@ -133,12 +133,15 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.10 - dealing with bracket counts</div>
+  <div class="version">v0.2.10 - lots of tweaks - began with brackets</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
     const results = {};
     const cellMap = {};
+     const currentUser = localStorage.getItem("user") || "Adam";
+  const otherUser = currentUser === "Adam" ? "Jonathan" : "Adam";
+
 
 window.addEventListener("beforeunload", () => {
   localStorage.setItem("puzzleResults", JSON.stringify(results));
@@ -400,16 +403,6 @@ function parseTime(t) {
       const [min, sec] = t.split(":").map(Number);
       return min * 60 + sec;
     }
-
-    function markWinner(cell) {
-      cell.classList.add("winner");
-    }
-
-    function markBothAs(cls, a, b) {
-      a.classList.add(cls);
-      b.classList.add(cls);
-    }
-
     
 function markWinner(cell, reason = "") {
   const div = cell.querySelector(".result-block");
@@ -491,9 +484,7 @@ document.getElementById("userSelect").addEventListener("change", e => {
   );
 
   const today = new Date().toISOString().slice(0, 10);
-  const currentUser = localStorage.getItem("user") || "Adam";
-  const otherUser = currentUser === "Adam" ? "Jonathan" : "Adam";
-
+ 
   const userSelect = document.querySelector("#userSelect");
   if (userSelect) {
     userSelect.value = currentUser;
