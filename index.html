@@ -143,7 +143,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.79</div>
+  <div class="version">v0.2.80</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -155,15 +155,18 @@ textarea {
 
   const today = new Date().toISOString().slice(0, 10);
   
-  // Get current user from localStorage or default to Adam
+  // Get current user - require selection first time, then remember
   let currentUser = '';
   try {
-    currentUser = JSON.parse(JSON.stringify('')) || "Adam";
+    // Try to get from URL parameter or stored preference
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlUser = urlParams.get('user');
+    const storedUser = sessionStorage.getItem('selectedUser');
+    currentUser = urlUser || storedUser || "";
   } catch {
-    currentUser = "Adam";
+    currentUser = "";
   }
   
-  const otherUser = currentUser === "Adam" ? "Jonathan" : "Adam";
   const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
   const results = {};
   const cellMap = {};
@@ -172,13 +175,27 @@ textarea {
   if (userSelect) {
     userSelect.value = currentUser;
     userSelect.addEventListener("change", (e) => {
-      // Store user preference in a simple variable instead of localStorage
-      currentUser = e.target.value;
-      window.location.href = window.location.href;
+      const newUser = e.target.value;
+      if (newUser) {
+        // Remember this choice for the device
+        sessionStorage.setItem('selectedUser', newUser);
+        
+        // Update URL parameter and reload
+        const url = new URL(window.location);
+        url.searchParams.set('user', newUser);
+        window.location.href = url.toString();
+      }
     });
   }
 
+  // Don't render table if no user is selected
+  function shouldRenderTable() {
+    return currentUser && (currentUser === "Adam" || currentUser === "Jonathan");
+  }
+
   async function loadResults() {
+    if (!shouldRenderTable()) return;
+    
     try {
       Object.keys(results).forEach(key => delete results[key]);
       Object.keys(cellMap).forEach(key => delete cellMap[key]);
@@ -469,6 +486,12 @@ textarea {
   }
 
   function renderTable() {
+    if (!shouldRenderTable()) {
+      const tbody = document.getElementById("puzzleRows");
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>';
+      return;
+    }
+
     const tbody = document.getElementById("puzzleRows");
     
     // Clear all winner/tie classes first
