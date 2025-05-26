@@ -27,7 +27,6 @@ textarea {
     .tie { background: #fff9c4; }
     .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
   
-.winner { background-color: #d6f5d6 !important; }
 .tie { background-color: #fff9c4 !important; }
 .note {
   font-size: 0.75em;
@@ -146,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.57</div>
+  <div class="version">v0.2.58</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -542,16 +541,24 @@ function renderTextInput(cell, puzzle, existingValue = "") {
     supabase
       .channel("realtime:results")
       .on("postgres_changes", {
-        event: "*",
+        event: "*", // or "INSERT,UPDATE,DELETE"
         schema: "public",
         table: "results"
       }, (payload) => {
-        if (payload.new?.date === today) {
-          const cell = document.querySelector(`[data-cell="${payload.new.puzzle_name}-${payload.new.player}"]`);
-          if (cell && payload.new.player !== currentUser) {
-            cell.innerHTML = payload.new.raw_result;
-          }
-        }
+        if (payload.eventType === "DELETE") {
+  const cell = document.querySelector(`[data-cell="${payload.old.puzzle_name}-${payload.old.player}"]`);
+  if (cell) {
+    results[payload.old.puzzle_name][payload.old.player] = "";
+    cell.innerHTML = ""; // Clear the cell visually
+    renderTable(); // Recalculate winners and scoreboard
+  }
+} else if (payload.new?.date === today) {
+  const cell = document.querySelector(`[data-cell="${payload.new.puzzle_name}-${payload.new.player}"]`);
+  if (cell && payload.new.player !== currentUser) {
+    results[payload.new.puzzle_name][payload.new.player] = payload.new.raw_result;
+    renderTable();
+  }
+}
       })
       .subscribe();
   }
