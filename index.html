@@ -143,7 +143,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.84</div>
+  <div class="version">v0.2.85</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -203,10 +203,13 @@ textarea {
       Object.keys(results).forEach(key => delete results[key]);
       Object.keys(cellMap).forEach(key => delete cellMap[key]);
 
+      // Load results, excluding empty or deleted ones
       const { data, error } = await supabase
         .from("results")
         .select("*")
         .eq("date", today)
+        .neq("raw_result", "")
+        .is("deleted", null)
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -223,9 +226,10 @@ textarea {
       if (data && data.length > 0) {
         console.log(`Loaded ${data.length} results from Supabase`);
         for (const entry of data) {
-          const { puzzle_name, player, raw_result } = entry;
-          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan")) {
-            results[puzzle_name][player] = raw_result || "";
+          const { puzzle_name, player, raw_result, deleted } = entry;
+          // Only load non-deleted, non-empty results
+          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan") && raw_result && !deleted) {
+            results[puzzle_name][player] = raw_result;
           }
         }
       } else {
@@ -491,7 +495,7 @@ textarea {
     console.log(`Starting deletion: ${user} - ${puzzle} on ${today}`);
     
     try {
-      // First, let's see what exists before deletion - get ALL matching records
+      // First, let's see what exists before deletion
       const { data: beforeData, error: beforeError } = await supabase
         .from("results")
         .select("*")
@@ -517,35 +521,86 @@ textarea {
         return true;
       }
 
-      // Delete each record individually if multiple exist
-      let totalDeleted = 0;
-      for (const record of beforeData) {
-        console.log(`Attempting to delete record with id: ${record.id}`);
+      // Try multiple deletion approaches
+      let deleteSuccess = false;
+      
+      // Approach 1: Try RPC/SQL function call (if available)
+      console.log("Attempting RPC deletion...");
+      try {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('delete_result', {
+            target_date: today,
+            target_puzzle: puzzle,
+            target_player: user
+          });
         
-        const { data: deletedData, error: deleteError, count } = await supabase
-          .from("results")
-          .delete({ count: 'exact' })
-          .eq("id", record.id); // Delete by primary key instead of composite match
-          
-        if (deleteError) {
-          console.error(`Deletion failed for record ${record.id}:`, deleteError);
-          alert(`Could not delete record: ${deleteError.message}`);
-          return false;
+        if (!rpcError) {
+          console.log("RPC deletion successful");
+          deleteSuccess = true;
+        } else {
+          console.log("RPC not available, trying direct delete:", rpcError.message);
         }
-
-        console.log(`Delete operation for record ${record.id} completed. Rows affected: ${count}`);
-        totalDeleted += count || 0;
+      } catch (rpcErr) {
+        console.log("RPC method not available, continuing with direct delete");
       }
 
-      console.log(`Total records deleted: ${totalDeleted}`);
+      // Approach 2: If RPC failed, try direct delete with different syntax
+      if (!deleteSuccess) {
+        console.log("Attempting direct delete with composite key...");
+        
+        const { data: deleteData, error: deleteError, count } = await supabase
+          .from("results")
+          .delete({ count: 'exact' })
+          .match({
+            date: today,
+            puzzle_name: puzzle,
+            player: user
+          });
 
-      // Verify deletion worked
+        if (deleteError) {
+          console.error("Composite delete failed:", deleteError);
+        } else {
+          console.log(`Composite delete completed. Rows affected: ${count}`);
+          if (count > 0) {
+            deleteSuccess = true;
+          }
+        }
+      }
+
+      // Approach 3: If still not working, try updating to empty value instead of deleting
+      if (!deleteSuccess) {
+        console.log("Attempting to update record to empty value instead of delete...");
+        
+        const { data: updateData, error: updateError } = await supabase
+          .from("results")
+          .update({ raw_result: "", deleted: true })
+          .eq("date", today)
+          .eq("puzzle_name", puzzle)
+          .eq("player", user);
+
+        if (updateError) {
+          console.error("Update to empty failed:", updateError);
+          alert(`Cannot delete or update record: ${updateError.message}`);
+          return false;
+        } else {
+          console.log("Successfully marked record as deleted");
+          deleteSuccess = true;
+        }
+      }
+
+      if (!deleteSuccess) {
+        alert("All deletion methods failed. This may be a permissions issue with your Supabase table.");
+        return false;
+      }
+
+      // Verify the result
       const { data: afterData, error: afterError } = await supabase
         .from("results")
         .select("*")
         .eq("date", today)
         .eq("puzzle_name", puzzle)
-        .eq("player", user);
+        .eq("player", user)
+        .neq("raw_result", ""); // Only get non-empty results
 
       if (afterError) {
         console.error("Error verifying deletion:", afterError);
@@ -553,7 +608,7 @@ textarea {
         console.log("Data after deletion:", afterData);
         if (afterData && afterData.length > 0) {
           console.error("WARNING: Data still exists after deletion!");
-          alert("Deletion failed - data still exists in database");
+          alert("Deletion verification failed - data may still exist");
           return false;
         }
       }
