@@ -48,10 +48,23 @@ textarea {
   display: block;
   font-size: 1.5em;
 }
-
+#loadingOverlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: white;
+  color: #444;
+  font-size: 1.5em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+    
 </style>
 </head>
 <body>
+  <div id="loadingOverlay">Loading…</div>
   <h1>🧠 I’m Puzzled ‼️</h1>
   <div class="subtitle">If you ain’t first, you’re last</div>
 
@@ -133,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.31</div>
+  <div class="version">v0.2.32</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -155,7 +168,7 @@ textarea {
     userSelect.value = currentUser;
     userSelect.addEventListener("change", (e) => {
       localStorage.setItem("user", e.target.value);
-      location.reload();
+window.location.href = window.location.href;
     });
   }
 
@@ -485,9 +498,14 @@ const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
   }
 
   window.addEventListener("DOMContentLoaded", async () => {
-  await loadResults();      // load Supabase data first
-  renderTable();            // then display it
-  subscribeToChanges();     // and listen for updates
+  const overlay = document.getElementById("loadingOverlay");
+  try {
+    await loadResults();     // wait for Supabase
+    renderTable();           // then build UI
+    subscribeToChanges();    // and listen for live updates
+  } finally {
+    overlay.style.display = "none";  // hide "Loading…" no matter what
+  }
 });
     /*
     const saved = localStorage.getItem("puzzleResults");
