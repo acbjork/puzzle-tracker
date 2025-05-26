@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.36</div>
+  <div class="version">v0.2.37</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -189,10 +189,12 @@ window.location.href = window.location.href;
 
   for (const entry of data) {
     if (!results[entry.puzzle_name]) {
-      if (!results[entry.puzzle_name]) results[entry.puzzle_name] = { Adam: "", Jonathan: "" };
-results[entry.puzzle_name][entry.player] = entry.raw_result;
+      results[entry.puzzle_name] = { Adam: "", Jonathan: "" };
     }
-}function highlightWinner(tr, puzzle) {
+    results[entry.puzzle_name][entry.player] = entry.raw_result;
+  }
+}
+  function highlightWinner(tr, puzzle) {
   const [adamCell, jonCell] = [tr.children[1], tr.children[2]];
   const aVal = results[puzzle].Adam;
   const jVal = results[puzzle].Jonathan;
