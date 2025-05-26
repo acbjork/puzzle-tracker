@@ -1154,24 +1154,34 @@ textarea {
       sendButton.disabled = true;
       sendButton.textContent = "Sending...";
       
-      const { error } = await supabase
+      console.log("Attempting to send message:", message);
+      
+      const { data, error } = await supabase
         .from("chat_messages")
         .insert({
           date: today,
           player: currentUser,
           message: message
-        });
+        })
+        .select();
 
       if (error) {
-        console.error("Failed to send message:", error);
-        alert("Failed to send message. Try again.");
+        console.error("Failed to send message - full error:", error);
+        
+        // Check if it's an RLS policy error
+        if (error.message && error.message.includes('row-level security')) {
+          alert("Chat message failed: Row Level Security policy error. Please disable RLS on chat_messages table or add proper policies.");
+        } else {
+          alert(`Failed to send message: ${error.message || 'Unknown error'}`);
+        }
       } else {
+        console.log("Message sent successfully:", data);
         input.value = "";
         // Message will be added via realtime subscription
       }
     } catch (error) {
-      console.error("Error sending message:", error);
-      alert("Network error. Try again.");
+      console.error("Error sending message - full error:", error);
+      alert(`Network error: ${error.message || 'Unknown network error'}`);
     } finally {
       sendButton.disabled = false;
       sendButton.textContent = "Send";
