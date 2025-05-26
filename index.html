@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.28</div>
+  <div class="version">v0.2.29</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -313,6 +313,19 @@ function markBothAs(cls, a, b) {
   a.classList.add(cls);
   b.classList.add(cls);
 }
+function enableEdit(td, puzzle, user, oldVal) {
+  td.innerHTML = "";
+  const ta = document.createElement("textarea");
+  ta.value = oldVal;
+  const btn = document.createElement("button");
+  btn.textContent = "Submit";
+  btn.onclick = () => {
+    results[puzzle][user] = ta.value.trim();
+    renderTable();
+  };
+  td.appendChild(ta);
+  td.appendChild(btn);
+}
   function renderTable() {
     const tbody = document.getElementById("puzzleRows");
     tbody.innerHTML = "";
@@ -471,16 +484,12 @@ const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
     }
   }
 
-  window.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll("tr[data-puzzle]").forEach(row => {
-      const puzzle = row.getAttribute("data-puzzle");
-      const inputCell = row.querySelector(`[data-cell="${puzzle}-${currentUser}"]`);
-      if (inputCell) {
-        inputCell.innerHTML = "";
-        renderTextInput(inputCell, puzzle);
-      }
-    });
-
+  window.addEventListener("DOMContentLoaded", async () => {
+  await loadResults();      // load Supabase data first
+  renderTable();            // then display it
+  subscribeToChanges();     // and listen for updates
+});
+    /*
     const saved = localStorage.getItem("puzzleResults");
     if (saved) {
       try {
@@ -494,6 +503,7 @@ const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
         console.error("Failed to load saved results:", e);
       }
     }
+    */
 
     loadResults();
     subscribeToChanges();
