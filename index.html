@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.60</div>
+  <div class="version">v0.2.61</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -176,8 +176,9 @@ window.location.href = window.location.href;
   });
 
   async function loadResults() {
-  Object.keys(results).forEach(key => delete results[key]);  // Clear old data
-
+  Object.keys(results).forEach(key => delete results[key]);  // Clear old results
+  Object.keys(cellMap).forEach(key => delete cellMap[key]);  // Clear old DOM refs
+}
   const { data, error } = await supabase
     .from("results")
     .select("*")
@@ -189,13 +190,15 @@ window.location.href = window.location.href;
   }
 
   for (const entry of data) {
-    const puzzle = entry.puzzle_name;
-    const player = entry.player;
-    const result = entry.raw_result;
+  const puzzle = entry.puzzle_name;
+  const player = entry.player;
+  const result = entry.raw_result;
 
-    if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-    results[puzzle][player] = result;
-  }
+  if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+  results[puzzle][player] = result;
+}
+
+renderTable(); // <<< ADD THIS LINE
 }
   function highlightWinner(tr, puzzle) {
     function markWinner(cell) {
@@ -519,11 +522,17 @@ if (error) {
                 tr.appendChild(td);
       });
 
-      highlightWinner(tr, puzzle);
       tbody.appendChild(tr);
+setTimeout(() => highlightWinner(tr, puzzle), 0);
     });
 
-setTimeout(updateScoreboard, 0);
+setTimeout(() => {
+  puzzles.forEach(p => {
+    const row = document.querySelector(`tr[data-puzzle="${p}"]`);
+    if (row) highlightWinner(row, p);
+  });
+  updateScoreboard();
+}, 0);
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
