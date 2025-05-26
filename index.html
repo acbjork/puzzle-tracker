@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.37</div>
+  <div class="version">v0.2.38</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -459,7 +459,8 @@ function renderTextInput(cell, puzzle, existingValue = "") {
         return;
       }
 const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
-      const [aCell, jCell] = [row.children[1], row.children[2]];
+if (!row) return; // Skip this puzzle if row is not found
+const [aCell, jCell] = [row.children[1], row.children[2]];
       if (aCell.classList.contains("winner")) acb++;
       else if (jCell.classList.contains("winner")) jbb++;
       else if (aCell.classList.contains("tie")) tie++;
