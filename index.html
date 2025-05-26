@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.10 - lots of tweaks - began with brackets</div>
+  <div class="version">v0.2.11 - endless </div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -178,6 +178,41 @@ if (cell) {
       }
     }
   }
+function renderTextInput(cell, puzzle, existingValue = "") {
+    const textarea = document.createElement("textarea");
+textarea.placeholder = "Paste result...";
+textarea.style.width = "95%";
+textarea.value = existingValue; // support editing
+
+    const button = document.createElement("button");
+    button.innerText = "Submit";
+    button.className = "submit-btn";
+
+    button.addEventListener("click", async () => {
+      const val = textarea.value.trim();
+      if (!val) return;
+      const { error } = await supabase
+  .from("results")
+  .upsert(
+    {
+      date: today,
+      puzzle_name: puzzle,
+      player: currentUser,
+      raw_result: val,
+    },
+    { onConflict: ["date", "puzzle_name", "player"] }
+  );
+if (error) {
+  console.error("Submit failed:", error.message);
+  alert("Submission failed. See console.");
+} else {
+  console.log("Submission succeeded.");
+  loadResults(); // Refresh display with new result
+}    });
+
+    cell.appendChild(textarea);
+cell.appendChild(button);
+}
 
 window.addEventListener("DOMContentLoaded", () => {
   // Now inject input fields into the signed-in user's column
@@ -494,41 +529,6 @@ document.getElementById("userSelect").addEventListener("change", e => {
     });
   }
 
-function renderTextInput(cell, puzzle, existingValue = "") {
-    const textarea = document.createElement("textarea");
-textarea.placeholder = "Paste result...";
-textarea.style.width = "95%";
-textarea.value = existingValue; // support editing
-
-    const button = document.createElement("button");
-    button.innerText = "Submit";
-    button.className = "submit-btn";
-
-    button.addEventListener("click", async () => {
-      const val = textarea.value.trim();
-      if (!val) return;
-      const { error } = await supabase
-  .from("results")
-  .upsert(
-    {
-      date: today,
-      puzzle_name: puzzle,
-      player: currentUser,
-      raw_result: val,
-    },
-    { onConflict: ["date", "puzzle_name", "player"] }
-  );
-if (error) {
-  console.error("Submit failed:", error.message);
-  alert("Submission failed. See console.");
-} else {
-  console.log("Submission succeeded.");
-  loadResults(); // Refresh display with new result
-}    });
-
-    cell.appendChild(textarea);
-cell.appendChild(button);
-}
 
 
   function subscribeToChanges() {
