@@ -187,6 +187,7 @@ textarea {
               renderTextInput(cell, entry.puzzle_name, entry.raw_result);
             });
             cell.appendChild(editBtn);
+          
           }
         }
       }
@@ -267,6 +268,35 @@ textarea {
   button.innerText = "Submit";
   button.className = "submit-btn";
 
+    button.addEventListener("click", async () => {
+  const val = textarea.value.trim();
+  if (!val) return;
+
+  // Update local results
+  if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+  results[puzzle][currentUser] = val;
+  setTimeout(() => renderTable(), 0);
+
+  // Send to Supabase
+  const { error } = await supabase
+    .from("results")
+    .upsert(
+      {
+        date: today,
+        puzzle_name: puzzle,
+        player: currentUser,
+        raw_result: val,
+      },
+      { onConflict: ["date", "puzzle_name", "player"] }
+    );
+
+  if (error) {
+    console.error("Submit failed:", error.message);
+    alert("Submission failed. Try again.");
+  } else {
+    console.log("Submission succeeded.");
+  }
+});
   button.addEventListener("click", async () => {
     const val = textarea.value.trim();
     if (!val) return;
