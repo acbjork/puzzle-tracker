@@ -143,7 +143,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.82</div>
+  <div class="version">v0.2.83</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -432,8 +432,12 @@ textarea {
       const newVal = ta.value.trim();
       
       if (!newVal) {
-        // If empty, treat as delete
-        await deleteResult(puzzle, user);
+        // If empty, ask for confirmation to delete
+        if (confirm(`Delete the existing ${puzzle} result for ${user}?`)) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Deleting...";
+          await deleteResult(puzzle, user);
+        }
         return;
       }
 
@@ -455,13 +459,25 @@ textarea {
         console.error("Submission failed:", error.message);
         alert("Submission failed. Try again.");
       } else {
+        console.log(`Successfully updated ${puzzle} result for ${user}`);
         renderTable();
       }
     };
 
     deleteBtn.onclick = async () => {
-      if (confirm("Are you sure you want to delete this result?")) {
-        await deleteResult(puzzle, user);
+      if (confirm(`Are you sure you want to permanently delete this ${puzzle} result for ${user}?`)) {
+        // Disable button during deletion
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = "Deleting...";
+        
+        const success = await deleteResult(puzzle, user);
+        
+        if (!success) {
+          // Re-enable button if deletion failed
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = "Delete";
+        }
+        // If successful, the table will re-render and this button will be gone
       }
     };
 
@@ -472,36 +488,74 @@ textarea {
   }
 
   async function deleteResult(puzzle, user) {
-    console.log(`Deleting result for ${user} on ${puzzle}`);
+    console.log(`Starting deletion: ${user} - ${puzzle} on ${today}`);
     
-    // Clear the local result immediately
-    if (results[puzzle]) {
-      results[puzzle][user] = "";
-    }
-
     try {
-      // DELETE from Supabase with explicit matching
-      const { error, count } = await supabase
+      // First, let's see what exists before deletion
+      const { data: beforeData, error: beforeError } = await supabase
+        .from("results")
+        .select("*")
+        .eq("date", today)
+        .eq("puzzle_name", puzzle)
+        .eq("player", user);
+
+      if (beforeError) {
+        console.error("Error checking existing data:", beforeError);
+      } else {
+        console.log("Data before deletion:", beforeData);
+      }
+
+      // Perform the deletion
+      const { data: deletedData, error: deleteError, count } = await supabase
         .from("results")
         .delete({ count: 'exact' })
         .eq("date", today)
         .eq("puzzle_name", puzzle)
         .eq("player", user);
         
-      if (error) {
-        console.error("Deletion failed:", error.message);
-        alert("Could not delete the result. Try again.");
-        // Reload to get fresh data on error
-        await loadResults();
-      } else {
-        console.log(`Successfully deleted ${count} row(s) from Supabase`);
-        // Force a fresh render to ensure UI is updated
-        renderTable();
+      if (deleteError) {
+        console.error("Deletion failed:", deleteError);
+        alert(`Could not delete the result: ${deleteError.message}`);
+        return false;
       }
+
+      console.log(`Delete operation completed. Rows affected: ${count}`);
+      console.log("Deleted data:", deletedData);
+
+      // Verify deletion worked
+      const { data: afterData, error: afterError } = await supabase
+        .from("results")
+        .select("*")
+        .eq("date", today)
+        .eq("puzzle_name", puzzle)
+        .eq("player", user);
+
+      if (afterError) {
+        console.error("Error verifying deletion:", afterError);
+      } else {
+        console.log("Data after deletion:", afterData);
+        if (afterData && afterData.length > 0) {
+          console.error("WARNING: Data still exists after deletion!");
+          alert("Deletion may have failed - data still exists in database");
+          return false;
+        }
+      }
+
+      // Clear local data
+      if (results[puzzle]) {
+        results[puzzle][user] = "";
+      }
+
+      // Force reload all data to ensure consistency
+      await loadResults();
+      
+      console.log("Deletion successful and verified");
+      return true;
+
     } catch (error) {
       console.error("Delete operation failed:", error);
-      alert("Network error during deletion. Try again.");
-      await loadResults();
+      alert(`Network error during deletion: ${error.message}`);
+      return false;
     }
   }
 
@@ -555,7 +609,10 @@ textarea {
               const newVal = ta.value.trim();
 
               if (!newVal) {
-                await deleteResult(puzzle, user);
+                // If empty field submitted, treat as deletion
+                if (confirm(`Delete any existing ${puzzle} result for ${user}?`)) {
+                  await deleteResult(puzzle, user);
+                }
                 return;
               }
 
@@ -577,6 +634,7 @@ textarea {
                 console.error("Submission failed:", error.message);
                 alert("Submission failed. Try again.");
               } else {
+                console.log(`Successfully submitted ${puzzle} result for ${user}`);
                 renderTable();
               }
             };
