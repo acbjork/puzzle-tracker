@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.54</div>
+  <div class="version">v0.2.56</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -198,7 +198,7 @@ window.location.href = window.location.href;
 }
   function highlightWinner(tr, puzzle) {
     function markWinner(cell) {
-  cell.classList.add("winner");
+  cell.classList.add("winner","tie");
   console.log("Winner cell marked:", cell);
 }
 function markBothAs(cls, a, b) {
@@ -281,6 +281,16 @@ function markBothAs(cls, a, b) {
     else markBothAs("tie", adamCell, jonCell);
   }
 
+  if (puzzle === "NYT Mini") {
+  const aMatch = aVal.match(/(\d+)m\s*(\d+)s/);
+  const jMatch = jVal.match(/(\d+)m\s*(\d+)s/);
+  const aTime = aMatch ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2]) : 9999;
+  const jTime = jMatch ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2]) : 9999;
+  if (aTime < jTime) markWinner(adamCell);
+  else if (jTime < aTime) markWinner(jonCell);
+  else markBothAs("tie", adamCell, jonCell);
+}
+
   if (puzzle === "Globle") {
     const aGuesses = parseInt(aVal.match(/=\s*(\d+)/)?.[1] || "999");
     const jGuesses = parseInt(jVal.match(/=\s*(\d+)/)?.[1] || "999");
@@ -338,48 +348,45 @@ function enableEdit(td, puzzle, user, oldVal) {
     const newVal = ta.value.trim();
 
     if (!newVal) {
-      // Delete the record from Supabase if blank
-      const { error } = await supabase
-        .from("results")
-        .delete()
-        .match({
-          date: today,
-          puzzle_name: puzzle,
-          player: user,
-        });
+  // Clear the local result
+  results[puzzle][user] = "";
 
-      if (error) {
-        console.error("Deletion failed:", error.message);
-        alert("Clearing the result failed. Try again.");
-      } else {
-        results[puzzle][user] = "";
-        renderTable();
-      }
+  // DELETE from Supabase
+  const { error } = await supabase
+    .from("results")
+    .delete()
+    .match({ date: today, puzzle_name: puzzle, player: user });
 
-      return;
-    }
+  if (error) {
+    console.error("Deletion failed:", error.message);
+    alert("Could not delete the result. Try again.");
+  } else {
+    console.log("Result deleted from Supabase");
+    renderTable();
+  }
+  return; // Stop here; don’t continue to upsert
+}
 
-    // If not blank, update Supabase
-    results[puzzle][user] = newVal;
+// Otherwise, do the normal upsert
+results[puzzle][user] = newVal;
 
-    const { error } = await supabase
-      .from("results")
-      .upsert(
-        {
-          date: today,
-          puzzle_name: puzzle,
-          player: user,
-          raw_result: newVal,
-        },
-        { onConflict: ["date", "puzzle_name", "player"] }
-      );
+const { error } = await supabase
+  .from("results")
+  .upsert({
+    date: today,
+    puzzle_name: puzzle,
+    player: user,
+    raw_result: newVal,
+  }, {
+    onConflict: ["date", "puzzle_name", "player"]
+  });
 
-    if (error) {
-      console.error("Submission failed:", error.message);
-      alert("Submission failed. Try again.");
-    } else {
-      renderTable();
-    }
+if (error) {
+  console.error("Submission failed:", error.message);
+  alert("Submission failed. Try again.");
+} else {
+  renderTable();
+}
   };
 
   td.appendChild(ta);
@@ -471,6 +478,7 @@ function enableEdit(td, puzzle, user, oldVal) {
           div.className = "submitted";
           div.textContent = result;
           td.appendChild(div);
+        console.log("Winner class check:", td.className);
         }
 
                 tr.appendChild(td);
