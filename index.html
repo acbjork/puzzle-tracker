@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.56</div>
+  <div class="version">v0.2.57</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -177,6 +177,8 @@ window.location.href = window.location.href;
   });
 
   async function loadResults() {
+  Object.keys(results).forEach(key => delete results[key]);  // Clear old data
+
   const { data, error } = await supabase
     .from("results")
     .select("*")
@@ -198,7 +200,7 @@ window.location.href = window.location.href;
 }
   function highlightWinner(tr, puzzle) {
     function markWinner(cell) {
-  cell.classList.add("winner","tie");
+  cell.classList.add("winner");
   console.log("Winner cell marked:", cell);
 }
 function markBothAs(cls, a, b) {
@@ -566,9 +568,9 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
 if (!row) return; // Skip this puzzle if row is not found
 const [aCell, jCell] = [row.children[1], row.children[2]];
-      if (aCell.querySelector(".winner")) acb++;
-else if (jCell.querySelector(".winner")) jbb++;
-else if (aCell.querySelector(".tie") || jCell.querySelector(".tie")) tie++;
+      if (aCell.classList.contains("winner")) acb++;
+else if (jCell.classList.contains("winner")) jbb++;
+else if (aCell.classList.contains("tie") || jCell.classList.contains("tie")) tie++;
     });
 
     const acbEl = document.getElementById("acbCount");
