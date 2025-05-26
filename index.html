@@ -133,26 +133,36 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.13 - maybe getting close </div>
+  <div class="version">v0.2.14 - risky edit </div>
 
-  <script>
-      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
   const supabase = createClient(
     "https://iqhgsdpqqshfeiqrkrqw.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec"
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
   );
 
-    const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
-    const results = {};
-    const cellMap = {};
-     const currentUser = localStorage.getItem("user") || "Adam";
+  const today = new Date().toISOString().slice(0, 10);
+  const currentUser = localStorage.getItem("user") || "Adam";
   const otherUser = currentUser === "Adam" ? "Jonathan" : "Adam";
+  const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
+  const results = {};
+  const cellMap = {};
 
+  const userSelect = document.querySelector("#userSelect");
+  if (userSelect) {
+    userSelect.value = currentUser;
+    userSelect.addEventListener("change", (e) => {
+      localStorage.setItem("user", e.target.value);
+      location.reload();
+    });
+  }
 
-window.addEventListener("beforeunload", () => {
-  localStorage.setItem("puzzleResults", JSON.stringify(results));
-});
+  window.addEventListener("beforeunload", () => {
+    localStorage.setItem("puzzleResults", JSON.stringify(results));
+  });
+
   async function loadResults() {
     const { data } = await supabase
       .from("results")
@@ -161,65 +171,137 @@ window.addEventListener("beforeunload", () => {
 
     if (data) {
       for (const entry of data) {
-const cell = cellMap?.[entry.puzzle_name]?.[entry.player];
-if (cell) {
-  // Replace with formatted display of the result
-  cell.innerHTML = "";
+        const cell = cellMap?.[entry.puzzle_name]?.[entry.player];
+        if (cell) {
+          cell.innerHTML = "";
+          const block = document.createElement("div");
+          block.className = "submitted";
+          block.innerText = entry.raw_result;
+          cell.appendChild(block);
 
-  const block = document.createElement("div");
-  block.className = "submitted";
-  block.innerText = entry.raw_result;
-  cell.appendChild(block);
-
-  if (entry.player === currentUser) {
-    // Add Edit button only for the current user
-    const editBtn = document.createElement("button");
-    editBtn.innerText = "Edit";
-    editBtn.className = "edit-btn";
-    editBtn.addEventListener("click", () => {
-      renderTextInput(cell, entry.puzzle_name, entry.raw_result); // pass existing value to re-edit
-    });
-    cell.appendChild(editBtn);
-  }
-}
+          if (entry.player === currentUser) {
+            const editBtn = document.createElement("button");
+            editBtn.innerText = "Edit";
+            editBtn.className = "edit-btn";
+            editBtn.addEventListener("click", () => {
+              renderTextInput(cell, entry.puzzle_name, entry.raw_result);
+            });
+            cell.appendChild(editBtn);
+          }
+        }
       }
     }
   }
-function renderTextInput(cell, puzzle, existingValue = "") {
+
+  function renderTextInput(cell, puzzle, existingValue = "") {
     const textarea = document.createElement("textarea");
-textarea.placeholder = "Paste result...";
-textarea.style.width = "95%";
-textarea.value = existingValue; // support editing
+    textarea.placeholder = "Paste result...";
+    textarea.style.width = "95%";
+    textarea.value = existingValue;
 
     const button = document.createElement("button");
     button.innerText = "Submit";
     button.className = "submit-btn";
-
     button.addEventListener("click", async () => {
       const val = textarea.value.trim();
       if (!val) return;
       const { error } = await supabase
-  .from("results")
-  .upsert(
-    {
-      date: today,
-      puzzle_name: puzzle,
-      player: currentUser,
-      raw_result: val,
-    },
-    { onConflict: ["date", "puzzle_name", "player"] }
-  );
-if (error) {
-  console.error("Submit failed:", error.message);
-  alert("Submission failed. See console.");
-} else {
-  console.log("Submission succeeded.");
-  loadResults(); // Refresh display with new result
-}    });
+        .from("results")
+        .upsert(
+          {
+            date: today,
+            puzzle_name: puzzle,
+            player: currentUser,
+            raw_result: val,
+          },
+          { onConflict: ["date", "puzzle_name", "player"] }
+        );
+      if (error) {
+        console.error("Submit failed:", error.message);
+        alert("Submission failed. See console.");
+      } else {
+        console.log("Submission succeeded.");
+        loadResults();
+      }
+    });
 
     cell.appendChild(textarea);
-cell.appendChild(button);
-}
+    cell.appendChild(button);
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById("puzzleRows");
+    tbody.innerHTML = "";
+
+    puzzles.forEach(puzzle => {
+      if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+
+      const tr = document.createElement("tr");
+      const tdPuzzle = document.createElement("td");
+      tdPuzzle.textContent = puzzle;
+      tr.appendChild(tdPuzzle);
+
+      ["Adam", "Jonathan"].forEach(user => {
+        const td = document.createElement("td");
+        const result = results[puzzle][user];
+
+        if (!cellMap[puzzle]) cellMap[puzzle] = {};
+        cellMap[puzzle][user] = td;
+
+        if (user === currentUser) {
+          if (result) {
+            const div = document.createElement("div");
+            div.className = "submitted";
+            div.textContent = result;
+            td.appendChild(div);
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Edit";
+            editBtn.onclick = () => enableEdit(td, puzzle, user, result);
+            td.appendChild(editBtn);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.placeholder = "Paste result...";
+            const btn = document.createElement("button");
+            btn.textContent = "Submit";
+            btn.onclick = () => {
+              results[puzzle][user] = ta.value.trim();
+              renderTable();
+            };
+            td.appendChild(ta);
+            td.appendChild(btn);
+          }
+        } else {
+          const div = document.createElement("div");
+          div.className = "submitted";
+          div.textContent = result;
+          td.appendChild(div);
+        }
+
+        tr.appendChild(td);
+      });
+
+      highlightWinner(tr, puzzle);
+      tbody.appendChild(tr);
+    });
+
+    document.getElementById("puzzleTable").style.display = "table";
+    updateScoreboard();
+  }
+
+  function enableEdit(td, puzzle, user, oldVal) {
+    td.innerHTML = "";
+    const ta = document.createElement("textarea");
+    ta.value = oldVal;
+    const btn = document.createElement("button");
+    btn.textContent = "Submit";
+    btn.onclick = () => {
+      results[puzzle][user] = ta.value.trim();
+      renderTable();
+    };
+    td.appendChild(ta);
+    td.appendChild(btn);
+  }
+
   function subscribeToChanges() {
     supabase
       .channel("realtime:results")
@@ -238,318 +320,69 @@ cell.appendChild(button);
       .subscribe();
   }
 
-window.addEventListener("DOMContentLoaded", () => {
-  // Now inject input fields into the signed-in user's column
+  function updateScoreboard() {
+    let acb = 0, jbb = 0, tie = 0, remaining = 0;
+    puzzles.forEach(puzzle => {
+      const aVal = results[puzzle]?.Adam || "";
+      const jVal = results[puzzle]?.Jonathan || "";
+      if (!aVal || !jVal) {
+        remaining++;
+        return;
+      }
+      const row = [...document.querySelectorAll("#puzzleRows tr")].find(tr => tr.firstChild.textContent === puzzle);
+      const [aCell, jCell] = [row.children[1], row.children[2]];
+      if (aCell.classList.contains("winner")) acb++;
+      else if (jCell.classList.contains("winner")) jbb++;
+      else if (aCell.classList.contains("tie")) tie++;
+    });
+
+    const acbEl = document.getElementById("acbCount");
+    const jbbEl = document.getElementById("jbbCount");
+
+    acbEl.textContent = acb;
+    jbbEl.textContent = jbb;
+    document.getElementById("tieCount").textContent = tie;
+    document.getElementById("remainingCount").textContent = remaining;
+
+    if (acb > jbb) {
+      acbEl.style.color = "green";
+      jbbEl.style.color = "red";
+    } else if (jbb > acb) {
+      jbbEl.style.color = "green";
+      acbEl.style.color = "red";
+    } else {
+      acbEl.style.color = "#c9a700";
+      jbbEl.style.color = "#c9a700";
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll("tr[data-puzzle]").forEach(row => {
       const puzzle = row.getAttribute("data-puzzle");
       const inputCell = row.querySelector(`[data-cell="${puzzle}-${currentUser}"]`);
       if (inputCell) {
-        inputCell.innerHTML = ""; // clear any previous result
+        inputCell.innerHTML = "";
         renderTextInput(inputCell, puzzle);
       }
     });
- 
-  const saved = localStorage.getItem("puzzleResults");
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      for (const puzzle in parsed) {
-        if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-        results[puzzle].Adam = parsed[puzzle].Adam || "";
-        results[puzzle].Jonathan = parsed[puzzle].Jonathan || "";
+
+    const saved = localStorage.getItem("puzzleResults");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        for (const puzzle in parsed) {
+          if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+          results[puzzle].Adam = parsed[puzzle].Adam || "";
+          results[puzzle].Jonathan = parsed[puzzle].Jonathan || "";
+        }
+      } catch (e) {
+        console.error("Failed to load saved results:", e);
       }
-    } catch (e) {
-      console.error("Failed to load saved results:", e);
-    }
-  }
-
-  loadResults();
-  subscribeToChanges();
-});
-  // { puzzle: { Adam: "...", Jonathan: "..." } }
-
-    function renderTable() {
-      const tbody = document.getElementById("puzzleRows");
-      tbody.innerHTML = "";
-
-      puzzles.forEach(puzzle => {
-        if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-
-        const tr = document.createElement("tr");
-        const tdPuzzle = document.createElement("td");
-        tdPuzzle.textContent = puzzle;
-        tr.appendChild(tdPuzzle);
-
-        ["Adam", "Jonathan"].forEach(user => {
-  const td = document.createElement("td");
-  const result = results[puzzle][user];
-
-  // Save a reference to this cell
-  if (!cellMap[puzzle]) cellMap[puzzle] = {};
-  cellMap[puzzle][user] = td;
-          
-          if (user === currentUser) {
-            if (result) {
-              const div = document.createElement("div");
-              div.className = "submitted";
-              div.textContent = result;
-              td.appendChild(div);
-              const editBtn = document.createElement("button");
-              editBtn.textContent = "Edit";
-              editBtn.onclick = () => enableEdit(td, puzzle, user, result);
-              td.appendChild(editBtn);
-            } else {
-              const ta = document.createElement("textarea");
-              ta.placeholder = "Paste result...";
-              const btn = document.createElement("button");
-              btn.textContent = "Submit";
-              btn.onclick = () => {
-                results[puzzle][user] = ta.value.trim();
-                renderTable();
-              };
-              td.appendChild(ta);
-              td.appendChild(btn);
-            }
-          } else {
-            const div = document.createElement("div");
-            div.className = "submitted";
-            div.textContent = result;
-            td.appendChild(div);
-          }
-
-          tr.appendChild(td);
-        });
-
-        highlightWinner(tr, puzzle);
-        tbody.appendChild(tr);
-      });
-
-      document.getElementById("puzzleTable").style.display = "table";
-  updateScoreboard();
     }
 
-    function enableEdit(td, puzzle, user, oldVal) {
-      td.innerHTML = "";
-      const ta = document.createElement("textarea");
-      ta.value = oldVal;
-      const btn = document.createElement("button");
-      btn.textContent = "Submit";
-      btn.onclick = () => {
-        results[puzzle][user] = ta.value.trim();
-        renderTable();
-      };
-      td.appendChild(ta);
-      td.appendChild(btn);
-    }
-
-    
-
-function highlightWinner(tr, puzzle) {
-  const [adamCell, jonCell] = [tr.children[1], tr.children[2]];
-  const aVal = results[puzzle].Adam;
-  const jVal = results[puzzle].Jonathan;
-
-  if (!aVal || !jVal) return;
-
-  if (puzzle === "Connections") {
-    if (aVal === jVal) return markBothAs("tie", adamCell, jonCell);
-    const aLines = aVal.split("\n");
-    const jLines = jVal.split("\n");
-    const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-    const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-    if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
-    else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "Wordle") {
-    const aScore = parseInt(aVal.match(/\b(\d)\/6/)?.[1] || "7");
-    const jScore = parseInt(jVal.match(/\b(\d)\/6/)?.[1] || "7");
-    if (aScore < jScore) markWinner(adamCell);
-    else if (jScore < aScore) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "Keyword") {
-    const aGuesses = parseInt(aVal.match(/(\d+) guesses/)?.[1] || "999");
-    const jGuesses = parseInt(jVal.match(/(\d+) guesses/)?.[1] || "999");
-    if (aGuesses < jGuesses) markWinner(adamCell);
-    else if (jGuesses < aGuesses) markWinner(jonCell);
-    else {
-      const aTime = parseTime(aVal.match(/(\d+:\d+)/)?.[1] || "99:99");
-      const jTime = parseTime(jVal.match(/(\d+:\d+)/)?.[1] || "99:99");
-      if (aTime < jTime) markWinner(adamCell);
-      else if (jTime < aTime) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-  }
-
-  if (puzzle === "Strands") {
-    const aHints = (aVal.match(/💡/g) || []).length;
-    const jHints = (jVal.match(/💡/g) || []).length;
-    const aTotal = aVal.split("\n").length;
-    const jTotal = jVal.split("\n").length;
-    if (aTotal < jTotal) markWinner(adamCell);
-    else if (jTotal < aTotal) markWinner(jonCell);
-    else if (aHints < jHints) markWinner(adamCell);
-    else if (jHints < aHints) markWinner(jonCell);
-    else {
-      const aIndex = aVal.indexOf("🟡");
-      const jIndex = jVal.indexOf("🟡");
-      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
-      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-  }
-
-  if (puzzle === "NYT Mini") {
-    const aTime = parseTime(aVal.match(/(\d+:\d+)/)?.[1] || aVal.trim());
-    const jTime = parseTime(jVal.match(/(\d+:\d+)/)?.[1] || jVal.trim());
-    if (aTime < jTime) markWinner(adamCell);
-    else if (jTime < aTime) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "Globle") {
-    const aGuesses = parseInt(aVal.match(/=\s*(\d+)/)?.[1] || "999");
-    const jGuesses = parseInt(jVal.match(/=\s*(\d+)/)?.[1] || "999");
-    if (aGuesses < jGuesses) markWinner(adamCell);
-    else if (jGuesses < aGuesses) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "Flagle") {
-    const aScore = aVal.includes("X") ? 7 : parseInt(aVal.match(/\b(\d)/)?.[1] || "7");
-    const jScore = jVal.includes("X") ? 7 : parseInt(jVal.match(/\b(\d)/)?.[1] || "7");
-    if (aScore < jScore) markWinner(adamCell);
-    else if (jScore < aScore) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "Apple Mini") {
-    const aMatch = aVal.match(/(\d+)m\s*(\d+)s/);
-    const jMatch = jVal.match(/(\d+)m\s*(\d+)s/);
-    const aTime = aMatch ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2]) : 9999;
-    const jTime = jMatch ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2]) : 9999;
-    if (aTime < jTime) markWinner(adamCell);
-    else if (jTime < aTime) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "On The Record") {
-    const aScore = parseInt(aVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
-    const jScore = parseInt(jVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
-    if (aScore > jScore) markWinner(adamCell);
-    else if (jScore > aScore) markWinner(jonCell);
-    else markBothAs("tie", adamCell, jonCell);
-  }
-
-  if (puzzle === "Tightrope") {
-    const aChecks = (aVal.match(/✅/g) || []).length;
-    const jChecks = (jVal.match(/✅/g) || []).length;
-    if (aChecks > jChecks) markWinner(adamCell);
-    else if (jChecks > aChecks) markWinner(jonCell);
-    else {
-      const aScore = parseInt(aVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
-      const jScore = parseInt(jVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
-      if (aScore > jScore) markWinner(adamCell);
-      else if (jScore > aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-  }
-}
-function parseTime(t) {
-      const [min, sec] = t.split(":").map(Number);
-      return min * 60 + sec;
-    }
-    
-function markWinner(cell, reason = "") {
-  const div = cell.querySelector(".result-block");
-  cell.classList.add("winner");
-  if (div) div.classList.add("winner");
-  if (reason) {
-    const note = document.createElement("div");
-    note.className = "note";
-    note.textContent = "Win by tiebreak (" + reason + ")";
-    cell.appendChild(note);
-  }
-}
-
-function markBothAs(cls, a, b) {
-  [a, b].forEach(cell => {
-    const div = cell.querySelector(".result-block");
-    if (div) div.classList.add(cls);
-    cell.classList.add(cls);
-    const val = cell.textContent;
-    if (/Wordle \d+/.test(val)) {
-      const warn = document.createElement("div");
-      warn.className = "note";
-      warn.style.color = "#b8860b";
-      warn.textContent = "Discordant puzzle version";
-      cell.appendChild(warn);
-    }
+    loadResults();
+    subscribeToChanges();
   });
-}
-
-function updateScoreboard() {
-  let acb = 0, jbb = 0, tie = 0, remaining = 0;
-
-  puzzles.forEach(puzzle => {
-    const aVal = results[puzzle]?.Adam || "";
-    const jVal = results[puzzle]?.Jonathan || "";
-    if (!aVal || !jVal) {
-      remaining++;
-      return;
-    }
-
-    const row = [...document.querySelectorAll("#puzzleRows tr")].find(tr => tr.firstChild.textContent === puzzle);
-    const [aCell, jCell] = [row.children[1], row.children[2]];
-    if (aCell.classList.contains("winner")) acb++;
-    else if (jCell.classList.contains("winner")) jbb++;
-    else if (aCell.classList.contains("tie")) tie++;
-  });
-
-  const acbEl = document.getElementById("acbCount");
-  const jbbEl = document.getElementById("jbbCount");
-
-  acbEl.textContent = acb;
-  jbbEl.textContent = jbb;
-  document.getElementById("tieCount").textContent = tie;
-  document.getElementById("remainingCount").textContent = remaining;
-
-  if (acb > jbb) {
-    acbEl.style.color = "green";
-    jbbEl.style.color = "red";
-  } else if (jbb > acb) {
-    jbbEl.style.color = "green";
-    acbEl.style.color = "red";
-  } else {
-    acbEl.style.color = "#c9a700";
-    jbbEl.style.color = "#c9a700";
-  }
-}
-
-document.getElementById("userSelect").addEventListener("change", e => {
-      currentUser = e.target.value;
-      renderTable();
-    });
-  </script>
-<script type="module">
-
-  const today = new Date().toISOString().slice(0, 10);
- 
-  const userSelect = document.querySelector("#userSelect");
-  if (userSelect) {
-    userSelect.value = currentUser;
-    userSelect.addEventListener("change", (e) => {
-      localStorage.setItem("user", e.target.value);
-      location.reload();
-    });
-  }
-
-
-
-
 </script>
 </body>
 </html>
