@@ -133,16 +133,16 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.9 - dealing with bracket counts</div>
+  <div class="version">v0.2.10 - dealing with bracket counts</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
     const results = {};
+    const cellMap = {};
 
 window.addEventListener("beforeunload", () => {
   localStorage.setItem("puzzleResults", JSON.stringify(results));
 });
-    }
   async function loadResults() {
     const { data } = await supabase
       .from("results")
@@ -177,6 +177,16 @@ if (cell) {
   }
 
 window.addEventListener("DOMContentLoaded", () => {
+  // Now inject input fields into the signed-in user's column
+    document.querySelectorAll("tr[data-puzzle]").forEach(row => {
+      const puzzle = row.getAttribute("data-puzzle");
+      const inputCell = row.querySelector(`[data-cell="${puzzle}-${currentUser}"]`);
+      if (inputCell) {
+        inputCell.innerHTML = ""; // clear any previous result
+        renderTextInput(inputCell, puzzle);
+      }
+    });
+ 
   const saved = localStorage.getItem("puzzleResults");
   if (saved) {
     try {
@@ -191,70 +201,10 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-function renderPuzzleTable(currentUser) {
-  const tbody = document.getElementById("puzzleRows");
-  tbody.innerHTML = ""; // clear any existing rows
-
-  puzzles.forEach((puzzle) => {
-    const tr = document.createElement("tr");
-
-    const nameTd = document.createElement("td");
-    nameTd.textContent = puzzle;
-    tr.appendChild(nameTd);
-
-    const adamTd = document.createElement("td");
-    const jonTd = document.createElement("td");
-
-    adamTd.innerHTML = results[puzzle]?.Adam || "";
-    jonTd.innerHTML = results[puzzle]?.Jonathan || "";
-
-    tr.appendChild(adamTd);
-    tr.appendChild(jonTd);
-
-    const cellToEdit = currentUser === "Adam" ? adamTd : jonTd;
-
-    if (!(results[puzzle]?.[currentUser])) {
-      const textarea = document.createElement("textarea");
-      textarea.placeholder = "Paste result...";
-      textarea.classList.add("submitted");
-
-      const submit = document.createElement("button");
-      submit.textContent = "Submit";
-
-      submit.addEventListener("click", async () => {
-        const val = textarea.value.trim();
-        if (!val) return;
-
-        const { error } = await supabase.from("results").upsert({
-          date: today,
-          puzzle_name: puzzle,
-          player: currentUser,
-          raw_result: val,
-        });
-
-        if (error) {
-          console.error("Submit failed:", error.message);
-          alert("Submission failed. See console.");
-        } else {
-          console.log("Submission succeeded.");
-        }
-      });
-
-      cellToEdit.appendChild(textarea);
-      cellToEdit.appendChild(submit);
-    }
-
-    tbody.appendChild(tr);
-  });
-
-  document.getElementById("puzzleTable").style.display = "";
-}
-  renderPuzzleTable(currentUser);  // <-- insert this line here
   loadResults();
   subscribeToChanges();
 });
   // { puzzle: { Adam: "...", Jonathan: "..." } }
-    let currentUser = null;
 
     function renderTable() {
       const tbody = document.getElementById("puzzleRows");
@@ -552,7 +502,6 @@ document.getElementById("userSelect").addEventListener("change", e => {
       location.reload();
     });
   }
-  }
 
 function renderTextInput(cell, puzzle, existingValue = "") {
     const textarea = document.createElement("textarea");
@@ -586,21 +535,10 @@ if (error) {
   loadResults(); // Refresh display with new result
 }    });
 
-    cellToEdit.appendChild(textarea);
-cellToEdit.appendChild(submit);
+    cell.appendChild(textarea);
+cell.appendChild(button);
 }
 
-
-    // Now inject input fields into the signed-in user's column
-    document.querySelectorAll("tr[data-puzzle]").forEach(row => {
-      const puzzle = row.getAttribute("data-puzzle");
-      const inputCell = row.querySelector(`[data-cell="${puzzle}-${currentUser}"]`);
-      if (inputCell) {
-        inputCell.innerHTML = ""; // clear any previous result
-        renderTextInput(inputCell, puzzle);
-      }
-    });
-  }
 
   function subscribeToChanges() {
     supabase
