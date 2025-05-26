@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.8 - dealing with bracket counts</div>
+  <div class="version">v0.2.9 - dealing with bracket counts</div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -142,6 +142,7 @@ textarea {
 window.addEventListener("beforeunload", () => {
   localStorage.setItem("puzzleResults", JSON.stringify(results));
 });
+    }
   async function loadResults() {
     const { data } = await supabase
       .from("results")
