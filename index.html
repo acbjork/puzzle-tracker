@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.66</div>
+  <div class="version">v0.2.67</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -189,16 +189,20 @@ window.location.href = window.location.href;
     return;
   }
 
-  for (const entry of data) {
-    const puzzle = entry.puzzle_name;
-    const player = entry.player;
-    const result = entry.raw_result;
+  // Initialize all puzzles with empty values
+  puzzles.forEach(puzzle => {
+    results[puzzle] = { Adam: "", Jonathan: "" };
+  });
 
-    if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-    results[puzzle][player] = result;
+  // Populate with actual results
+  for (const entry of data) {
+    const { puzzle_name, player, raw_result } = entry;
+    if (results[puzzle_name]) {
+      results[puzzle_name][player] = raw_result;
+    }
   }
 
-  renderTable(); // ← Be sure this is inside the function too
+  renderTable(); // Rebuild table with synced data
 }
   function highlightWinner(tr, puzzle) {
     function markWinner(cell) {
@@ -391,10 +395,11 @@ function enableEdit(td, puzzle, user, oldVal) {
 
   // DELETE from Supabase
   const { error } = await supabase
-    .from("results")
-    .delete()
-    .match({ date: today, puzzle_name: puzzle, player: user });
-
+  .from("results")
+  .delete()
+  .eq("date", today)
+  .eq("puzzle_name", puzzle)
+  .eq("player", user);
   if (error) {
     console.error("Deletion failed:", error.message);
     alert("Could not delete the result. Try again.");
@@ -467,12 +472,12 @@ if (error) {
             btn.onclick = async () => {
               const newVal = ta.value.trim();
 
-              if (newVal === "") {
-                const { error } = await supabase
-                  .from("results")
-                  .delete()
-                  .match({ date: today, puzzle_name: puzzle, player: user });
-
+              const { error } = await supabase
+  .from("results")
+  .delete()
+  .eq("date", today)
+  .eq("puzzle_name", puzzle)
+  .eq("player", user);
                 if (!error) results[puzzle][user] = "";
                 renderTable();
                 return;
@@ -503,7 +508,7 @@ if (error) {
       tbody.appendChild(tr);
     });
 
-    setTimeout(updateScoreboard, 0); // Now runs after all winners are marked
+    updateScoreboard(); // Now runs after all winners are marked
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
@@ -575,41 +580,50 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 }
 
   function updateScoreboard() {
-    let acb = 0, jbb = 0, tie = 0, remaining = 0;
-    puzzles.forEach(puzzle => {
-      const aVal = results[puzzle]?.Adam || "";
-      const jVal = results[puzzle]?.Jonathan || "";
-      if (!aVal || !jVal) {
-        remaining++;
-        return;
-      }
-const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
-if (!row) return; // Skip this puzzle if row is not found
-const [aCell, jCell] = [row.children[1], row.children[2]];
-      if (aCell.classList.contains("winner") && !jCell.classList.contains("winner")) acb++;
-else if (jCell.classList.contains("winner") && !aCell.classList.contains("winner")) jbb++;
-else if (aCell.classList.contains("tie") && jCell.classList.contains("tie")) tie++;
-    });
+  let acb = 0, jbb = 0, tie = 0, remaining = 0;
+  puzzles.forEach(puzzle => {
+    const aVal = results[puzzle]?.Adam || "";
+    const jVal = results[puzzle]?.Jonathan || "";
 
-    const acbEl = document.getElementById("acbCount");
-    const jbbEl = document.getElementById("jbbCount");
-
-    acbEl.textContent = acb;
-    jbbEl.textContent = jbb;
-    document.getElementById("tieCount").textContent = tie;
-    document.getElementById("remainingCount").textContent = remaining;
-
-    if (acb > jbb) {
-      acbEl.style.color = "green";
-      jbbEl.style.color = "red";
-    } else if (jbb > acb) {
-      jbbEl.style.color = "green";
-      acbEl.style.color = "red";
-    } else {
-      acbEl.style.color = "#c9a700";
-      jbbEl.style.color = "#c9a700";
+    if (!aVal || !jVal) {
+      remaining++;
+      return;
     }
+
+    const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
+    if (!row) return;
+
+    const aCell = row.children[1];
+    const jCell = row.children[2];
+
+    const aIsWin = aCell.classList.contains("winner");
+    const jIsWin = jCell.classList.contains("winner");
+    const bothTie = aCell.classList.contains("tie") && jCell.classList.contains("tie");
+
+    if (aIsWin && !jIsWin) acb++;
+    else if (jIsWin && !aIsWin) jbb++;
+    else if (bothTie) tie++;
+  });
+
+  document.getElementById("acbCount").textContent = acb;
+  document.getElementById("jbbCount").textContent = jbb;
+  document.getElementById("tieCount").textContent = tie;
+  document.getElementById("remainingCount").textContent = remaining;
+
+  const acbEl = document.getElementById("acbCount");
+  const jbbEl = document.getElementById("jbbCount");
+
+  if (acb > jbb) {
+    acbEl.style.color = "green";
+    jbbEl.style.color = "red";
+  } else if (jbb > acb) {
+    jbbEl.style.color = "green";
+    acbEl.style.color = "red";
+  } else {
+    acbEl.style.color = "#c9a700";
+    jbbEl.style.color = "#c9a700";
   }
+}
 
   window.addEventListener("DOMContentLoaded", async () => {
   const overlay = document.getElementById("loadingOverlay");
