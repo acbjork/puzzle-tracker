@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.42</div>
+  <div class="version">v0.2.44</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -323,8 +323,23 @@ function enableEdit(td, puzzle, user, oldVal) {
   const btn = document.createElement("button");
   btn.textContent = "Submit";
   btn.onclick = () => {
-    results[puzzle][user] = ta.value.trim();
-    renderTable();
+    const newVal = ta.value.trim();
+if (!newVal) return;
+results[puzzle][user] = newVal;
+
+await supabase
+  .from("results")
+  .upsert(
+    {
+      date: today,
+      puzzle_name: puzzle,
+      player: user,
+      raw_result: newVal,
+    },
+    { onConflict: ["date", "puzzle_name", "player"] }
+  );
+
+renderTable();
   };
   td.appendChild(ta);
   td.appendChild(btn);
@@ -364,9 +379,23 @@ function enableEdit(td, puzzle, user, oldVal) {
             const btn = document.createElement("button");
             btn.textContent = "Submit";
             btn.onclick = () => {
-              results[puzzle][user] = ta.value.trim();
-              renderTable();
-            };
+              const newVal = ta.value.trim();
+if (!newVal) return;
+results[puzzle][user] = newVal;
+
+await supabase
+  .from("results")
+  .upsert(
+    {
+      date: today,
+      puzzle_name: puzzle,
+      player: user,
+      raw_result: newVal,
+    },
+    { onConflict: ["date", "puzzle_name", "player"] }
+  );
+
+renderTable();            };
             td.appendChild(ta);
             td.appendChild(btn);
           }
