@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.11 - endless </div>
+  <div class="version">v0.2.12 - endless </div>
 
   <script>
     const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
@@ -213,6 +213,23 @@ if (error) {
     cell.appendChild(textarea);
 cell.appendChild(button);
 }
+  function subscribeToChanges() {
+    supabase
+      .channel("realtime:results")
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "results"
+      }, (payload) => {
+        if (payload.new?.date === today) {
+          const cell = document.querySelector(`[data-cell="${payload.new.puzzle_name}-${payload.new.player}"]`);
+          if (cell && payload.new.player !== currentUser) {
+            cell.innerHTML = payload.new.raw_result;
+          }
+        }
+      })
+      .subscribe();
+  }
 
 window.addEventListener("DOMContentLoaded", () => {
   // Now inject input fields into the signed-in user's column
@@ -531,23 +548,6 @@ document.getElementById("userSelect").addEventListener("change", e => {
 
 
 
-  function subscribeToChanges() {
-    supabase
-      .channel("realtime:results")
-      .on("postgres_changes", {
-        event: "*",
-        schema: "public",
-        table: "results"
-      }, (payload) => {
-        if (payload.new?.date === today) {
-          const cell = document.querySelector(`[data-cell="${payload.new.puzzle_name}-${payload.new.player}"]`);
-          if (cell && payload.new.player !== currentUser) {
-            cell.innerHTML = payload.new.raw_result;
-          }
-        }
-      })
-      .subscribe();
-  }
 
 </script>
 </body>
