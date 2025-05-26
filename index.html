@@ -133,7 +133,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.16 - renderTextInput</div>
+  <div class="version">v0.2.17 - improved renderTextInput</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -193,11 +193,11 @@ textarea {
     }
   }
 
- function renderTextInput(cell, puzzle, existingValue = "") {
+function renderTextInput(cell, puzzle, existingValue = "") {
   const textarea = document.createElement("textarea");
   textarea.placeholder = "Paste result...";
   textarea.style.width = "95%";
-  textarea.value = existingValue; // Support editing
+  textarea.value = existingValue;
 
   const button = document.createElement("button");
   button.innerText = "Submit";
@@ -207,6 +207,12 @@ textarea {
     const val = textarea.value.trim();
     if (!val) return;
 
+    // 1. Update local results for faster UI feedback
+    if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+    results[puzzle][currentUser] = val;
+    renderTable();  // 2. Immediately re-render the table
+
+    // 3. Still sync to Supabase in background
     const { error } = await supabase
       .from("results")
       .upsert(
@@ -221,11 +227,9 @@ textarea {
 
     if (error) {
       console.error("Submit failed:", error.message);
-      alert("Submission failed. See console.");
+      alert("Submission failed. Try again.");
     } else {
       console.log("Submission succeeded.");
-      await loadResults();
-      renderTable();
     }
   });
 
