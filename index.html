@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>🧠 I'm Puzzled ‼️</title>
+  <title>🧠 I'm Puzzled ‼️ - Debug</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: system-ui, sans-serif; margin: 1em; }
@@ -11,299 +11,23 @@
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { border: 1px solid #ccc; padding: 0.5em; vertical-align: top; text-align: center; }
     th:first-child, td:first-child { text-align: left; }
-textarea {
-  width: 95%;
-  box-sizing: border-box;
-}
-.submitted {
-  white-space: pre-wrap;
-  background: #f3f3f3;
-  padding: 0.25em 0.5em;
-  line-height: 1.2;
-  border-radius: 4px;
-}
+    textarea { width: 95%; box-sizing: border-box; }
+    .submitted { white-space: pre-wrap; background: #f3f3f3; padding: 0.25em 0.5em; line-height: 1.2; border-radius: 4px; }
     .winner { background-color: #d6f5d6 !important; }
-.tie { background-color: #fff9c4 !important; }
+    .tie { background-color: #fff9c4 !important; }
     .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
-  
-.note {
-  font-size: 0.75em;
-  margin-top: 0.25em;
-}
-#scoreboard {
-  margin: 1em 0;
-  display: flex;
-  justify-content: space-around;
-  font-family: monospace;
-  font-size: 1.5em;
-}
-.scoreboard-label {
-  font-weight: bold;
-  text-align: center;
-}
-.scoreboard-value {
-  display: block;
-  font-size: 1.5em;
-}
-#loadingOverlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: white;
-  color: #444;
-  font-size: 1.5em;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-/* Chat Styles */
-.chat-fab {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 60px;
-  height: 60px;
-  background: #007bff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 1000;
-  transition: all 0.3s ease;
-  border: none;
-  color: white;
-  font-size: 1.5em;
-}
-
-.chat-fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-}
-
-.chat-fab .chat-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #dc3545;
-  color: white;
-  border-radius: 50%;
-  padding: 0.2em 0.4em;
-  font-size: 0.7em;
-  min-width: 1.2em;
-  text-align: center;
-  display: none;
-  border: 2px solid white;
-}
-
-.chat-fab .chat-badge.show {
-  display: block;
-}
-
-.chat-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 2000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.chat-modal.show {
-  display: flex;
-}
-
-.chat-panel {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  height: 80%;
-  max-height: 600px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  overflow: hidden;
-}
-
-.chat-header {
-  background: #007bff;
-  color: white;
-  padding: 1em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #0056b3;
-}
-
-.chat-title {
-  font-weight: bold;
-  font-size: 1.1em;
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.chat-controls {
-  display: flex;
-  align-items: center;
-  gap: 1em;
-}
-
-.sound-toggle {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.2em;
-  padding: 0.2em;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.sound-toggle:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.sound-toggle.muted {
-  opacity: 0.5;
-}
-
-.close-chat {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.5em;
-  padding: 0.2em;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.close-chat:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1em;
-  background: #f8f9fa;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-
-.message {
-  max-width: 75%;
-  padding: 0.7em 1em;
-  border-radius: 1em;
-  word-wrap: break-word;
-  position: relative;
-}
-
-.message.own {
-  align-self: flex-end;
-  background: #cc5500;
-  color: white;
-  border-bottom-right-radius: 0.3em;
-}
-
-.message.other {
-  align-self: flex-start;
-  background: #6c757d;
-  color: white;
-  border-bottom-left-radius: 0.3em;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.message-content {
-  margin-bottom: 0.3em;
-}
-
-.message-time {
-  font-size: 0.7em;
-  opacity: 0.8;
-}
-
-.message-date {
-  text-align: center;
-  padding: 0.5em;
-  color: #666;
-  font-size: 0.8em;
-  font-weight: bold;
-  background: #e9ecef;
-  border-radius: 1em;
-  margin: 0.5em auto;
-  max-width: 200px;
-}
-
-.chat-input {
-  padding: 1em;
-  border-top: 1px solid #ddd;
-  background: white;
-  display: flex;
-  gap: 0.5em;
-}
-
-.chat-input textarea {
-  flex: 1;
-  padding: 0.7em;
-  border: 1px solid #ddd;
-  border-radius: 1.5em;
-  resize: none;
-  max-height: 100px;
-  font-family: inherit;
-  outline: none;
-}
-
-.chat-input textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
-.chat-input button {
-  padding: 0.7em 1.2em;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 1.5em;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s ease;
-}
-
-.chat-input button:hover {
-  background: #0056b3;
-}
-
-.chat-input button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-    
-</style>
+    #scoreboard { margin: 1em 0; display: flex; justify-content: space-around; font-family: monospace; font-size: 1.5em; }
+    .scoreboard-label { font-weight: bold; text-align: center; }
+    .scoreboard-value { display: block; font-size: 1.5em; }
+    #loadingOverlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: white; color: #444; font-size: 1.5em;
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+  </style>
 </head>
 <body>
-  <div id="loadingOverlay">Loading…</div>
+  <div id="loadingOverlay">Loading… (Debug Mode)</div>
   <h1>🧠 I'm Puzzled ‼️</h1>
   <div class="subtitle">If you ain't first, you're last</div>
 
@@ -315,15 +39,14 @@ textarea {
     </select>
   </label>
 
-<div id="scoreboard">
-  <div class="scoreboard-label">ACB<span id="acbCount" class="scoreboard-value">0</span></div>
-  <div class="scoreboard-label">JBB<span id="jbbCount" class="scoreboard-value">0</span></div>
-  <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
-  <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
-</div>
+  <div id="scoreboard">
+    <div class="scoreboard-label">ACB<span id="acbCount" class="scoreboard-value">0</span></div>
+    <div class="scoreboard-label">JBB<span id="jbbCount" class="scoreboard-value">0</span></div>
+    <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
+    <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
+  </div>
 
-
-<table id="puzzleTable">
+  <table id="puzzleTable">
     <thead>
       <tr>
         <th>Puzzle</th>
@@ -332,464 +55,104 @@ textarea {
       </tr>
     </thead>
     <tbody id="puzzleRows">
-      <tr data-puzzle="Connections">
-  <td>Connections</td>
-  <td data-cell="Connections-Adam"></td>
-  <td data-cell="Connections-Jonathan"></td>
-</tr>
-<tr data-puzzle="Strands">
-  <td>Strands</td>
-  <td data-cell="Strands-Adam"></td>
-  <td data-cell="Strands-Jonathan"></td>
-</tr>
-<tr data-puzzle="On The Record">
-  <td>On The Record</td>
-  <td data-cell="On The Record-Adam"></td>
-  <td data-cell="On The Record-Jonathan"></td>
-</tr>
-<tr data-puzzle="Keyword">
-  <td>Keyword</td>
-  <td data-cell="Keyword-Adam"></td>
-  <td data-cell="Keyword-Jonathan"></td>
-</tr>
-<tr data-puzzle="NYT Mini">
-  <td>NYT Mini</td>
-  <td data-cell="NYT Mini-Adam"></td>
-  <td data-cell="NYT Mini-Jonathan"></td>
-</tr>
-<tr data-puzzle="Apple Mini">
-  <td>Apple Mini</td>
-  <td data-cell="Apple Mini-Adam"></td>
-  <td data-cell="Apple Mini-Jonathan"></td>
-</tr>
-<tr data-puzzle="Globle">
-  <td>Globle</td>
-  <td data-cell="Globle-Adam"></td>
-  <td data-cell="Globle-Jonathan"></td>
-</tr>
-<tr data-puzzle="Flagle">
-  <td>Flagle</td>
-  <td data-cell="Flagle-Adam"></td>
-  <td data-cell="Flagle-Jonathan"></td>
-</tr>
-<tr data-puzzle="Wordle">
-  <td>Wordle</td>
-  <td data-cell="Wordle-Adam"></td>
-  <td data-cell="Wordle-Jonathan"></td>
-</tr>
-<tr data-puzzle="Tightrope">
-  <td>Tightrope</td>
-  <td data-cell="Tightrope-Adam"></td>
-  <td data-cell="Tightrope-Jonathan"></td>
-</tr>
+      <tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>
     </tbody>
   </table>
 
-  <!-- Chat FAB (Floating Action Button) -->
-  <button class="chat-fab" onclick="openChat()">
-    💬
-    <span class="chat-badge" id="chatBadge">0</span>
-  </button>
+  <div class="version">v0.2.96 - Debug Mode</div>
 
-  <!-- Chat Modal -->
-  <div class="chat-modal" id="chatModal" onclick="closeChat(event)">
-    <div class="chat-panel" onclick="event.stopPropagation()">
-      <div class="chat-header">
-        <div class="chat-title">
-          💬 Trash Talk
-        </div>
-        <div class="chat-controls">
-          <button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Toggle sound alerts">
-            🔊
-          </button>
-          <button class="close-chat" onclick="closeChat()">&times;</button>
-        </div>
-      </div>
-      <div class="chat-messages" id="chatMessages">
-        <!-- Messages will be loaded here -->
-      </div>
-      <div class="chat-input">
-        <textarea id="messageInput" placeholder="Type your trash talk here..." rows="1"></textarea>
-        <button onclick="sendMessage()" id="sendButton">Send</button>
-      </div>
-    </div>
-  </div>
+<script>
+  console.log("🚀 Script started - no modules");
 
-  <div class="version">v0.2.94</div>
-
-<script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
-
-  const supabase = createClient(
-    "https://iqhgsdpqqshfeiqrkrqw.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec"
-  );
-
-  const today = new Date().toISOString().slice(0, 10);
-  
-  // Get current user - require selection first time, then remember
+  // Simple variables
   let currentUser = '';
-  try {
-    // Try to get from URL parameter or stored preference
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlUser = urlParams.get('user');
-    const storedUser = sessionStorage.getItem('selectedUser');
-    currentUser = urlUser || storedUser || "";
-  } catch {
-    currentUser = "";
-  }
-  
   const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
   const results = {};
-  const cellMap = {};
-  const chatMessages = [];
-  let chatOpen = false;
-  let unreadCount = 0;
-  let soundEnabled = true;
 
+  console.log("✅ Variables initialized");
+
+  // Initialize results
+  puzzles.forEach(puzzle => {
+    results[puzzle] = { Adam: "", Jonathan: "" };
+  });
+
+  console.log("✅ Results structure created");
+
+  // Simple user selection
   const userSelect = document.querySelector("#userSelect");
   if (userSelect) {
-    userSelect.value = currentUser;
     userSelect.addEventListener("change", (e) => {
-      const newUser = e.target.value;
-      if (newUser) {
-        // Remember this choice for the device
-        sessionStorage.setItem('selectedUser', newUser);
-        
-        // Update URL parameter and reload
-        const url = new URL(window.location);
-        url.searchParams.set('user', newUser);
-        window.location.href = url.toString();
+      currentUser = e.target.value;
+      console.log("👤 User selected:", currentUser);
+      
+      if (currentUser) {
+        renderSimpleTable();
       }
     });
+    console.log("✅ User selector initialized");
   }
 
-  // Don't render table if no user is selected
-  function shouldRenderTable() {
-    return currentUser && (currentUser === "Adam" || currentUser === "Jonathan");
-  }
-
-  async function loadResults() {
-    if (!shouldRenderTable()) return;
+  function renderSimpleTable() {
+    console.log("🎨 Rendering table for user:", currentUser);
     
-    console.log("Loading results from Supabase...");
-    
-    try {
-      // Clear existing data
-      Object.keys(results).forEach(key => delete results[key]);
-      Object.keys(cellMap).forEach(key => delete cellMap[key]);
-
-      // Load ALL results first, then filter in JavaScript
-      const { data, error } = await supabase
-        .from("results")
-        .select("*")
-        .eq("date", today)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("Error loading Supabase results:", error.message);
-        // Don't return early - continue with empty data
-      }
-
-      // Initialize all puzzles with empty values
-      puzzles.forEach(puzzle => {
-        results[puzzle] = { Adam: "", Jonathan: "" };
-      });
-
-      // Populate with actual results if we got data
-      if (data && data.length > 0) {
-        console.log(`Found ${data.length} total results from Supabase`);
-        let loadedCount = 0;
-        
-        for (const entry of data) {
-          const { puzzle_name, player, raw_result } = entry;
-          console.log(`Processing: ${player} - ${puzzle_name}: "${raw_result}"`);
-          
-          // Load all results, including empty ones (we'll handle empty filtering elsewhere if needed)
-          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan")) {
-            results[puzzle_name][player] = raw_result || "";
-            if (raw_result && raw_result.trim()) {
-              loadedCount++;
-            }
-          }
-        }
-        
-        console.log(`Loaded ${loadedCount} non-empty results`);
-      } else {
-        console.log("No results found in Supabase for today");
-      }
-
-      renderTable();
-    } catch (error) {
-      console.error("Supabase connection failed:", error);
-      // Initialize with empty data anyway
-      puzzles.forEach(puzzle => {
-        results[puzzle] = { Adam: "", Jonathan: "" };
-      });
-      renderTable();
-    }
-  }
-
-  function highlightWinner(tr, puzzle) {
-    // Clear previous highlighting
-    const adamCell = tr.children[1];
-    const jonCell = tr.children[2];
-    adamCell.classList.remove("winner", "tie");
-    jonCell.classList.remove("winner", "tie");
-
-    const aVal = results[puzzle].Adam;
-    const jVal = results[puzzle].Jonathan;
-
-    if (!aVal || !jVal) return;
-
-    if (puzzle === "Connections") {
-      if (aVal === jVal) return markBothAs("tie", adamCell, jonCell);
-      const aLines = aVal.split("\n");
-      const jLines = jVal.split("\n");
-      const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-      const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
-      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
+    const tbody = document.getElementById("puzzleRows");
+    if (!currentUser) {
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>';
+      return;
     }
 
-    if (puzzle === "Strands") {
-      const aHints = (aVal.match(/💡/g) || []).length;
-      const jHints = (jVal.match(/💡/g) || []).length;
-      const aTotal = aVal.split("\n").length;
-      const jTotal = jVal.split("\n").length;
-      if (aTotal < jTotal) markWinner(adamCell);
-      else if (jTotal < aTotal) markWinner(jonCell);
-      else if (aHints < jHints) markWinner(adamCell);
-      else if (jHints < aHints) markWinner(jonCell);
-      else {
-        const aIndex = aVal.indexOf("🟡");
-        const jIndex = jVal.indexOf("🟡");
-        if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
-        else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
-        else markBothAs("tie", adamCell, jonCell);
-      }
-    }
+    tbody.innerHTML = "";
 
-    if (puzzle === "Keyword") {
-      const aGuesses = parseInt(aVal.match(/(\d+) guesses/)?.[1] || "999");
-      const jGuesses = parseInt(jVal.match(/(\d+) guesses/)?.[1] || "999");
-      if (aGuesses < jGuesses) markWinner(adamCell);
-      else if (jGuesses < aGuesses) markWinner(jonCell);
-      else {
-        const aTime = parseTime(aVal.match(/(\d+:\d+)/)?.[1] || "99:99");
-        const jTime = parseTime(jVal.match(/(\d+:\d+)/)?.[1] || "99:99");
-        if (aTime < jTime) markWinner(adamCell);
-        else if (jTime < aTime) markWinner(jonCell);
-        else markBothAs("tie", adamCell, jonCell);
-      }
-    }
-
-    if (puzzle === "Wordle") {
-      const aScore = parseInt(aVal.match(/\b(\d)\/6/)?.[1] || "7");
-      const jScore = parseInt(jVal.match(/\b(\d)\/6/)?.[1] || "7");
-      if (aScore < jScore) markWinner(adamCell);
-      else if (jScore < aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "On The Record") {
-      const aScore = parseInt(aVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
-      const jScore = parseInt(jVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
-      if (aScore > jScore) markWinner(adamCell);
-      else if (jScore > aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Apple Mini") {
-      let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-      let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-
-      if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-      if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-
-      const aSecs = aVal.match(/^(\d+)\s*s$/i);
-      const jSecs = jVal.match(/^(\d+)\s*s$/i);
-
-      const aTime = aMatch
-        ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
-        : aSecs
-        ? parseInt(aSecs[1])
-        : 9999;
-
-      const jTime = jMatch
-        ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
-        : jSecs
-        ? parseInt(jSecs[1])
-        : 9999;
-
-      if (aTime < jTime) markWinner(adamCell);
-      else if (jTime < aTime) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "NYT Mini") {
-      let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-      let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-
-      if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-      if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-
-      const aSecs = aVal.match(/^(\d+)\s*s$/i);
-      const jSecs = jVal.match(/^(\d+)\s*s$/i);
-
-      const aTime = aMatch
-        ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
-        : aSecs
-        ? parseInt(aSecs[1])
-        : 9999;
-
-      const jTime = jMatch
-        ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
-        : jSecs
-        ? parseInt(jSecs[1])
-        : 9999;
-
-      if (aTime < jTime) markWinner(adamCell);
-      else if (jTime < aTime) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Globle") {
-      const aGuesses = parseInt(aVal.match(/=\s*(\d+)/)?.[1] || "999");
-      const jGuesses = parseInt(jVal.match(/=\s*(\d+)/)?.[1] || "999");
-      if (aGuesses < jGuesses) markWinner(adamCell);
-      else if (jGuesses < aGuesses) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Flagle") {
-      const aScore = aVal.includes("X") ? 7 : parseInt(aVal.match(/\b(\d)/)?.[1] || "7");
-      const jScore = jVal.includes("X") ? 7 : parseInt(jVal.match(/\b(\d)/)?.[1] || "7");
-      if (aScore < jScore) markWinner(adamCell);
-      else if (jScore < aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Tightrope") {
-      const aChecks = (aVal.match(/✅/g) || []).length;
-      const jChecks = (jVal.match(/✅/g) || []).length;
-      if (aChecks > jChecks) markWinner(adamCell);
-      else if (jChecks > aChecks) markWinner(jonCell);
-      else {
-        const aScore = parseInt(aVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
-        const jScore = parseInt(jVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
-        if (aScore > jScore) markWinner(adamCell);
-        else if (jScore > aScore) markWinner(jonCell);
-        else markBothAs("tie", adamCell, jonCell);
-      }
-    }
-  }
-
-  function parseTime(t) {
-    const [min, sec] = t.split(":").map(Number);
-    return min * 60 + sec;
-  }
-
-  function markWinner(cell) {
-    cell.classList.add("winner");
-  }
-
-  function markBothAs(cls, a, b) {
-    a.classList.add(cls);
-    b.classList.add(cls);
-  }
-
-  function enableEdit(td, puzzle, user, oldVal) {
-    td.innerHTML = "";
-
-    const ta = document.createElement("textarea");
-    ta.value = oldVal;
-
-    const submitBtn = document.createElement("button");
-    submitBtn.textContent = "Submit";
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.style.marginLeft = "5px";
-    deleteBtn.style.backgroundColor = "#ff6b6b";
-    deleteBtn.style.color = "white";
-
-    submitBtn.onclick = async () => {
-      const newVal = ta.value.trim();
+    puzzles.forEach(puzzle => {
+      const tr = document.createElement("tr");
       
-      if (!newVal) {
-        // If empty, ask for confirmation to delete
-        if (confirm(`Delete the existing ${puzzle} result for ${user}?`)) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Deleting...";
-          await deleteResult(puzzle, user);
-        }
-        return;
-      }
+      // Puzzle name
+      const tdPuzzle = document.createElement("td");
+      tdPuzzle.textContent = puzzle;
+      tr.appendChild(tdPuzzle);
 
-      // Update result
-      results[puzzle][user] = newVal;
-
-      const { error } = await supabase
-        .from("results")
-        .upsert({
-          date: today,
-          puzzle_name: puzzle,
-          player: user,
-          raw_result: newVal
-        }, {
-          onConflict: ["date", "puzzle_name", "player"]
-        });
-
-      if (error) {
-        console.error("Submission failed:", error.message);
-        alert("Submission failed. Try again.");
+      // Adam column
+      const tdAdam = document.createElement("td");
+      if (currentUser === "Adam") {
+        tdAdam.innerHTML = '<textarea placeholder="Paste result..."></textarea><br><button onclick="alert(\'This is just debug mode!\')">Submit</button>';
       } else {
-        console.log(`Successfully updated ${puzzle} result for ${user}`);
-        renderTable();
+        tdAdam.innerHTML = '<div class="submitted"></div>';
       }
-    };
+      tr.appendChild(tdAdam);
 
-    deleteBtn.onclick = async () => {
-      if (confirm(`Are you sure you want to permanently delete this ${puzzle} result for ${user}?`)) {
-        // Disable button during deletion
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = "Deleting...";
-        
-        const success = await deleteResult(puzzle, user);
-        
-        if (!success) {
-          // Re-enable button if deletion failed
-          deleteBtn.disabled = false;
-          deleteBtn.textContent = "Delete";
-        }
-        // If successful, the table will re-render and this button will be gone
+      // Jonathan column
+      const tdJonathan = document.createElement("td");
+      if (currentUser === "Jonathan") {
+        tdJonathan.innerHTML = '<textarea placeholder="Paste result..."></textarea><br><button onclick="alert(\'This is just debug mode!\')">Submit</button>';
+      } else {
+        tdJonathan.innerHTML = '<div class="submitted"></div>';
       }
-    };
+      tr.appendChild(tdJonathan);
 
-    td.appendChild(ta);
-    td.appendChild(document.createElement("br"));
-    td.appendChild(submitBtn);
-    td.appendChild(deleteBtn);
+      tbody.appendChild(tr);
+    });
+
+    console.log("✅ Table rendered successfully");
   }
 
-  async function deleteResult(puzzle, user) {
-    console.log(`Starting deletion: ${user} - ${puzzle} on ${today}`);
+  // Simple initialization
+  window.addEventListener("DOMContentLoaded", () => {
+    console.log("📱 DOM loaded, starting initialization...");
     
-    try {
-      // With RLS enabled, we'll "delete" by updating the record to empty
-      console.log("Attempting logical deletion (update to empty)...");
-      
-      const { data: updateData, error: updateError, count } = await supabase
-        .from("results")
-        .update({ 
-          raw_result: "" 
-        })
-        .eq("date", today)
-        .eq("puzzle_name", puzzle)
-        .eq("player", user)
-        .select();
+    // Hide loading overlay after 3 seconds
+    setTimeout(() => {
+      console.log("⏰ Hiding loading overlay");
+      const overlay = document.getElementById("loadingOverlay");
+      if (overlay) {
+        overlay.style.display = "none";
+        console.log("✅ Loading overlay hidden");
+      }
+    }, 3000);
 
-      if (updateError) {
-        console.error("Logical deletion failed:", updateError);
+    console.log("🎯 Initialization complete");
+  });
+
+  console.log("💯 Script setup complete");
+</script>
+</body>
+</html>
