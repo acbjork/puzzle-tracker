@@ -146,7 +146,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.40</div>
+  <div class="version">v0.2.41</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -379,51 +379,6 @@ function enableEdit(td, puzzle, user, oldVal) {
 
         tr.appendChild(td);
       });
-
-     function highlightWinner(tr, puzzle) {
-  const [adamCell, jonCell] = [tr.children[1], tr.children[2]];
-  const aVal = results[puzzle].Adam;
-  const jVal = results[puzzle].Jonathan;
-
-  // Remove any prior win/tie classes
-  adamCell.classList.remove("winner", "tie");
-  jonCell.classList.remove("winner", "tie");
-
-  if (!aVal || !jVal) return;
-
-  let winner = null;
-
-  if (puzzle === "Connections") {
-    if (aVal === jVal) return markBothAs("tie", adamCell, jonCell);
-    const aIndex = aVal.split("\n").findIndex(line => line.includes("🟪🟪🟪🟪"));
-    const jIndex = jVal.split("\n").findIndex(line => line.includes("🟪🟪🟪🟪"));
-    if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) winner = "Adam";
-    else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) winner = "Jonathan";
-  }
-
-  if (puzzle === "Strands") {
-    const aHints = (aVal.match(/💡/g) || []).length;
-    const jHints = (jVal.match(/💡/g) || []).length;
-    const aTotal = aVal.split("\n").length;
-    const jTotal = jVal.split("\n").length;
-    if (aTotal < jTotal) winner = "Adam";
-    else if (jTotal < aTotal) winner = "Jonathan";
-    else if (aHints < jHints) winner = "Adam";
-    else if (jHints < aHints) winner = "Jonathan";
-    else {
-      const aIndex = aVal.indexOf("🟡");
-      const jIndex = jVal.indexOf("🟡");
-      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) winner = "Adam";
-      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) winner = "Jonathan";
-    }
-  }
-
-  // (Optional: Add more logic for other puzzles…)
-
-  if (winner === "Adam") markWinner(adamCell);
-  else if (winner === "Jonathan") markWinner(jonCell);
-  else markBothAs("tie", adamCell, jonCell);
-}
 
 function renderTextInput(cell, puzzle, existingValue = "") {
   const textarea = document.createElement("textarea");
