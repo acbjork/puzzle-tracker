@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.63</div>
+  <div class="version">v0.2.64</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -437,7 +437,7 @@ if (error) {
 });
     tbody.innerHTML = "";
 
-    puzzles.forEach(puzzle => {
+        puzzles.forEach(puzzle => {
       if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
 
       const tr = document.createElement("tr");
@@ -465,49 +465,27 @@ if (error) {
             const btn = document.createElement("button");
             btn.textContent = "Submit";
             btn.onclick = async () => {
-  const newVal = ta.value.trim();
+              const newVal = ta.value.trim();
 
-  if (newVal === "") {
-    // User wants to clear the result — delete from Supabase
-    const { error } = await supabase
-      .from("results")
-      .delete()
-      .match({
-        date: today,
-        puzzle_name: puzzle,
-        player: user,
-      });
+              if (newVal === "") {
+                const { error } = await supabase
+                  .from("results")
+                  .delete()
+                  .match({ date: today, puzzle_name: puzzle, player: user });
 
-    if (error) {
-      console.error("Deletion failed:", error.message);
-      alert("Clearing the result failed. Try again.");
-    } else {
-      results[puzzle][user] = "";
-      renderTable();
-    }
+                if (!error) results[puzzle][user] = "";
+                renderTable();
+                return;
+              }
 
-    return;
-  }
+              results[puzzle][user] = newVal;
+              const { error } = await supabase
+                .from("results")
+                .upsert({ date: today, puzzle_name: puzzle, player: user, raw_result: newVal },
+                        { onConflict: ["date", "puzzle_name", "player"] });
 
-  // Otherwise, save as normal
-  results[puzzle][user] = newVal;
-
-  const { error } = await supabase
-    .from("results")
-    .upsert({
-      date: today,
-      puzzle_name: puzzle,
-      player: user,
-      raw_result: newVal,
-    }, { onConflict: ["date", "puzzle_name", "player"] });
-
-  if (error) {
-    console.error("Submission failed:", error.message);
-    alert("Submission failed. Try again.");
-  } else {
-    renderTable();
-  }
-};
+              if (!error) renderTable();
+            };
             td.appendChild(ta);
             td.appendChild(btn);
           }
@@ -516,23 +494,17 @@ if (error) {
           div.className = "submitted";
           div.textContent = result;
           td.appendChild(div);
-        console.log("Winner class check:", td.className);
         }
 
-                tr.appendChild(td);
+        tr.appendChild(td);
       });
 
+      highlightWinner(tr, puzzle); // Inline instead of async to ensure scoreboard sees it
       tbody.appendChild(tr);
-setTimeout(() => highlightWinner(tr, puzzle), 0);
     });
 
-setTimeout(() => {
-  puzzles.forEach(p => {
-    const row = document.querySelector(`tr[data-puzzle="${p}"]`);
-    if (row) highlightWinner(row, p);
-  });
-  updateScoreboard();
-}, 0);
+    updateScoreboard(); // Now runs after all winners are marked
+  }, 0);
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
@@ -593,7 +565,7 @@ function renderTextInput(cell, puzzle, existingValue = "") {
 
       if (payload.eventType === "DELETE" && puzzle && player) {
   if (results[puzzle]) results[puzzle][player] = "";
-  renderTable();
+  renderTable(); // Triggers DOM and scoreboard update
 }
       else if (payload.new?.date === today && puzzle && player) {
         results[puzzle][player] = payload.new.raw_result;
