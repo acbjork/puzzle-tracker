@@ -145,7 +145,7 @@ textarea {
     </tbody>
   </table>
 
-  <div class="version">v0.2.65</div>
+  <div class="version">v0.2.66</div>
 
 <script type="module">
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -503,7 +503,7 @@ if (error) {
       tbody.appendChild(tr);
     });
 
-    updateScoreboard(); // Now runs after all winners are marked
+    setTimeout(updateScoreboard, 0); // Now runs after all winners are marked
   } // ← This brace is currently missing
 
 function renderTextInput(cell, puzzle, existingValue = "") {
@@ -626,11 +626,20 @@ else if (aCell.classList.contains("tie") && jCell.classList.contains("tie")) tie
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        for (const puzzle in parsed) {
-          if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-          results[puzzle].Adam = parsed[puzzle].Adam || "";
-          results[puzzle].Jonathan = parsed[puzzle].Jonathan || "";
-        }
+        for (const puzzle of puzzles) {
+  if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+  results[puzzle].Adam = "";
+  results[puzzle].Jonathan = "";
+}
+
+for (const entry of data) {
+  const puzzle = entry.puzzle_name;
+  const player = entry.player;
+  const result = entry.raw_result;
+
+  if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+  results[puzzle][player] = result;
+}
       } catch (e) {
         console.error("Failed to load saved results:", e);
       }
