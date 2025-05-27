@@ -10,28 +10,20 @@
     .subtitle { font-size: 0.95em; color: #555; margin-top: 0.2em; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { border: 1px solid #ccc; padding: 0.5em; vertical-align: top; text-align: center; }
-    th:first-child, td:first-child { text-align: left; width: 20%; }
-    
-    /* Mobile optimization for iPhone */
-    @media (max-width: 480px) {
-      th:first-child, td:first-child { width: 15%; font-size: 0.85em; }
-      th, td { padding: 0.3em; font-size: 0.9em; }
-    }
+    th:first-child, td:first-child { text-align: left; }
 textarea {
   width: 95%;
   box-sizing: border-box;
 }
 .submitted {
   white-space: pre-wrap;
+  background: #f3f3f3;
   padding: 0.25em 0.5em;
   line-height: 1.2;
   border-radius: 4px;
-  background: transparent; /* Remove default grey background */
 }
     .winner { background-color: #d6f5d6 !important; }
-    .winner .submitted { background-color: transparent !important; } /* Ensure submitted text doesn't override */
 .tie { background-color: #fff9c4 !important; }
-    .tie .submitted { background-color: transparent !important; } /* Ensure submitted text doesn't override */
     .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
   
 .note {
@@ -65,362 +57,15 @@ textarea {
   justify-content: center;
   z-index: 9999;
 }
-
-/* Chat Styles */
-.chat-fab {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 60px;
-  height: 60px;
-  background: #007bff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 1000;
-  transition: all 0.3s ease;
-  border: none;
-  color: white;
-  font-size: 1.5em;
-}
-
-.chat-fab:hover {
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.4);
-}
-
-.chat-fab .chat-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #dc3545;
-  color: white;
-  border-radius: 50%;
-  padding: 0.2em 0.4em;
-  font-size: 0.7em;
-  min-width: 1.2em;
-  text-align: center;
-  display: none;
-  border: 2px solid white;
-}
-
-.chat-fab .chat-badge.show {
-  display: block;
-}
-
-.chat-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 2000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.chat-modal.show {
-  display: flex;
-}
-
-.chat-panel {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 500px;
-  height: 80%;
-  max-height: 600px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  overflow: hidden;
-}
-
-.chat-header {
-  background: #007bff;
-  color: white;
-  padding: 1em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #0056b3;
-}
-
-.chat-title {
-  font-weight: bold;
-  font-size: 1.1em;
-  display: flex;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.chat-controls {
-  display: flex;
-  align-items: center;
-  gap: 1em;
-}
-
-.sound-toggle {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.2em;
-  padding: 0.2em;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.sound-toggle:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.sound-toggle.muted {
-  opacity: 0.5;
-}
-
-.close-chat {
-  background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 1.5em;
-  padding: 0.2em;
-  border-radius: 4px;
-  transition: background 0.3s ease;
-}
-
-.close-chat:hover {
-  background: rgba(255,255,255,0.1);
-}
-
-.chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1em;
-  background: #f5f5f7;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-
-.message {
-  max-width: 75%;
-  padding: 0.7em 1em;
-  border-radius: 1em;
-  word-wrap: break-word;
-  position: relative;
-}
-
-.message.own {
-  align-self: flex-end;
-  background: #cc5500;
-  color: white;
-  border-bottom-right-radius: 0.3em;
-}
-
-.message.other {
-  align-self: flex-start;
-  background: #f1f3f4;
-  color: #000000;
-  border-bottom-left-radius: 0.3em;
-  animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.message-content {
-  margin-bottom: 0.3em;
-}
-
-.message-time {
-  font-size: 0.7em;
-  opacity: 0.8;
-}
-
-.message-date {
-  text-align: center;
-  padding: 0.5em;
-  color: #666;
-  font-size: 0.8em;
-  font-weight: bold;
-  background: #e9ecef;
-  border-radius: 1em;
-  margin: 0.5em auto;
-  max-width: 200px;
-}
-
-.chat-input {
-  padding: 1em;
-  border-top: 1px solid #ddd;
-  background: white;
-  display: flex;
-  gap: 0.5em;
-}
-
-.chat-input textarea {
-  flex: 1;
-  padding: 0.7em;
-  border: 1px solid #ddd;
-  border-radius: 1.5em;
-  resize: none;
-  max-height: 100px;
-  font-family: inherit;
-  outline: none;
-}
-
-.chat-input textarea:focus {
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
-}
-
-.chat-input button {
-  padding: 0.7em 1.2em;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 1.5em;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.3s ease;
-}
-
-.chat-input button:hover {
-  background: #0056b3;
-}
-
-.chat-input button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.message-delete {
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.7);
-  cursor: pointer;
-  font-size: 0.8em;
-  margin-left: 0.5em;
-  padding: 0.2em;
-  border-radius: 3px;
-  transition: all 0.3s ease;
-}
-
-.message-delete:hover {
-  background: rgba(255,255,255,0.2);
-  color: white;
-}
-
-.puzzle-note {
-  font-size: 0.75em;
-  color: #856404;
-  background: #fff3cd;
-  padding: 0.3em;
-  border-radius: 3px;
-  margin-top: 0.3em;
-  border-left: 3px solid #ffc107;
-}
-
-.dnf-result {
-  color: #dc3545;
-  font-weight: bold;
-  font-style: italic;
-}
-
-.history-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-  z-index: 3000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-}
-
-.history-modal.show {
-  display: flex;
-}
-
-.history-panel {
-  background: white;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 600px;
-  height: 80%;
-  max-height: 700px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-  overflow: hidden;
-}
-
-.history-header {
-  background: #28a745;
-  color: white;
-  padding: 1em;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.history-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1em;
-}
-
-.streak-info {
-  background: #f8f9fa;
-  padding: 1em;
-  border-radius: 8px;
-  margin-bottom: 1em;
-  text-align: center;
-}
-
-.history-day {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 1em;
-  padding: 1em;
-}
-
-.history-day.winner-adam {
-  border-left: 5px solid #28a745;
-}
-
-.history-day.winner-jonathan {
-  border-left: 5px solid #007bff;
-}
-
-.history-day.tie {
-  border-left: 5px solid #ffc107;
-}
     
 </style>
 </head>
 <body>
   <div id="loadingOverlay">Loading…</div>
   <h1>🧠 I'm Puzzled ‼️</h1>
-  <div class="subtitle" style="margin-bottom: 1em;">If you ain't first, you're last</div>
+  <div class="subtitle">If you ain't first, you're last</div>
 
-  <label for="userSelect" style="margin-bottom: 1em; display: inline-block;">Signed in as:
+  <label for="userSelect">Signed in as:
     <select id="userSelect">
       <option value="">(choose)</option>
       <option value="Adam">Adam 🌵</option>
@@ -428,27 +73,13 @@ textarea {
     </select>
   </label>
 
-  <div style="margin: 1em 0; text-align: center;">
-    <button id="newDayButton" style="display: none; padding: 0.7em 1.5em; background: #28a745; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer;" onclick="startNewDay()">
-      🌅 Begin Today's Puzzles
-    </button>
-    <button id="historyButton" style="margin-left: 1em; padding: 0.7em 1.5em; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;" onclick="showHistory()">
-      📊 Puzzle History
-    </button>
-  </div>
-
 <div id="scoreboard">
-  <div class="scoreboard-label">
-    <div id="adamCrown" style="display: none; font-size: 1.2em;">👑</div>
-    ACB<span id="acbCount" class="scoreboard-value">0</span>
-  </div>
-  <div class="scoreboard-label">
-    <div id="jonathanCrown" style="display: none; font-size: 1.2em;">👑</div>
-    JBB<span id="jbbCount" class="scoreboard-value">0</span>
-  </div>
+  <div class="scoreboard-label">ACB<span id="acbCount" class="scoreboard-value">0</span></div>
+  <div class="scoreboard-label">JBB<span id="jbbCount" class="scoreboard-value">0</span></div>
   <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
   <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
 </div>
+
 
 <table id="puzzleTable">
     <thead>
@@ -512,64 +143,15 @@ textarea {
     </tbody>
   </table>
 
-  <!-- Chat FAB (Floating Action Button) -->
-  <button class="chat-fab" onclick="openChat()">
-    💬
-    <span class="chat-badge" id="chatBadge">0</span>
-  </button>
+  <div class="version">v0.2.87</div>
 
-  <!-- Chat Modal -->
-  <div class="chat-modal" id="chatModal" onclick="closeChat(event)">
-    <div class="chat-panel" onclick="event.stopPropagation()">
-      <div class="chat-header">
-        <div class="chat-title">
-          💬 Trash Talk
-        </div>
-        <div class="chat-controls">
-          <button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Toggle sound alerts">
-            🔊
-          </button>
-          <button class="close-chat" onclick="closeChat()">&times;</button>
-        </div>
-      </div>
-      <div class="chat-messages" id="chatMessages">
-        <!-- Messages will be loaded here -->
-      </div>
-      <div class="chat-input">
-        <textarea id="messageInput" placeholder="Type your trash talk here..." rows="1"></textarea>
-        <button onclick="sendMessage()" id="sendButton">Send</button>
-      </div>
-    </div>
-  </div>
+<script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-  <!-- History Modal -->
-  <div class="history-modal" id="historyModal" onclick="closeHistory(event)">
-    <div class="history-panel" onclick="event.stopPropagation()">
-      <div class="history-header">
-        <div style="font-weight: bold; font-size: 1.1em;">📊 Puzzle History</div>
-        <button style="background: none; border: none; color: white; cursor: pointer; font-size: 1.5em;" onclick="closeHistory()">&times;</button>
-      </div>
-      <div class="history-content" id="historyContent">
-        <!-- History will be loaded here -->
-      </div>
-    </div>
-  </div>
-
-  <div class="version">v0.4.4 - Mobile Optimized</div>
-
-<!-- Load Supabase via CDN script tag instead of ES6 import -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<script>
-  console.log("🚀 App starting with CDN Supabase...");
-
-  // Initialize Supabase client
-  const supabase = window.supabase.createClient(
+  const supabase = createClient(
     "https://iqhgsdpqqshfeiqrkrqw.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec"
   );
-
-  console.log("✅ Supabase client initialized");
 
   const today = new Date().toISOString().slice(0, 10);
   
@@ -588,132 +170,6 @@ textarea {
   const puzzles = ["Connections", "Strands", "On The Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
   const results = {};
   const cellMap = {};
-  const chatMessages = [];
-  let chatOpen = false;
-  let unreadCount = 0;
-  let soundEnabled = true;
-  let currentGameDate = today;
-  let dailyHistory = [];
-
-  console.log("✅ Variables initialized");
-
-  // Time zone and deadline functions
-  function getUserMidnight() {
-    const now = new Date();
-    const midnight = new Date(now);
-    midnight.setHours(0, 20, 0, 0); // 12:20 AM (changed from 12:30)
-    if (now.getHours() >= 0 && now.getMinutes() >= 20) {
-      midnight.setDate(midnight.getDate() + 1);
-    }
-    return midnight;
-  }
-
-  function getNYTMiniDeadline() {
-    const now = new Date();
-    const deadline = new Date(now);
-    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
-    
-    if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
-      deadline.setHours(18, 20, 0, 0); // 6:20 PM
-    } else { // Weekdays
-      deadline.setHours(22, 20, 0, 0); // 10:20 PM
-    }
-    
-    // If we've passed today's deadline, move to next day's deadline
-    if (now > deadline) {
-      deadline.setDate(deadline.getDate() + 1);
-      const nextDayOfWeek = deadline.getDay();
-      if (nextDayOfWeek === 0 || nextDayOfWeek === 6) {
-        deadline.setHours(18, 20, 0, 0);
-      } else {
-        deadline.setHours(22, 20, 0, 0);
-      }
-    }
-    
-    return deadline;
-  }
-
-  function isAfterDeadline(puzzle = null) {
-    const now = new Date();
-    
-    if (puzzle === "NYT Mini") {
-      return now > getNYTMiniDeadline();
-    }
-    
-    if (puzzle === "On The Record" && isOnTheRecordWeekend()) {
-      return now > getOnTheRecordDeadline();
-    }
-    
-    // Default deadline for all other puzzles
-    return now > getUserMidnight();
-  }
-
-  function isOnTheRecordWeekend() {
-    const gameDate = new Date(currentGameDate);
-    return gameDate.getDay() === 5; // Friday = weekend edition
-  }
-
-  function getOnTheRecordDeadline() {
-    if (isOnTheRecordWeekend()) {
-      // Weekend edition deadline is Monday 12:20 AM (changed from 12:30)
-      const friday = new Date(currentGameDate);
-      const monday = new Date(friday);
-      monday.setDate(friday.getDate() + 3);
-      monday.setHours(0, 20, 0, 0);
-      return monday;
-    }
-    return getUserMidnight();
-  }
-
-  function extractDateFromResult(puzzle, result) {
-    if (!result) return null;
-    
-    // Extract dates/numbers from different puzzle types
-    switch (puzzle) {
-      case "NYT Mini":
-        const nytMatch = result.match(/(\d{1,2}\/\d{1,2}\/\d{4})/);
-        return nytMatch ? nytMatch[1] : null;
-      
-      case "Connections":
-        const connMatch = result.match(/Connections\s*\n*(.+?)\n/);
-        return connMatch ? connMatch[1].trim() : null;
-      
-      case "Strands":
-        const strandsMatch = result.match(/Strands\s*#(\d+)/);
-        return strandsMatch ? `#${strandsMatch[1]}` : null;
-      
-      case "Wordle":
-        const wordleMatch = result.match(/Wordle\s*(\d+)/);
-        return wordleMatch ? wordleMatch[1] : null;
-      
-      case "Globle":
-        const globleMatch = result.match(/#(\d+)/);
-        return globleMatch ? `#${globleMatch[1]}` : null;
-      
-      case "Flagle":
-        const flagleMatch = result.match(/#(\d+)/);
-        return flagleMatch ? `#${flagleMatch[1]}` : null;
-      
-      default:
-        return null;
-    }
-  }
-
-  function checkDateDiscordance(puzzle) {
-    const adamResult = results[puzzle]?.Adam || "";
-    const jonathanResult = results[puzzle]?.Jonathan || "";
-    
-    if (!adamResult || !jonathanResult) return null;
-    
-    const adamDate = extractDateFromResult(puzzle, adamResult);
-    const jonathanDate = extractDateFromResult(puzzle, jonathanResult);
-    
-    if (adamDate && jonathanDate && adamDate !== jonathanDate) {
-      return `⚠️ Date mismatch: ${adamDate} vs ${jonathanDate}`;
-    }
-    
-    return null;
-  }
 
   const userSelect = document.querySelector("#userSelect");
   if (userSelect) {
@@ -747,11 +203,12 @@ textarea {
       Object.keys(results).forEach(key => delete results[key]);
       Object.keys(cellMap).forEach(key => delete cellMap[key]);
 
-      // Load ALL results first, then filter in JavaScript
+      // Load results, filtering out empty ones (logically deleted)
       const { data, error } = await supabase
         .from("results")
         .select("*")
         .eq("date", today)
+        .neq("raw_result", "")
         .order("created_at", { ascending: true });
 
       if (error) {
@@ -766,25 +223,15 @@ textarea {
 
       // Populate with actual results if we got data
       if (data && data.length > 0) {
-        console.log(`Found ${data.length} total results from Supabase`);
-        let loadedCount = 0;
-        
+        console.log(`Loaded ${data.length} non-empty results from Supabase`);
         for (const entry of data) {
           const { puzzle_name, player, raw_result } = entry;
-          console.log(`Processing: ${player} - ${puzzle_name}: "${raw_result}"`);
-          
-          // Load all results, including empty ones (we'll handle empty filtering elsewhere if needed)
-          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan")) {
-            results[puzzle_name][player] = raw_result || "";
-            if (raw_result && raw_result.trim()) {
-              loadedCount++;
-            }
+          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan") && raw_result && raw_result.trim()) {
+            results[puzzle_name][player] = raw_result;
           }
         }
-        
-        console.log(`Loaded ${loadedCount} non-empty results`);
       } else {
-        console.log("No results found in Supabase for today");
+        console.log("No non-empty results found in Supabase for today");
       }
 
       renderTable();
@@ -808,20 +255,6 @@ textarea {
     const aVal = results[puzzle].Adam;
     const jVal = results[puzzle].Jonathan;
 
-    // Check for DNF first
-    if (aVal === "DNF" && jVal !== "DNF" && jVal) {
-      markWinner(jonCell);
-      return;
-    }
-    if (jVal === "DNF" && aVal !== "DNF" && aVal) {
-      markWinner(adamCell);
-      return;
-    }
-    if (aVal === "DNF" && jVal === "DNF") {
-      markBothAs("tie", adamCell, jonCell);
-      return;
-    }
-
     if (!aVal || !jVal) return;
 
     if (puzzle === "Connections") {
@@ -830,14 +263,8 @@ textarea {
       const jLines = jVal.split("\n");
       const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
       const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) {
-        markWinner(adamCell);
-        if (jIndex !== -1) addTiebreakNote(adamCell, "Win by tiebreak (purple category order)");
-      }
-      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) {
-        markWinner(jonCell);
-        if (aIndex !== -1) addTiebreakNote(jonCell, "Win by tiebreak (purple category order)");
-      }
+      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
+      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
       else markBothAs("tie", adamCell, jonCell);
     }
 
@@ -846,38 +273,515 @@ textarea {
       const jHints = (jVal.match(/💡/g) || []).length;
       const aTotal = aVal.split("\n").length;
       const jTotal = jVal.split("\n").length;
-      
-      if (aTotal < jTotal) {
-        markWinner(adamCell);
-        addTiebreakNote(adamCell, "Win by tiebreak (fewer lines)");
-      }
-      else if (jTotal < aTotal) {
-        markWinner(jonCell);
-        addTiebreakNote(jonCell, "Win by tiebreak (fewer lines)");
-      }
-      else if (aHints < jHints) {
-        markWinner(adamCell);
-        addTiebreakNote(adamCell, "Win by tiebreak (fewer hints)");
-      }
-      else if (jHints < aHints) {
-        markWinner(jonCell);
-        addTiebreakNote(jonCell, "Win by tiebreak (fewer hints)");
-      }
+      if (aTotal < jTotal) markWinner(adamCell);
+      else if (jTotal < aTotal) markWinner(jonCell);
+      else if (aHints < jHints) markWinner(adamCell);
+      else if (jHints < aHints) markWinner(jonCell);
       else {
         const aIndex = aVal.indexOf("🟡");
         const jIndex = jVal.indexOf("🟡");
-        if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) {
-          markWinner(adamCell);
-          addTiebreakNote(adamCell, "Win by tiebreak (Spangram)");
-        }
-        else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) {
-          markWinner(jonCell);
-          addTiebreakNote(jonCell, "Win by tiebreak (Spangram)");
-        }
+        if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
+        else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
         else markBothAs("tie", adamCell, jonCell);
       }
     }
 
     if (puzzle === "Keyword") {
       const aGuesses = parseInt(aVal.match(/(\d+) guesses/)?.[1] || "999");
-      const jGuesses = parseInt(jVal.match(/(\d+) guesses/)?.[1
+      const jGuesses = parseInt(jVal.match(/(\d+) guesses/)?.[1] || "999");
+      if (aGuesses < jGuesses) markWinner(adamCell);
+      else if (jGuesses < aGuesses) markWinner(jonCell);
+      else {
+        const aTime = parseTime(aVal.match(/(\d+:\d+)/)?.[1] || "99:99");
+        const jTime = parseTime(jVal.match(/(\d+:\d+)/)?.[1] || "99:99");
+        if (aTime < jTime) markWinner(adamCell);
+        else if (jTime < aTime) markWinner(jonCell);
+        else markBothAs("tie", adamCell, jonCell);
+      }
+    }
+
+    if (puzzle === "Wordle") {
+      const aScore = parseInt(aVal.match(/\b(\d)\/6/)?.[1] || "7");
+      const jScore = parseInt(jVal.match(/\b(\d)\/6/)?.[1] || "7");
+      if (aScore < jScore) markWinner(adamCell);
+      else if (jScore < aScore) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+
+    if (puzzle === "On The Record") {
+      const aScore = parseInt(aVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
+      const jScore = parseInt(jVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
+      if (aScore > jScore) markWinner(adamCell);
+      else if (jScore > aScore) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+
+    if (puzzle === "Apple Mini") {
+      let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+      let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+
+      if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+      if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+
+      const aSecs = aVal.match(/^(\d+)\s*s$/i);
+      const jSecs = jVal.match(/^(\d+)\s*s$/i);
+
+      const aTime = aMatch
+        ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
+        : aSecs
+        ? parseInt(aSecs[1])
+        : 9999;
+
+      const jTime = jMatch
+        ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
+        : jSecs
+        ? parseInt(jSecs[1])
+        : 9999;
+
+      if (aTime < jTime) markWinner(adamCell);
+      else if (jTime < aTime) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+
+    if (puzzle === "NYT Mini") {
+      let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+      let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
+
+      if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+      if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
+
+      const aSecs = aVal.match(/^(\d+)\s*s$/i);
+      const jSecs = jVal.match(/^(\d+)\s*s$/i);
+
+      const aTime = aMatch
+        ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
+        : aSecs
+        ? parseInt(aSecs[1])
+        : 9999;
+
+      const jTime = jMatch
+        ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
+        : jSecs
+        ? parseInt(jSecs[1])
+        : 9999;
+
+      if (aTime < jTime) markWinner(adamCell);
+      else if (jTime < aTime) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+
+    if (puzzle === "Globle") {
+      const aGuesses = parseInt(aVal.match(/=\s*(\d+)/)?.[1] || "999");
+      const jGuesses = parseInt(jVal.match(/=\s*(\d+)/)?.[1] || "999");
+      if (aGuesses < jGuesses) markWinner(adamCell);
+      else if (jGuesses < aGuesses) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+
+    if (puzzle === "Flagle") {
+      const aScore = aVal.includes("X") ? 7 : parseInt(aVal.match(/\b(\d)/)?.[1] || "7");
+      const jScore = jVal.includes("X") ? 7 : parseInt(jVal.match(/\b(\d)/)?.[1] || "7");
+      if (aScore < jScore) markWinner(adamCell);
+      else if (jScore < aScore) markWinner(jonCell);
+      else markBothAs("tie", adamCell, jonCell);
+    }
+
+    if (puzzle === "Tightrope") {
+      const aChecks = (aVal.match(/✅/g) || []).length;
+      const jChecks = (jVal.match(/✅/g) || []).length;
+      if (aChecks > jChecks) markWinner(adamCell);
+      else if (jChecks > aChecks) markWinner(jonCell);
+      else {
+        const aScore = parseInt(aVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
+        const jScore = parseInt(jVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
+        if (aScore > jScore) markWinner(adamCell);
+        else if (jScore > aScore) markWinner(jonCell);
+        else markBothAs("tie", adamCell, jonCell);
+      }
+    }
+  }
+
+  function parseTime(t) {
+    const [min, sec] = t.split(":").map(Number);
+    return min * 60 + sec;
+  }
+
+  function markWinner(cell) {
+    cell.classList.add("winner");
+  }
+
+  function markBothAs(cls, a, b) {
+    a.classList.add(cls);
+    b.classList.add(cls);
+  }
+
+  function enableEdit(td, puzzle, user, oldVal) {
+    td.innerHTML = "";
+
+    const ta = document.createElement("textarea");
+    ta.value = oldVal;
+
+    const submitBtn = document.createElement("button");
+    submitBtn.textContent = "Submit";
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "Delete";
+    deleteBtn.style.marginLeft = "5px";
+    deleteBtn.style.backgroundColor = "#ff6b6b";
+    deleteBtn.style.color = "white";
+
+    submitBtn.onclick = async () => {
+      const newVal = ta.value.trim();
+      
+      if (!newVal) {
+        // If empty, ask for confirmation to delete
+        if (confirm(`Delete the existing ${puzzle} result for ${user}?`)) {
+          submitBtn.disabled = true;
+          submitBtn.textContent = "Deleting...";
+          await deleteResult(puzzle, user);
+        }
+        return;
+      }
+
+      // Update result
+      results[puzzle][user] = newVal;
+
+      const { error } = await supabase
+        .from("results")
+        .upsert({
+          date: today,
+          puzzle_name: puzzle,
+          player: user,
+          raw_result: newVal
+        }, {
+          onConflict: ["date", "puzzle_name", "player"]
+        });
+
+      if (error) {
+        console.error("Submission failed:", error.message);
+        alert("Submission failed. Try again.");
+      } else {
+        console.log(`Successfully updated ${puzzle} result for ${user}`);
+        renderTable();
+      }
+    };
+
+    deleteBtn.onclick = async () => {
+      if (confirm(`Are you sure you want to permanently delete this ${puzzle} result for ${user}?`)) {
+        // Disable button during deletion
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = "Deleting...";
+        
+        const success = await deleteResult(puzzle, user);
+        
+        if (!success) {
+          // Re-enable button if deletion failed
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = "Delete";
+        }
+        // If successful, the table will re-render and this button will be gone
+      }
+    };
+
+    td.appendChild(ta);
+    td.appendChild(document.createElement("br"));
+    td.appendChild(submitBtn);
+    td.appendChild(deleteBtn);
+  }
+
+  async function deleteResult(puzzle, user) {
+    console.log(`Starting deletion: ${user} - ${puzzle} on ${today}`);
+    
+    try {
+      // With RLS enabled, we'll "delete" by updating the record to empty
+      console.log("Attempting logical deletion (update to empty)...");
+      
+      const { data: updateData, error: updateError, count } = await supabase
+        .from("results")
+        .update({ 
+          raw_result: "" 
+        })
+        .eq("date", today)
+        .eq("puzzle_name", puzzle)
+        .eq("player", user)
+        .select();
+
+      if (updateError) {
+        console.error("Logical deletion failed:", updateError);
+        alert(`Cannot delete record: ${updateError.message}`);
+        return false;
+      }
+
+      console.log(`Logical delete completed. Records updated:`, updateData);
+      
+      if (!updateData || updateData.length === 0) {
+        console.log("No records were updated - record may not exist");
+        // Still clear local data
+        if (results[puzzle]) {
+          results[puzzle][user] = "";
+        }
+        renderTable();
+        return true;
+      }
+
+      // Clear local data immediately
+      if (results[puzzle]) {
+        results[puzzle][user] = "";
+      }
+
+      // Force reload to ensure consistency
+      await loadResults();
+      
+      console.log("Logical deletion successful - record set to empty");
+      return true;
+
+    } catch (error) {
+      console.error("Delete operation failed:", error);
+      alert(`Network error during deletion: ${error.message}`);
+      return false;
+    }
+  }
+
+  function renderTable() {
+    if (!shouldRenderTable()) {
+      const tbody = document.getElementById("puzzleRows");
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>';
+      return;
+    }
+
+    const tbody = document.getElementById("puzzleRows");
+    
+    // Clear all winner/tie classes first
+    document.querySelectorAll("td").forEach(td => {
+      td.classList.remove("winner", "tie");
+    });
+    
+    tbody.innerHTML = "";
+
+    puzzles.forEach(puzzle => {
+      if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
+
+      const tr = document.createElement("tr");
+      tr.setAttribute("data-puzzle", puzzle);
+      
+      const tdPuzzle = document.createElement("td");
+      tdPuzzle.textContent = puzzle;
+      tr.appendChild(tdPuzzle);
+
+      ["Adam", "Jonathan"].forEach(user => {
+        const td = document.createElement("td");
+        const result = results[puzzle][user];
+
+        if (!cellMap[puzzle]) cellMap[puzzle] = {};
+        cellMap[puzzle][user] = td;
+
+        if (user === currentUser) {
+          if (result) {
+            td.innerHTML = `<div class="submitted">${result}</div>`;
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Edit";
+            editBtn.onclick = () => enableEdit(td, puzzle, user, result);
+            td.appendChild(editBtn);
+          } else {
+            const ta = document.createElement("textarea");
+            ta.placeholder = "Paste result...";
+            const btn = document.createElement("button");
+            btn.textContent = "Submit";
+            
+            btn.onclick = async () => {
+              const newVal = ta.value.trim();
+
+              if (!newVal) {
+                // If empty field submitted, treat as deletion
+                if (confirm(`Delete any existing ${puzzle} result for ${user}?`)) {
+                  await deleteResult(puzzle, user);
+                }
+                return;
+              }
+
+              // Update result
+              results[puzzle][user] = newVal;
+
+              const { error } = await supabase
+                .from("results")
+                .upsert({
+                  date: today,
+                  puzzle_name: puzzle,
+                  player: user,
+                  raw_result: newVal
+                }, {
+                  onConflict: ["date", "puzzle_name", "player"]
+                });
+
+              if (error) {
+                console.error("Submission failed:", error.message);
+                alert("Submission failed. Try again.");
+              } else {
+                console.log(`Successfully submitted ${puzzle} result for ${user}`);
+                renderTable();
+              }
+            };
+
+            td.appendChild(ta);
+            td.appendChild(btn);
+          }
+        } else {
+          const div = document.createElement("div");
+          div.className = "submitted";
+          div.textContent = result;
+          td.appendChild(div);
+        }
+
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+      
+      // Apply winner highlighting AFTER the row is added to DOM
+      highlightWinner(tr, puzzle);
+    });
+
+    // Update scoreboard AFTER all highlighting is complete
+    updateScoreboard();
+  }
+
+  function subscribeToChanges() {
+    try {
+      const channel = supabase
+        .channel("puzzle-results-realtime")
+        .on("postgres_changes", {
+          event: "*",
+          schema: "public",
+          table: "results",
+          filter: `date=eq.${today}`
+        }, (payload) => {
+          console.log("Realtime update received:", payload);
+          
+          const puzzle = payload.new?.puzzle_name || payload.old?.puzzle_name;
+          const player = payload.new?.player || payload.old?.player;
+
+          if (!puzzle || !player) {
+            console.log("Invalid payload data, skipping");
+            return;
+          }
+
+          // Ensure results structure exists
+          if (!results[puzzle]) {
+            results[puzzle] = { Adam: "", Jonathan: "" };
+          }
+
+          if (payload.eventType === "DELETE") {
+            console.log(`Realtime DELETE: ${player} - ${puzzle}`);
+            results[puzzle][player] = "";
+            renderTable();
+          }
+          else if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
+            console.log(`Realtime ${payload.eventType}: ${player} - ${puzzle}`);
+            results[puzzle][player] = payload.new.raw_result || "";
+            renderTable();
+          }
+        })
+        .subscribe((status) => {
+          console.log("Realtime subscription status:", status);
+        });
+        
+      console.log("Subscribed to realtime changes");
+    } catch (error) {
+      console.error("Failed to subscribe to realtime changes:", error);
+      // App will still work without realtime updates
+    }
+  }
+
+  function updateScoreboard() {
+    let acb = 0, jbb = 0, tie = 0, remaining = 0;
+
+    puzzles.forEach(puzzle => {
+      const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
+      if (!row) return;
+
+      const [aCell, jCell] = [row.children[1], row.children[2]];
+      const aVal = results[puzzle]?.Adam || "";
+      const jVal = results[puzzle]?.Jonathan || "";
+
+      if (!aVal || !jVal) {
+        remaining++;
+        return;
+      }
+
+      const aIsWin = aCell.classList.contains("winner");
+      const jIsWin = jCell.classList.contains("winner");
+      const isTie = aCell.classList.contains("tie") && jCell.classList.contains("tie");
+
+      if (aIsWin && !jIsWin) {
+        acb++;
+      } else if (jIsWin && !aIsWin) {
+        jbb++;
+      } else if (isTie) {
+        tie++;
+      }
+    });
+
+    document.getElementById("acbCount").textContent = acb;
+    document.getElementById("jbbCount").textContent = jbb;
+    document.getElementById("tieCount").textContent = tie;
+    document.getElementById("remainingCount").textContent = remaining;
+
+    const acbEl = document.getElementById("acbCount");
+    const jbbEl = document.getElementById("jbbCount");
+
+    // Reset colors first
+    acbEl.style.color = "";
+    jbbEl.style.color = "";
+
+    if (acb > jbb) {
+      acbEl.style.color = "green";
+      jbbEl.style.color = "red";
+    } else if (jbb > acb) {
+      jbbEl.style.color = "green";
+      acbEl.style.color = "red";
+    } else if (acb === jbb && acb > 0) {
+      acbEl.style.color = "#c9a700";
+      jbbEl.style.color = "#c9a700";
+    }
+  }
+
+  function renderEmptyTable() {
+    if (!shouldRenderTable()) {
+      const tbody = document.getElementById("puzzleRows");
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>';
+      return;
+    }
+    
+    // Initialize empty results
+    puzzles.forEach(puzzle => {
+      results[puzzle] = { Adam: "", Jonathan: "" };
+    });
+    renderTable();
+  }
+
+  window.addEventListener("DOMContentLoaded", async () => {
+    const overlay = document.getElementById("loadingOverlay");
+    
+    // Show initial empty table immediately
+    renderEmptyTable();
+    
+    try {
+      // Set a timeout to prevent hanging
+      const loadPromise = loadResults();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Loading timeout')), 10000)
+      );
+      
+      await Promise.race([loadPromise, timeoutPromise]);
+      subscribeToChanges();
+    } catch (error) {
+      console.error("Loading failed:", error);
+      // Show table anyway with empty data
+      renderTable();
+    } finally {
+      overlay.style.display = "none";
+    }
+  });
+</script>
+</body>
+</html>
