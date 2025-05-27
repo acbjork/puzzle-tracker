@@ -7,7 +7,13 @@
   <style>
     body { font-family: system-ui, sans-serif; margin: 1em; }
     h1, .subtitle { text-align: center; margin: 0; }
-    .subtitle { font-size: 0.95em; color: #555; margin-top: 0.2em; }
+    .subtitle { font-size: 0.95em; color: #555; margin-top: 0.2em; margin-bottom: 2em; }
+    
+    .user-select-area {
+      margin-top: 2em;
+      margin-bottom: 1em;
+    }
+    
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { border: 1px solid #ccc; padding: 0.5em; vertical-align: top; text-align: center; }
     th:first-child, td:first-child { text-align: left; }
@@ -36,15 +42,32 @@ textarea {
   justify-content: space-around;
   font-family: monospace;
   font-size: 1.5em;
+  position: relative;
 }
 .scoreboard-label {
   font-weight: bold;
   text-align: center;
+  position: relative;
 }
 .scoreboard-value {
   display: block;
   font-size: 1.5em;
 }
+
+.crown {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.5em;
+  animation: crownBounce 1s ease-in-out infinite alternate;
+}
+
+@keyframes crownBounce {
+  0% { transform: translateX(-50%) translateY(0px); }
+  100% { transform: translateX(-50%) translateY(-5px); }
+}
+
 #loadingOverlay {
   position: fixed;
   top: 0; left: 0;
@@ -89,7 +112,7 @@ textarea {
 }
 
 .chat-header {
-  background: linear-gradient(135deg, #ff6b6b, #4ecdc4);
+  background: linear-gradient(135deg, #cc5500, #4a4a4a);
   color: white;
   padding: 1em;
   font-weight: bold;
@@ -127,6 +150,7 @@ textarea {
   overflow-y: auto;
   padding: 1em;
   background: #f9f9f9;
+  -webkit-overflow-scrolling: touch;
 }
 
 .chat-message {
@@ -239,7 +263,7 @@ textarea {
 }
 
 .chat-send-btn {
-  background: linear-gradient(135deg, #4ecdc4, #44a08d);
+  background: linear-gradient(135deg, #666, #333);
   color: white;
   border: none;
   border-radius: 50%;
@@ -255,7 +279,7 @@ textarea {
 
 .chat-send-btn:hover {
   transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.4);
+  box-shadow: 0 4px 12px rgba(102, 102, 102, 0.4);
 }
 
 .chat-send-btn:disabled {
@@ -377,8 +401,9 @@ textarea {
   }
   
   .chat-window {
-    width: 95%;
-    height: 90%;
+    width: 98%;
+    height: 95%;
+    max-width: none;
   }
   
   .chat-messages {
@@ -422,6 +447,15 @@ textarea {
   .scoreboard-value {
     font-size: 1.2em;
   }
+  
+  .chat-window {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+    top: 0;
+    left: 0;
+    transform: none;
+  }
 }
     
 </style>
@@ -431,23 +465,31 @@ textarea {
   <h1>🧠 I'm Puzzled ‼️</h1>
   <div class="subtitle">If you ain't first, you're last</div>
 
-  <label for="userSelect">Signed in as:
-    <select id="userSelect">
-      <option value="">(choose)</option>
-      <option value="Adam">Adam 🌵</option>
-      <option value="Jonathan">Jonathan 💩</option>
-    </select>
-  </label>
+  <div class="user-select-area">
+    <label for="userSelect">Signed in as:
+      <select id="userSelect">
+        <option value="">(choose)</option>
+        <option value="Adam">Adam 🌵</option>
+        <option value="Jonathan">Jonathan 💩</option>
+      </select>
+    </label>
+  </div>
 
 <div id="scoreboard">
-  <div class="scoreboard-label">ACB<span id="acbCount" class="scoreboard-value">0</span></div>
-  <div class="scoreboard-label">JBB<span id="jbbCount" class="scoreboard-value">0</span></div>
+  <div class="scoreboard-label">ACB
+    <span id="acbCrown" class="crown" style="display: none;">👑</span>
+    <span id="acbCount" class="scoreboard-value">0</span>
+  </div>
+  <div class="scoreboard-label">JBB
+    <span id="jbbCrown" class="crown" style="display: none;">👑</span>
+    <span id="jbbCount" class="scoreboard-value">0</span>
+  </div>
   <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
   <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
 </div>
 
 <button id="chatToggle" class="chat-toggle" style="display: none;">
-  💬 Show Trash Talk Central 🗑️
+  💬 Trash Talk Central 🗑️
   <span id="unreadBadge" class="unread-indicator" style="display: none;">0</span>
 </button>
 
@@ -470,7 +512,7 @@ textarea {
         disabled
       ></textarea>
       <button id="chatSendBtn" class="chat-send-btn" disabled>
-        🚀
+        🚮
       </button>
     </div>
   </div>
@@ -753,7 +795,7 @@ textarea {
       alert("Network error. Try again.");
     } finally {
       sendBtn.disabled = false;
-      sendBtn.textContent = '🚀';
+      sendBtn.textContent = '🚮';
     }
   }
 
@@ -795,6 +837,9 @@ textarea {
       isChatVisible = true;
       markChatAsRead();
       chatInput.focus();
+      
+      // Prevent the modal from scrolling on mobile
+      document.body.style.overflow = 'hidden';
     });
 
     // Close chat modal
@@ -802,6 +847,7 @@ textarea {
       chatModal.style.display = 'none';
       isChatVisible = false;
       updateUnreadCount();
+      document.body.style.overflow = '';
     }
 
     chatCloseBtn.addEventListener('click', closeChat);
@@ -865,618 +911,4 @@ textarea {
         .from("results")
         .select("*")
         .eq("date", today)
-        .neq("raw_result", "")
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("Error loading Supabase results:", error.message);
-        // Don't return early - continue with empty data
-      }
-
-      // Initialize all puzzles with empty values
-      puzzles.forEach(puzzle => {
-        results[puzzle] = { Adam: "", Jonathan: "" };
-      });
-
-      // Populate with actual results if we got data
-      if (data && data.length > 0) {
-        console.log(`Loaded ${data.length} non-empty results from Supabase`);
-        for (const entry of data) {
-          const { puzzle_name, player, raw_result } = entry;
-          if (results[puzzle_name] && (player === "Adam" || player === "Jonathan") && raw_result && raw_result.trim()) {
-            results[puzzle_name][player] = raw_result;
-          }
-        }
-      } else {
-        console.log("No non-empty results found in Supabase for today");
-      }
-
-      renderTable();
-    } catch (error) {
-      console.error("Supabase connection failed:", error);
-      // Initialize with empty data anyway
-      puzzles.forEach(puzzle => {
-        results[puzzle] = { Adam: "", Jonathan: "" };
-      });
-      renderTable();
-    }
-  }
-
-  function highlightWinner(tr, puzzle) {
-    // Clear previous highlighting
-    const adamCell = tr.children[1];
-    const jonCell = tr.children[2];
-    adamCell.classList.remove("winner", "tie");
-    jonCell.classList.remove("winner", "tie");
-
-    const aVal = results[puzzle].Adam;
-    const jVal = results[puzzle].Jonathan;
-
-    if (!aVal || !jVal) return;
-
-    if (puzzle === "Connections") {
-      if (aVal === jVal) return markBothAs("tie", adamCell, jonCell);
-      const aLines = aVal.split("\n");
-      const jLines = jVal.split("\n");
-      const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-      const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
-      if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
-      else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Strands") {
-      const aHints = (aVal.match(/💡/g) || []).length;
-      const jHints = (jVal.match(/💡/g) || []).length;
-      const aTotal = aVal.split("\n").length;
-      const jTotal = jVal.split("\n").length;
-      if (aTotal < jTotal) markWinner(adamCell);
-      else if (jTotal < aTotal) markWinner(jonCell);
-      else if (aHints < jHints) markWinner(adamCell);
-      else if (jHints < aHints) markWinner(jonCell);
-      else {
-        const aIndex = aVal.indexOf("🟡");
-        const jIndex = jVal.indexOf("🟡");
-        if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) markWinner(adamCell);
-        else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) markWinner(jonCell);
-        else markBothAs("tie", adamCell, jonCell);
-      }
-    }
-
-    if (puzzle === "Keyword") {
-      const aGuesses = parseInt(aVal.match(/(\d+) guesses/)?.[1] || "999");
-      const jGuesses = parseInt(jVal.match(/(\d+) guesses/)?.[1] || "999");
-      if (aGuesses < jGuesses) markWinner(adamCell);
-      else if (jGuesses < aGuesses) markWinner(jonCell);
-      else {
-        const aTime = parseTime(aVal.match(/(\d+:\d+)/)?.[1] || "99:99");
-        const jTime = parseTime(jVal.match(/(\d+:\d+)/)?.[1] || "99:99");
-        if (aTime < jTime) markWinner(adamCell);
-        else if (jTime < aTime) markWinner(jonCell);
-        else markBothAs("tie", adamCell, jonCell);
-      }
-    }
-
-    if (puzzle === "Wordle") {
-      const aScore = parseInt(aVal.match(/\b(\d)\/6/)?.[1] || "7");
-      const jScore = parseInt(jVal.match(/\b(\d)\/6/)?.[1] || "7");
-      if (aScore < jScore) markWinner(adamCell);
-      else if (jScore < aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "On The Record") {
-      const aScore = parseInt(aVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
-      const jScore = parseInt(jVal.match(/\b(\d{1,3})\b/)?.[1] || "0");
-      if (aScore > jScore) markWinner(adamCell);
-      else if (jScore > aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Apple Mini") {
-      let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-      let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-
-      if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-      if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-
-      const aSecs = aVal.match(/^(\d+)\s*s$/i);
-      const jSecs = jVal.match(/^(\d+)\s*s$/i);
-
-      const aTime = aMatch
-        ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
-        : aSecs
-        ? parseInt(aSecs[1])
-        : 9999;
-
-      const jTime = jMatch
-        ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
-        : jSecs
-        ? parseInt(jSecs[1])
-        : 9999;
-
-      if (aTime < jTime) markWinner(adamCell);
-      else if (jTime < aTime) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "NYT Mini") {
-      let aMatch = aVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-      let jMatch = jVal.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
-
-      if (!aMatch) aMatch = aVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-      if (!jMatch) jMatch = jVal.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
-
-      const aSecs = aVal.match(/^(\d+)\s*s$/i);
-      const jSecs = jVal.match(/^(\d+)\s*s$/i);
-
-      const aTime = aMatch
-        ? parseInt(aMatch[1]) * 60 + parseInt(aMatch[2])
-        : aSecs
-        ? parseInt(aSecs[1])
-        : 9999;
-
-      const jTime = jMatch
-        ? parseInt(jMatch[1]) * 60 + parseInt(jMatch[2])
-        : jSecs
-        ? parseInt(jSecs[1])
-        : 9999;
-
-      if (aTime < jTime) markWinner(adamCell);
-      else if (jTime < aTime) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Globle") {
-      const aGuesses = parseInt(aVal.match(/=\s*(\d+)/)?.[1] || "999");
-      const jGuesses = parseInt(jVal.match(/=\s*(\d+)/)?.[1] || "999");
-      if (aGuesses < jGuesses) markWinner(adamCell);
-      else if (jGuesses < aGuesses) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Flagle") {
-      const aScore = aVal.includes("X") ? 7 : parseInt(aVal.match(/\b(\d)/)?.[1] || "7");
-      const jScore = jVal.includes("X") ? 7 : parseInt(jVal.match(/\b(\d)/)?.[1] || "7");
-      if (aScore < jScore) markWinner(adamCell);
-      else if (jScore < aScore) markWinner(jonCell);
-      else markBothAs("tie", adamCell, jonCell);
-    }
-
-    if (puzzle === "Tightrope") {
-      const aChecks = (aVal.match(/✅/g) || []).length;
-      const jChecks = (jVal.match(/✅/g) || []).length;
-      if (aChecks > jChecks) markWinner(adamCell);
-      else if (jChecks > aChecks) markWinner(jonCell);
-      else {
-        const aScore = parseInt(aVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
-        const jScore = parseInt(jVal.match(/My Score:\s*(\d+)/)?.[1] || "0");
-        if (aScore > jScore) markWinner(adamCell);
-        else if (jScore > aScore) markWinner(jonCell);
-        else markBothAs("tie", adamCell, jonCell);
-      }
-    }
-  }
-
-  function parseTime(t) {
-    const [min, sec] = t.split(":").map(Number);
-    return min * 60 + sec;
-  }
-
-  function markWinner(cell) {
-    cell.classList.add("winner");
-  }
-
-  function markBothAs(cls, a, b) {
-    a.classList.add(cls);
-    b.classList.add(cls);
-  }
-
-  function enableEdit(td, puzzle, user, oldVal) {
-    td.innerHTML = "";
-
-    const ta = document.createElement("textarea");
-    ta.value = oldVal;
-
-    const submitBtn = document.createElement("button");
-    submitBtn.textContent = "Submit";
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Delete";
-    deleteBtn.style.marginLeft = "5px";
-    deleteBtn.style.backgroundColor = "#ff6b6b";
-    deleteBtn.style.color = "white";
-
-    submitBtn.onclick = async () => {
-      const newVal = ta.value.trim();
-      
-      if (!newVal) {
-        // If empty, ask for confirmation to delete
-        if (confirm(`Delete the existing ${puzzle} result for ${user}?`)) {
-          submitBtn.disabled = true;
-          submitBtn.textContent = "Deleting...";
-          await deleteResult(puzzle, user);
-        }
-        return;
-      }
-
-      // Update result
-      results[puzzle][user] = newVal;
-
-      const { error } = await supabase
-        .from("results")
-        .upsert({
-          date: today,
-          puzzle_name: puzzle,
-          player: user,
-          raw_result: newVal
-        }, {
-          onConflict: ["date", "puzzle_name", "player"]
-        });
-
-      if (error) {
-        console.error("Submission failed:", error.message);
-        alert("Submission failed. Try again.");
-      } else {
-        console.log(`Successfully updated ${puzzle} result for ${user}`);
-        renderTable();
-      }
-    };
-
-    deleteBtn.onclick = async () => {
-      if (confirm(`Are you sure you want to permanently delete this ${puzzle} result for ${user}?`)) {
-        // Disable button during deletion
-        deleteBtn.disabled = true;
-        deleteBtn.textContent = "Deleting...";
-        
-        const success = await deleteResult(puzzle, user);
-        
-        if (!success) {
-          // Re-enable button if deletion failed
-          deleteBtn.disabled = false;
-          deleteBtn.textContent = "Delete";
-        }
-        // If successful, the table will re-render and this button will be gone
-      }
-    };
-
-    td.appendChild(ta);
-    td.appendChild(document.createElement("br"));
-    td.appendChild(submitBtn);
-    td.appendChild(deleteBtn);
-  }
-
-  async function deleteResult(puzzle, user) {
-    console.log(`Starting deletion: ${user} - ${puzzle} on ${today}`);
-    
-    try {
-      // With RLS enabled, we'll "delete" by updating the record to empty
-      console.log("Attempting logical deletion (update to empty)...");
-      
-      const { data: updateData, error: updateError, count } = await supabase
-        .from("results")
-        .update({ 
-          raw_result: "" 
-        })
-        .eq("date", today)
-        .eq("puzzle_name", puzzle)
-        .eq("player", user)
-        .select();
-
-      if (updateError) {
-        console.error("Logical deletion failed:", updateError);
-        alert(`Cannot delete record: ${updateError.message}`);
-        return false;
-      }
-
-      console.log(`Logical delete completed. Records updated:`, updateData);
-      
-      if (!updateData || updateData.length === 0) {
-        console.log("No records were updated - record may not exist");
-        // Still clear local data
-        if (results[puzzle]) {
-          results[puzzle][user] = "";
-        }
-        renderTable();
-        return true;
-      }
-
-      // Clear local data immediately
-      if (results[puzzle]) {
-        results[puzzle][user] = "";
-      }
-
-      // Force reload to ensure consistency
-      await loadResults();
-      
-      console.log("Logical deletion successful - record set to empty");
-      return true;
-
-    } catch (error) {
-      console.error("Delete operation failed:", error);
-      alert(`Network error during deletion: ${error.message}`);
-      return false;
-    }
-  }
-
-  function renderTable() {
-    if (!shouldRenderTable()) {
-      const tbody = document.getElementById("puzzleRows");
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>';
-      return;
-    }
-
-    const tbody = document.getElementById("puzzleRows");
-    
-    // Clear all winner/tie classes first
-    document.querySelectorAll("td").forEach(td => {
-      td.classList.remove("winner", "tie");
-    });
-    
-    tbody.innerHTML = "";
-
-    puzzles.forEach(puzzle => {
-      if (!results[puzzle]) results[puzzle] = { Adam: "", Jonathan: "" };
-
-      const tr = document.createElement("tr");
-      tr.setAttribute("data-puzzle", puzzle);
-      
-      const tdPuzzle = document.createElement("td");
-      tdPuzzle.textContent = puzzle;
-      tr.appendChild(tdPuzzle);
-
-      ["Adam", "Jonathan"].forEach(user => {
-        const td = document.createElement("td");
-        const result = results[puzzle][user];
-
-        if (!cellMap[puzzle]) cellMap[puzzle] = {};
-        cellMap[puzzle][user] = td;
-
-        if (user === currentUser) {
-          if (result) {
-            td.innerHTML = `<div class="submitted">${result}</div>`;
-            const editBtn = document.createElement("button");
-            editBtn.textContent = "Edit";
-            editBtn.onclick = () => enableEdit(td, puzzle, user, result);
-            td.appendChild(editBtn);
-          } else {
-            const ta = document.createElement("textarea");
-            ta.placeholder = "Paste result...";
-            const btn = document.createElement("button");
-            btn.textContent = "Submit";
-            
-            btn.onclick = async () => {
-              const newVal = ta.value.trim();
-
-              if (!newVal) {
-                // If empty field submitted, treat as deletion
-                if (confirm(`Delete any existing ${puzzle} result for ${user}?`)) {
-                  await deleteResult(puzzle, user);
-                }
-                return;
-              }
-
-              // Update result
-              results[puzzle][user] = newVal;
-
-              const { error } = await supabase
-                .from("results")
-                .upsert({
-                  date: today,
-                  puzzle_name: puzzle,
-                  player: user,
-                  raw_result: newVal
-                }, {
-                  onConflict: ["date", "puzzle_name", "player"]
-                });
-
-              if (error) {
-                console.error("Submission failed:", error.message);
-                alert("Submission failed. Try again.");
-              } else {
-                console.log(`Successfully submitted ${puzzle} result for ${user}`);
-                renderTable();
-              }
-            };
-
-            td.appendChild(ta);
-            td.appendChild(btn);
-          }
-        } else {
-          const div = document.createElement("div");
-          div.className = "submitted";
-          div.textContent = result;
-          td.appendChild(div);
-        }
-
-        tr.appendChild(td);
-      });
-
-      tbody.appendChild(tr);
-      
-      // Apply winner highlighting AFTER the row is added to DOM
-      highlightWinner(tr, puzzle);
-    });
-
-    // Update scoreboard AFTER all highlighting is complete
-    updateScoreboard();
-  }
-
-  function subscribeToChanges() {
-    try {
-      // Subscribe to puzzle results changes
-      const resultsChannel = supabase
-        .channel("puzzle-results-realtime")
-        .on("postgres_changes", {
-          event: "*",
-          schema: "public",
-          table: "results",
-          filter: `date=eq.${today}`
-        }, (payload) => {
-          console.log("Realtime update received:", payload);
-          
-          const puzzle = payload.new?.puzzle_name || payload.old?.puzzle_name;
-          const player = payload.new?.player || payload.old?.player;
-
-          if (!puzzle || !player) {
-            console.log("Invalid payload data, skipping");
-            return;
-          }
-
-          // Ensure results structure exists
-          if (!results[puzzle]) {
-            results[puzzle] = { Adam: "", Jonathan: "" };
-          }
-
-          if (payload.eventType === "DELETE") {
-            console.log(`Realtime DELETE: ${player} - ${puzzle}`);
-            results[puzzle][player] = "";
-            renderTable();
-          }
-          else if (payload.eventType === "INSERT" || payload.eventType === "UPDATE") {
-            console.log(`Realtime ${payload.eventType}: ${player} - ${puzzle}`);
-            results[puzzle][player] = payload.new.raw_result || "";
-            renderTable();
-          }
-        })
-        .subscribe((status) => {
-          console.log("Results realtime subscription status:", status);
-        });
-
-      // Subscribe to chat messages changes
-      const chatChannel = supabase
-        .channel("chat-messages-realtime")
-        .on("postgres_changes", {
-          event: "*",
-          schema: "public",
-          table: "chat_messages",
-          filter: `date=eq.${today}`
-        }, (payload) => {
-          console.log("Chat realtime update received:", payload);
-          
-          if (payload.eventType === "INSERT") {
-            // Add new message to local array
-            chatMessages.push(payload.new);
-            renderChatMessages();
-            updateUnreadCount();
-          } else if (payload.eventType === "UPDATE") {
-            // Update existing message (for deletions)
-            const msgIndex = chatMessages.findIndex(m => m.id === payload.new.id);
-            if (msgIndex !== -1) {
-              chatMessages[msgIndex] = payload.new;
-              renderChatMessages();
-              updateUnreadCount();
-            }
-          }
-        })
-        .subscribe((status) => {
-          console.log("Chat realtime subscription status:", status);
-        });
-        
-      console.log("Subscribed to realtime changes");
-    } catch (error) {
-      console.error("Failed to subscribe to realtime changes:", error);
-      // App will still work without realtime updates
-    }
-  }
-
-  function updateScoreboard() {
-    let acb = 0, jbb = 0, tie = 0, remaining = 0;
-
-    puzzles.forEach(puzzle => {
-      const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
-      if (!row) return;
-
-      const [aCell, jCell] = [row.children[1], row.children[2]];
-      const aVal = results[puzzle]?.Adam || "";
-      const jVal = results[puzzle]?.Jonathan || "";
-
-      if (!aVal || !jVal) {
-        remaining++;
-        return;
-      }
-
-      const aIsWin = aCell.classList.contains("winner");
-      const jIsWin = jCell.classList.contains("winner");
-      const isTie = aCell.classList.contains("tie") && jCell.classList.contains("tie");
-
-      if (aIsWin && !jIsWin) {
-        acb++;
-      } else if (jIsWin && !aIsWin) {
-        jbb++;
-      } else if (isTie) {
-        tie++;
-      }
-    });
-
-    document.getElementById("acbCount").textContent = acb;
-    document.getElementById("jbbCount").textContent = jbb;
-    document.getElementById("tieCount").textContent = tie;
-    document.getElementById("remainingCount").textContent = remaining;
-
-    const acbEl = document.getElementById("acbCount");
-    const jbbEl = document.getElementById("jbbCount");
-
-    // Reset colors first
-    acbEl.style.color = "";
-    jbbEl.style.color = "";
-
-    if (acb > jbb) {
-      acbEl.style.color = "green";
-      jbbEl.style.color = "red";
-    } else if (jbb > acb) {
-      jbbEl.style.color = "green";
-      acbEl.style.color = "red";
-    } else if (acb === jbb && acb > 0) {
-      acbEl.style.color = "#c9a700";
-      jbbEl.style.color = "#c9a700";
-    }
-  }
-
-  function renderEmptyTable() {
-    if (!shouldRenderTable()) {
-      const tbody = document.getElementById("puzzleRows");
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 2em; color: #666;">Please select your name above to start</td></tr>';
-      return;
-    }
-    
-    // Initialize empty results
-    puzzles.forEach(puzzle => {
-      results[puzzle] = { Adam: "", Jonathan: "" };
-    });
-    renderTable();
-  }
-
-  window.addEventListener("DOMContentLoaded", async () => {
-    const overlay = document.getElementById("loadingOverlay");
-    
-    // Set up chat event listeners
-    setupChatEventListeners();
-    
-    // Show initial empty table immediately
-    renderEmptyTable();
-    showChatInterface();
-    
-    try {
-      // Set a timeout to prevent hanging
-      const loadPromise = Promise.all([
-        loadResults(),
-        loadChatMessages()
-      ]);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Loading timeout')), 10000)
-      );
-      
-      await Promise.race([loadPromise, timeoutPromise]);
-      subscribeToChanges();
-    } catch (error) {
-      console.error("Loading failed:", error);
-      // Show table anyway with empty data
-      renderTable();
-    } finally {
-      overlay.style.display = "none";
-    }
-  });
-</script>
-</body>
-</html>
+        .neq("
