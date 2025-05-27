@@ -150,7 +150,7 @@
     </tbody>
   </table>
 
-  <div class="version">v0.3.0 - Now with Trash Talk! 🗑️💬</div>
+  <div class="version">v0.4.0 - Updated chat, crown, and Flagle logic! 🗑️💬</div>
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -286,14 +286,22 @@
 
     function updateUnreadCount() {
       if (!shouldRenderTable()) return;
+      
+      // Only show unread count when chat is closed
+      if (isChatVisible) {
+        document.getElementById('unreadBadge').style.display = 'none';
+        return;
+      }
+      
       const lastRead = parseInt(lastReadTimestamp);
-      unreadCount = chatMessages.filter(msg => {
+      const unreadMessages = chatMessages.filter(msg => {
         const msgTime = new Date(msg.created_at).getTime();
         return msgTime > lastRead && msg.player !== currentUser && msg.message !== '[deleted]';
-      }).length;
+      });
+      
       const unreadBadge = document.getElementById('unreadBadge');
-      if (unreadCount > 0 && !isChatVisible) {
-        unreadBadge.textContent = unreadCount;
+      if (unreadMessages.length > 0) {
+        unreadBadge.textContent = unreadMessages.length;
         unreadBadge.style.display = 'flex';
       } else {
         unreadBadge.style.display = 'none';
@@ -301,12 +309,11 @@
     }
 
     function markChatAsRead() {
-      const currentTime = Date.now().toString();
-      lastReadTimestamp = currentTime;
-      localStorage.setItem('lastReadChatTimestamp', currentTime);
-      unreadCount = 0;
-      const unreadBadge = document.getElementById('unreadBadge');
-      unreadBadge.style.display = 'none';
+      lastReadTimestamp = Date.now().toString();
+      localStorage.setItem('lastReadChatTimestamp', lastReadTimestamp);
+      if (!isChatVisible) {
+        updateUnreadCount();
+      }
     }
 
     function setupChatEventListeners() {
@@ -321,15 +328,10 @@
         isChatVisible = true;
         document.body.style.overflow = 'hidden';
         
-        // Immediately hide the unread badge and mark as read
-        const unreadBadge = document.getElementById('unreadBadge');
-        unreadBadge.style.display = 'none';
-        unreadCount = 0;
-        
-        // Update the timestamp to current time to mark all current messages as read
-        const currentTime = Date.now().toString();
-        lastReadTimestamp = currentTime;
-        localStorage.setItem('lastReadChatTimestamp', currentTime);
+        // Immediately hide badge and mark all messages as read
+        document.getElementById('unreadBadge').style.display = 'none';
+        lastReadTimestamp = Date.now().toString();
+        localStorage.setItem('lastReadChatTimestamp', lastReadTimestamp);
         
         chatInput.focus();
       });
@@ -337,8 +339,9 @@
       function closeChat() {
         chatModal.style.display = 'none';
         isChatVisible = false;
-        updateUnreadCount();
         document.body.style.overflow = '';
+        // Update unread count when closing chat
+        updateUnreadCount();
       }
 
       chatCloseBtn.addEventListener('click', closeChat);
