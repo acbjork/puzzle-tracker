@@ -1153,6 +1153,7 @@ await loadLastReadFromSupabase(); // ADD THIS LINE
         console.error("Loading failed:", error);
         renderTable();
       } finally {
+        setTimeout(() => document.getElementById("loadingOverlay").style.display = "none", 3000);
         overlay.style.display = "none";
       }
     });
