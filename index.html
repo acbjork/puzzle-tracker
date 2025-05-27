@@ -150,7 +150,7 @@
     </tbody>
   </table>
 
-  <div class="version">v0.4.0 - Updated chat, crown, and Flagle logic! 🗑️💬</div>
+  <div class="version">v0.5.0 - Fixed unread badge logic! 🗑️💬</div>
 
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
@@ -170,9 +170,8 @@
     const results = {};
     const cellMap = {};
     let chatMessages = [];
-    let unreadCount = 0;
     let isChatVisible = false;
-    let lastReadTimestamp = localStorage.getItem('lastReadChatTimestamp') || '0';
+    let hasUnreadMessages = false;
 
     const userSelect = document.querySelector("#userSelect");
     if (userSelect) {
@@ -196,7 +195,7 @@
         if (error) { console.error("Error loading chat messages:", error.message); return; }
         chatMessages = data || [];
         renderChatMessages();
-        updateUnreadCount();
+        updateUnreadBadge();
       } catch (error) { console.error("Failed to load chat messages:", error); }
     }
 
@@ -284,25 +283,26 @@
       }
     }
 
-    function updateUnreadCount() {
-      if (!shouldRenderTable()) return;
+    function updateUnreadBadge() {
+      const unreadBadge = document.getElementById('unreadBadge');
       
-      // Only show unread count when chat is closed
+      // Always hide badge if chat is open
       if (isChatVisible) {
-        document.getElementById('unreadBadge').style.display = 'none';
+        unreadBadge.style.display = 'none';
         return;
       }
       
-      const lastRead = parseInt(lastReadTimestamp);
-      const unreadMessages = chatMessages.filter(msg => {
-        const msgTime = new Date(msg.created_at).getTime();
-        return msgTime > lastRead && msg.player !== currentUser && msg.message !== '[deleted]';
-      });
-      
-      const unreadBadge = document.getElementById('unreadBadge');
-      if (unreadMessages.length > 0) {
-        unreadBadge.textContent = unreadMessages.length;
-        unreadBadge.style.display = 'flex';
+      // Show badge only if we have unread messages and chat is closed
+      if (hasUnreadMessages) {
+        const unreadCount = chatMessages.filter(msg => 
+          msg.player !== currentUser && msg.message !== '[deleted]'
+        ).length;
+        if (unreadCount > 0) {
+          unreadBadge.textContent = unreadCount;
+          unreadBadge.style.display = 'flex';
+        } else {
+          unreadBadge.style.display = 'none';
+        }
       } else {
         unreadBadge.style.display = 'none';
       }
@@ -328,10 +328,9 @@
         isChatVisible = true;
         document.body.style.overflow = 'hidden';
         
-        // Immediately hide badge and mark all messages as read
+        // Mark all messages as read and hide badge
+        hasUnreadMessages = false;
         document.getElementById('unreadBadge').style.display = 'none';
-        lastReadTimestamp = Date.now().toString();
-        localStorage.setItem('lastReadChatTimestamp', lastReadTimestamp);
         
         chatInput.focus();
       });
@@ -340,8 +339,7 @@
         chatModal.style.display = 'none';
         isChatVisible = false;
         document.body.style.overflow = '';
-        // Update unread count when closing chat
-        updateUnreadCount();
+        updateUnreadBadge();
       }
 
       chatCloseBtn.addEventListener('click', closeChat);
@@ -666,13 +664,17 @@
           if (payload.eventType === "INSERT") {
             chatMessages.push(payload.new);
             renderChatMessages();
-            updateUnreadCount();
+            // Only set unread flag if message is from other player and chat is closed
+            if (payload.new.player !== currentUser && !isChatVisible) {
+              hasUnreadMessages = true;
+            }
+            updateUnreadBadge();
           } else if (payload.eventType === "UPDATE") {
             const msgIndex = chatMessages.findIndex(m => m.id === payload.new.id);
             if (msgIndex !== -1) {
               chatMessages[msgIndex] = payload.new;
               renderChatMessages();
-              updateUnreadCount();
+              updateUnreadBadge();
             }
           }
         }).subscribe();
