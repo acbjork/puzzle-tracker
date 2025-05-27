@@ -8,12 +8,12 @@
     body { font-family: system-ui, sans-serif; margin: 1em; }
     h1, .subtitle { text-align: center; margin: 0; }
     .subtitle { font-size: 0.95em; color: #555; margin-top: 0.2em; margin-bottom: 2em; }
-    .user-select-area { margin-top: 2em; margin-bottom: 1em; }
+    .user-select-area { margin-top: 2em; margin-bottom: 2em; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { border: 1px solid #ccc; padding: 0.5em; vertical-align: top; text-align: center; }
     th:first-child, td:first-child { text-align: left; }
     textarea { width: 95%; box-sizing: border-box; }
-    .submitted { white-space: pre-wrap; background: #f3f3f3; padding: 0.25em 0.5em; line-height: 1.2; border-radius: 4px; }
+    .submitted { white-space: pre-wrap; background: transparent; padding: 0.25em 0.5em; line-height: 1.2; border-radius: 4px; }
     .winner { background-color: #d6f5d6 !important; }
     .tie { background-color: #fff9c4 !important; }
     .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
@@ -21,7 +21,7 @@
     #scoreboard { margin: 1em 0; display: flex; justify-content: space-around; font-family: monospace; font-size: 1.5em; position: relative; }
     .scoreboard-label { font-weight: bold; text-align: center; position: relative; }
     .scoreboard-value { display: block; font-size: 1.5em; }
-    .crown { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); font-size: 1.5em; animation: crownBounce 1s ease-in-out infinite alternate; }
+    .crown { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); font-size: 2em; animation: crownBounce 1s ease-in-out infinite alternate; }
     @keyframes crownBounce { 0% { transform: translateX(-50%) translateY(0px); } 100% { transform: translateX(-50%) translateY(-5px); } }
 
     #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; color: #444; font-size: 1.5em; display: flex; align-items: center; justify-content: center; z-index: 9999; }
@@ -304,7 +304,9 @@
       const currentTime = Date.now().toString();
       lastReadTimestamp = currentTime;
       localStorage.setItem('lastReadChatTimestamp', currentTime);
-      updateUnreadCount();
+      unreadCount = 0;
+      const unreadBadge = document.getElementById('unreadBadge');
+      unreadBadge.style.display = 'none';
     }
 
     function setupChatEventListeners() {
