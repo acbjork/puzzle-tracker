@@ -10,7 +10,13 @@
     .subtitle { font-size: 0.95em; color: #555; margin-top: 0.2em; }
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { border: 1px solid #ccc; padding: 0.5em; vertical-align: top; text-align: center; }
-    th:first-child, td:first-child { text-align: left; }
+    th:first-child, td:first-child { text-align: left; width: 20%; }
+    
+    /* Mobile optimization for iPhone */
+    @media (max-width: 480px) {
+      th:first-child, td:first-child { width: 15%; font-size: 0.85em; }
+      th, td { padding: 0.3em; font-size: 0.9em; }
+    }
 textarea {
   width: 95%;
   box-sizing: border-box;
@@ -412,9 +418,9 @@ textarea {
 <body>
   <div id="loadingOverlay">Loading…</div>
   <h1>🧠 I'm Puzzled ‼️</h1>
-  <div class="subtitle">If you ain't first, you're last</div>
+  <div class="subtitle" style="margin-bottom: 1em;">If you ain't first, you're last</div>
 
-  <label for="userSelect">Signed in as:
+  <label for="userSelect" style="margin-bottom: 1em; display: inline-block;">Signed in as:
     <select id="userSelect">
       <option value="">(choose)</option>
       <option value="Adam">Adam 🌵</option>
@@ -549,7 +555,7 @@ textarea {
     </div>
   </div>
 
-  <div class="version">v0.4.3 - Complete Edition</div>
+  <div class="version">v0.4.4 - Mobile Optimized</div>
 
 <!-- Load Supabase via CDN script tag instead of ES6 import -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -595,17 +601,51 @@ textarea {
   function getUserMidnight() {
     const now = new Date();
     const midnight = new Date(now);
-    midnight.setHours(0, 30, 0, 0); // 12:30 AM
-    if (now.getHours() >= 0 && now.getMinutes() >= 30) {
+    midnight.setHours(0, 20, 0, 0); // 12:20 AM (changed from 12:30)
+    if (now.getHours() >= 0 && now.getMinutes() >= 20) {
       midnight.setDate(midnight.getDate() + 1);
     }
     return midnight;
   }
 
-  function isAfterDeadline() {
+  function getNYTMiniDeadline() {
     const now = new Date();
-    const deadline = getUserMidnight();
-    return now > deadline;
+    const deadline = new Date(now);
+    const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
+    
+    if (dayOfWeek === 0 || dayOfWeek === 6) { // Sunday or Saturday
+      deadline.setHours(18, 20, 0, 0); // 6:20 PM
+    } else { // Weekdays
+      deadline.setHours(22, 20, 0, 0); // 10:20 PM
+    }
+    
+    // If we've passed today's deadline, move to next day's deadline
+    if (now > deadline) {
+      deadline.setDate(deadline.getDate() + 1);
+      const nextDayOfWeek = deadline.getDay();
+      if (nextDayOfWeek === 0 || nextDayOfWeek === 6) {
+        deadline.setHours(18, 20, 0, 0);
+      } else {
+        deadline.setHours(22, 20, 0, 0);
+      }
+    }
+    
+    return deadline;
+  }
+
+  function isAfterDeadline(puzzle = null) {
+    const now = new Date();
+    
+    if (puzzle === "NYT Mini") {
+      return now > getNYTMiniDeadline();
+    }
+    
+    if (puzzle === "On The Record" && isOnTheRecordWeekend()) {
+      return now > getOnTheRecordDeadline();
+    }
+    
+    // Default deadline for all other puzzles
+    return now > getUserMidnight();
   }
 
   function isOnTheRecordWeekend() {
@@ -615,11 +655,11 @@ textarea {
 
   function getOnTheRecordDeadline() {
     if (isOnTheRecordWeekend()) {
-      // Weekend edition deadline is Monday 12:30 AM
+      // Weekend edition deadline is Monday 12:20 AM (changed from 12:30)
       const friday = new Date(currentGameDate);
       const monday = new Date(friday);
       monday.setDate(friday.getDate() + 3);
-      monday.setHours(0, 30, 0, 0);
+      monday.setHours(0, 20, 0, 0);
       return monday;
     }
     return getUserMidnight();
