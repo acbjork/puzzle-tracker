@@ -911,4 +911,8 @@ textarea {
         .from("results")
         .select("*")
         .eq("date", today)
-        .neq("
+        .neq("raw_result", "")
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        console.error("Error loading Supabase results:", error
