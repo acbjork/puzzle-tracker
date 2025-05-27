@@ -56,6 +56,167 @@
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
     .chat-toggle { position: relative; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; padding: 0.75em 1.5em; border-radius: 25px; cursor: pointer; font-weight: bold; margin: 1em 0; transition: all 0.3s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); }
     .chat-toggle:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); }
+    /* Button container for chat + history */
+.button-container { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin: 1em 0; 
+}
+.button-container > div { flex: 1; }
+.button-container > div:first-child { text-align: left; }
+.button-container > div:last-child { text-align: right; }
+
+/* History modal and styling */
+.history-modal { 
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background: rgba(0, 0, 0, 0.5); 
+  z-index: 1000; 
+  display: none; 
+  backdrop-filter: blur(4px); 
+}
+.history-window { 
+  position: absolute; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  width: 90%; 
+  max-width: 500px; 
+  height: 80%; 
+  max-height: 600px; 
+  background: white; 
+  border-radius: 12px; 
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); 
+  display: flex; 
+  flex-direction: column; 
+  overflow: hidden; 
+}
+.history-header { 
+  background: linear-gradient(135deg, #6b46c1, #8b5cf6); 
+  color: white; 
+  padding: 1em; 
+  font-weight: bold; 
+  font-size: 1.1em; 
+  text-align: center; 
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.3); 
+  position: relative; 
+}
+.history-close-btn { 
+  position: absolute; 
+  top: 50%; 
+  right: 1em; 
+  transform: translateY(-50%); 
+  background: none; 
+  border: none; 
+  color: white; 
+  font-size: 1.5em; 
+  cursor: pointer; 
+  width: 30px; 
+  height: 30px; 
+  border-radius: 50%; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  transition: background-color 0.2s; 
+}
+.history-close-btn:hover { background: rgba(255, 255, 255, 0.2); }
+.history-content { 
+  flex: 1; 
+  overflow-y: auto; 
+  padding: 1.5em; 
+  background: #f9f9f9; 
+  -webkit-overflow-scrolling: touch; 
+}
+.history-toggle { 
+  position: relative; 
+  background: linear-gradient(135deg, #6b46c1, #8b5cf6); 
+  color: white; 
+  border: none; 
+  padding: 0.75em 1.5em; 
+  border-radius: 25px; 
+  cursor: pointer; 
+  font-weight: bold; 
+  margin: 1em 0; 
+  transition: all 0.3s; 
+  box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3); 
+}
+.history-toggle:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4); 
+}
+
+/* History content styling */
+.overall-winner { 
+  background: linear-gradient(135deg, #ffd700, #ffed4e); 
+  padding: 1.5em; 
+  border-radius: 12px; 
+  margin-bottom: 1.5em; 
+  text-align: center; 
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); 
+}
+.overall-winner h3 { 
+  margin: 0 0 0.5em 0; 
+  font-size: 1.3em; 
+  color: #b8860b; 
+}
+.overall-winner .winner-name { 
+  font-size: 1.8em; 
+  font-weight: bold; 
+  color: #8b4513; 
+  margin: 0.25em 0; 
+}
+.overall-winner .streak { 
+  font-size: 1.2em; 
+  color: #8b4513; 
+  margin: 0.25em 0; 
+}
+.puzzle-winners { 
+  background: white; 
+  border-radius: 8px; 
+  padding: 1em; 
+}
+.puzzle-winners h4 { 
+  margin: 0 0 1em 0; 
+  color: #666; 
+  font-size: 1em; 
+  text-align: center; 
+}
+.puzzle-winner-item { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  padding: 0.5em 0; 
+  border-bottom: 1px solid #eee; 
+}
+.puzzle-winner-item:last-child { border-bottom: none; }
+.puzzle-name { font-weight: bold; color: #333; }
+.puzzle-streak { color: #666; font-size: 0.9em; }
+
+/* Mobile responsive updates */
+@media (max-width: 768px) {
+  .button-container { 
+    flex-direction: column; 
+    gap: 0.5em; 
+  }
+  .button-container > div { text-align: center; }
+  .history-window { width: 98%; height: 95%; max-width: none; }
+  .history-content { padding: 0.75em; }
+}
+
+@media (max-width: 480px) {
+  .history-window { 
+    width: 100%; 
+    height: 100%; 
+    border-radius: 0; 
+    top: 0; 
+    left: 0; 
+    transform: none; 
+  }
+}
     .delete-confirmation { position: absolute; top: -40px; right: 0; background: #ff4757; color: white; padding: 0.5em; border-radius: 8px; font-size: 0.8em; white-space: nowrap; z-index: 10; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); }
     .delete-confirmation button { background: white; color: #ff4757; border: none; padding: 0.25em 0.5em; margin: 0 0.25em; border-radius: 4px; cursor: pointer; font-size: 0.8em; }
 
@@ -171,6 +332,7 @@
     const cellMap = {};
     let chatMessages = [];
     let isChatVisible = false;
+    let isHistoryVisible = false;
     let hasUnreadMessages = false;
 
     const userSelect = document.querySelector("#userSelect");
@@ -188,6 +350,45 @@
     }
 
     function shouldRenderTable() { return currentUser && (currentUser === "Adam" || currentUser === "Jonathan"); }
+    
+    // Cross-device sync for chat read status
+async function loadLastReadFromSupabase() {
+  if (!currentUser) return;
+  try {
+    const { data, error } = await supabase
+      .from("user_settings")
+      .select("last_read_chat_message_id")
+      .eq("user_id", currentUser)
+      .single();
+    
+    if (!error && data) {
+      lastReadMessageId = data.last_read_chat_message_id;
+    }
+  } catch (error) {
+    console.error("Failed to load read status:", error);
+  }
+}
+
+async function saveLastReadToSupabase(messageId) {
+  if (!currentUser || !messageId) return;
+  try {
+    const { error } = await supabase
+      .from("user_settings")
+      .upsert({
+        user_id: currentUser,
+        last_read_chat_message_id: messageId,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "user_id"
+      });
+    
+    if (error) {
+      console.error("Failed to save read status:", error);
+    }
+  } catch (error) {
+    console.error("Network error saving read status:", error);
+  }
+}
 
     async function loadChatMessages() {
       try {
@@ -309,12 +510,18 @@
     }
 
     function markChatAsRead() {
-      lastReadTimestamp = Date.now().toString();
-      localStorage.setItem('lastReadChatTimestamp', lastReadTimestamp);
-      if (!isChatVisible) {
-        updateUnreadCount();
-      }
+  if (chatMessages.length > 0) {
+    const otherPlayerMessages = chatMessages.filter(msg => 
+      msg.player !== currentUser && msg.message !== '[deleted]'
+    );
+    if (otherPlayerMessages.length > 0) {
+      const latestMessage = otherPlayerMessages[otherPlayerMessages.length - 1];
+      lastReadMessageId = latestMessage.id;
+      saveLastReadToSupabase(latestMessage.id); // ADD THIS LINE
     }
+  }
+  updateUnreadBadge();
+}
 
     function setupChatEventListeners() {
       const chatToggle = document.getElementById('chatToggle');
@@ -354,16 +561,195 @@
     }
 
     function showChatInterface() {
-      if (shouldRenderTable()) {
-        document.getElementById('chatToggle').style.display = 'block';
-        document.getElementById('chatInput').disabled = false;
-        document.getElementById('chatSendBtn').disabled = false;
+  if (shouldRenderTable()) {
+    document.getElementById('chatToggle').style.display = 'block';
+    document.getElementById('historyToggle').style.display = 'block'; // ADD THIS LINE
+    document.getElementById('chatInput').disabled = false;
+    document.getElementById('chatSendBtn').disabled = false;
+  } else {
+    document.getElementById('chatToggle').style.display = 'none';
+    document.getElementById('historyToggle').style.display = 'none'; // ADD THIS LINE
+    document.getElementById('chatModal').style.display = 'none';
+    document.getElementById('historyModal').style.display = 'none'; // ADD THIS LINE
+    isChatVisible = false;
+    isHistoryVisible = false; // ADD THIS LINE
+  }
+}
+    // History functionality
+async function loadHistoryData() {
+  try {
+    document.getElementById('lastOverallWinner').textContent = 'Loading...';
+    document.getElementById('overallStreak').textContent = 'Calculating streak...';
+    document.getElementById('puzzleStreaks').innerHTML = 'Loading puzzle streaks...';
+    
+    const { data: recentResults, error } = await supabase
+      .from("results")
+      .select("*")
+      .gte('date', getDateDaysAgo(30))
+      .neq("raw_result", "")
+      .order("date", { ascending: false });
+
+    if (error) {
+      console.error("Error loading history data:", error.message);
+      showHistoryError();
+      return;
+    }
+
+    calculateAndDisplayHistory(recentResults || []);
+  } catch (error) {
+    console.error("Failed to load history data:", error);
+    showHistoryError();
+  }
+}
+
+function getDateDaysAgo(days) {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
+}
+
+function showHistoryError() {
+  document.getElementById('lastOverallWinner').textContent = 'Error loading data';
+  document.getElementById('overallStreak').textContent = 'Please try again later';
+  document.getElementById('puzzleStreaks').innerHTML = '<div class="puzzle-winner-item"><span class="puzzle-name">Unable to load</span><span class="puzzle-streak">Check connection</span></div>';
+}
+
+function calculateAndDisplayHistory(recentResults) {
+  // Group results by date
+  const resultsByDate = {};
+  recentResults.forEach(result => {
+    if (!resultsByDate[result.date]) {
+      resultsByDate[result.date] = {};
+    }
+    if (!resultsByDate[result.date][result.puzzle_name]) {
+      resultsByDate[result.date][result.puzzle_name] = {};
+    }
+    resultsByDate[result.date][result.puzzle_name][result.player] = result.raw_result;
+  });
+
+  const dailyWinners = [];
+  const sortedDates = Object.keys(resultsByDate).sort().reverse();
+
+  // Calculate daily winners using same logic as main table
+  sortedDates.forEach(date => {
+    const dayResults = resultsByDate[date];
+    let adamWins = 0, jonWins = 0, ties = 0;
+
+    puzzles.forEach(puzzle => {
+      if (dayResults[puzzle] && dayResults[puzzle].Adam && dayResults[puzzle].Jonathan) {
+        const winner = determineWinnerSimple(puzzle, dayResults[puzzle].Adam, dayResults[puzzle].Jonathan);
+        if (winner === 'Adam') adamWins++;
+        else if (winner === 'Jonathan') jonWins++;
+        else ties++;
+      }
+    });
+
+    if (adamWins > jonWins) {
+      dailyWinners.push({ date, winner: 'Adam 🌵', score: `${adamWins}-${jonWins}` });
+    } else if (jonWins > adamWins) {
+      dailyWinners.push({ date, winner: 'Jonathan 💩', score: `${jonWins}-${adamWins}` });
+    } else if (adamWins + jonWins > 0) {
+      dailyWinners.push({ date, winner: 'Tie', score: `${adamWins}-${jonWins}` });
+    }
+  });
+
+  // Display most recent winner
+  const lastWinnerEl = document.getElementById('lastOverallWinner');
+  const streakEl = document.getElementById('overallStreak');
+  
+  if (dailyWinners.length > 0) {
+    const lastWinner = dailyWinners[0];
+    lastWinnerEl.textContent = lastWinner.winner;
+    
+    // Calculate streak
+    let currentStreak = 1;
+    const winnerName = lastWinner.winner;
+    
+    for (let i = 1; i < dailyWinners.length; i++) {
+      if (dailyWinners[i].winner === winnerName) {
+        currentStreak++;
       } else {
-        document.getElementById('chatToggle').style.display = 'none';
-        document.getElementById('chatModal').style.display = 'none';
-        isChatVisible = false;
+        break;
       }
     }
+    
+    if (winnerName === 'Tie') {
+      streakEl.textContent = `Tied ${lastWinner.score}`;
+    } else {
+      streakEl.textContent = `${currentStreak} day${currentStreak > 1 ? 's' : ''} winning streak!`;
+    }
+  } else {
+    lastWinnerEl.textContent = 'No recent data';
+    streakEl.textContent = 'Play some games first!';
+  }
+
+  // Simple puzzle streaks display
+  displaySimplePuzzleStreaks();
+}
+
+function determineWinnerSimple(puzzle, adamResult, jonResult) {
+  // Simplified winner logic for history - just do basic ones
+  if (puzzle === "Wordle") {
+    const aScore = parseInt(adamResult.match(/\b(\d)\/6/)?.[1] || "7");
+    const jScore = parseInt(jonResult.match(/\b(\d)\/6/)?.[1] || "7");
+    if (aScore < jScore) return 'Adam';
+    else if (jScore < aScore) return 'Jonathan';
+    else return 'tie';
+  }
+  
+  if (puzzle === "Connections") {
+    const aLines = adamResult.split("\n");
+    const jLines = jonResult.split("\n");
+    const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
+    const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
+    if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) return 'Adam';
+    else if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) return 'Jonathan';
+    else return 'tie';
+  }
+  
+  // For other puzzles, return tie for now
+  return 'tie';
+}
+
+function displaySimplePuzzleStreaks() {
+  const streaksContainer = document.getElementById('puzzleStreaks');
+  let html = '';
+  
+  // Simple display for now
+  puzzles.forEach(puzzle => {
+    html += `
+      <div class="puzzle-winner-item">
+        <span class="puzzle-name">${puzzle}</span>
+        <span class="puzzle-streak">Coming soon!</span>
+      </div>
+    `;
+  });
+  
+  streaksContainer.innerHTML = html;
+}
+
+    function setupHistoryEventListeners() {
+  const historyToggle = document.getElementById('historyToggle');
+  const historyModal = document.getElementById('historyModal');
+  const historyCloseBtn = document.getElementById('historyCloseBtn');
+
+  historyToggle.addEventListener('click', () => {
+    historyModal.style.display = 'block';
+    isHistoryVisible = true;
+    document.body.style.overflow = 'hidden';
+    loadHistoryData();
+  });
+
+  function closeHistory() {
+    historyModal.style.display = 'none';
+    isHistoryVisible = false;
+    document.body.style.overflow = '';
+  }
+
+  historyCloseBtn.addEventListener('click', closeHistory);
+  historyModal.addEventListener('click', (e) => { if (e.target === historyModal) closeHistory(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isHistoryVisible) closeHistory(); });
+}
 
     async function loadResults() {
       if (!shouldRenderTable()) return;
@@ -756,6 +1142,8 @@
       setupChatEventListeners();
       renderEmptyTable();
       showChatInterface();
+      setupHistoryEventListeners(); // ADD THIS LINE
+await loadLastReadFromSupabase(); // ADD THIS LINE
       try {
         const loadPromise = Promise.all([loadResults(), loadChatMessages()]);
         const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Loading timeout')), 10000));
