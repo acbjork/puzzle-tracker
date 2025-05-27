@@ -1169,17 +1169,6 @@ await loadLastReadFromSupabase(); // ADD THIS LINE
       }
     });
   </script>
-  
-  alert("Top-level JS is running");
-
-  const supabase = supabase.createClient(
-    "https://iqhgsdpqqshfeiqrkrqw.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-  );
-
-  window.addEventListener("DOMContentLoaded", () => {
-    alert("DOMContentLoaded fired");
-  });
 </script>
 </body>
 </html>
