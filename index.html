@@ -313,6 +313,8 @@
 
   <div class="version">v0.6.0 - History and chat sync! 📚💬</div>
 
+alert("Script loaded");
+
   <script type="module">
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -1153,7 +1155,6 @@ await loadLastReadFromSupabase(); // ADD THIS LINE
         console.error("Loading failed:", error);
         renderTable();
       } finally {
-        setTimeout(() => document.getElementById("loadingOverlay").style.display = "none", 3000);
         overlay.style.display = "none";
       }
     });
