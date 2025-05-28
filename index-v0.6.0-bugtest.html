@@ -248,11 +248,15 @@
   <div id="loadingOverlay">Loading…</div>
 
   <!-- Load Supabase library and initialize -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  
   <script>
-const { createClient } = supabase;
-const supabaseClient = createClient("https://iqhgsdpqqshfeiqrkrqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec");
-  </script>
+window.addEventListener("DOMContentLoaded", () => {
+  const { createClient } = supabase;
+  window.supabaseClient = createClient("https://iqhgsdpqqshfeiqrkrqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec"); // your key
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  
 
   <!-- Now your main logic can safely reference `supabase` -->
   
