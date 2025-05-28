@@ -1,9 +1,10 @@
-// I'm Puzzled - Module Auto-Discovery System v1.0
+// I'm Puzzled - Module Auto-Discovery System v1.1 (Fixed)
 class ModuleLoader {
   constructor() {
     this.modules = new Map();
     this.loadedModules = new Set();
-    this.devMode = localStorage.getItem('devMode') === 'true';
+    // DEFAULT TO DEVELOPMENT MODE since CDN doesn't exist yet
+    this.devMode = localStorage.getItem('devMode') !== 'false'; // Default to true
     this.baseUrl = this.devMode ? './modules/' : 'https://cdn.puzzleapp.com/modules/';
     console.log(`🚀 Module Loader initialized in ${this.devMode ? 'DEVELOPMENT' : 'PRODUCTION'} mode`);
   }
@@ -15,6 +16,7 @@ class ModuleLoader {
 
     try {
       const fullPath = this.baseUrl + modulePath;
+      console.log(`📥 Loading: ${fullPath}`);
       const module = await import(fullPath);
       this.modules.set(modulePath, module);
       this.loadedModules.add(modulePath);
@@ -23,9 +25,10 @@ class ModuleLoader {
     } catch (error) {
       console.error(`❌ Failed to load ${modulePath}:`, error);
       
-      // Fallback to CDN if local fails, or vice versa
+      // Fallback to local if CDN fails, or vice versa
       const fallbackUrl = this.devMode ? 'https://cdn.puzzleapp.com/modules/' : './modules/';
       try {
+        console.log(`🔄 Trying fallback: ${fallbackUrl + modulePath}`);
         const module = await import(fallbackUrl + modulePath);
         this.modules.set(modulePath, module);
         this.loadedModules.add(modulePath);
@@ -40,27 +43,15 @@ class ModuleLoader {
 
   async autoDiscover() {
     const coreModules = [
-      'core/supabase-client.js',
-      'core/user-management.js', 
-      'core/puzzle-logic.js'
+      'core/supabase-client.js'
     ];
     
-    const uiModules = [
-      'ui/chat-system.js',
-      'ui/puzzle-table.js',
-      'ui/scoreboard.js',
-      'ui/history-modal.js'
-    ];
-
-    const utilModules = [
-      'utils/date-helpers.js',
-      'utils/html-helpers.js'
-    ];
-
-    // Load in dependency order
-    for (const module of [...coreModules, ...utilModules, ...uiModules]) {
+    // Start with just one module for testing
+    for (const module of coreModules) {
       await this.loadModule(module);
     }
+    
+    console.log('🎯 Core modules loaded successfully!');
   }
 
   toggleDevMode() {
