@@ -250,10 +250,8 @@
   <!-- Load Supabase library and initialize -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
   <script>
-    const supabase = supabase.createClient(
-      "https://iqhgsdpqqshfeiqrkrqw.supabase.co",
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-    );
+    const { createClient } = supabase;
+const supabase = createClient("https://iqhgsdpqqshfeiqrkrqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec");
   </script>
 
   <!-- Now your main logic can safely reference `supabase` -->
@@ -402,7 +400,7 @@ async function saveLastReadToSupabase(messageId) {
 
     async function loadChatMessages() {
       try {
-        const { data, error } = await supabase.from("chat_messages").select("*").eq("date", today).order("created_at", { ascending: true });
+        const { data, error } = await supabaseClient.from("chat_messages").select("*").eq("date", today).order("created_at", { ascending: true });
         if (error) { console.error("Error loading chat messages:", error.message); return; }
         chatMessages = data || [];
         renderChatMessages();
@@ -450,7 +448,7 @@ async function saveLastReadToSupabase(messageId) {
 
     window.deleteMessage = async function(messageId) {
       try {
-        const { error } = await supabase.from("chat_messages").update({ message: '[deleted]' }).eq("id", messageId);
+        const { error } = await supabaseClient.from("chat_messages").update({ message: '[deleted]' }).eq("id", messageId);
         if (error) {
           console.error("Error deleting message:", error.message);
           alert("Failed to delete message. Try again.");
@@ -478,7 +476,7 @@ async function saveLastReadToSupabase(messageId) {
       sendBtn.disabled = true;
       sendBtn.textContent = '⏳';
       try {
-        const { error } = await supabase.from("chat_messages").insert({ date: today, player: currentUser, message: message });
+        const { error } = await supabaseClient.from("chat_messages").insert({ date: today, player: currentUser, message: message });
         if (error) {
           console.error("Error sending message:", error.message);
           alert("Failed to send message. Try again.");
@@ -766,7 +764,7 @@ function displaySimplePuzzleStreaks() {
       try {
         Object.keys(results).forEach(key => delete results[key]);
         Object.keys(cellMap).forEach(key => delete cellMap[key]);
-        const { data, error } = await supabase.from("results").select("*").eq("date", today).neq("raw_result", "").order("created_at", { ascending: true });
+        const { data, error } = await supabaseClient.from("results").select("*").eq("date", today).neq("raw_result", "").order("created_at", { ascending: true });
         if (error) console.error("Error loading Supabase results:", error.message);
         puzzles.forEach(puzzle => { results[puzzle] = { Adam: "", Jonathan: "" }; });
         if (data && data.length > 0) {
@@ -896,7 +894,7 @@ function displaySimplePuzzleStreaks() {
 
     async function deleteResult(puzzle, user) {
       try {
-        const { error } = await supabase.from("results").update({ raw_result: "" }).eq("date", today).eq("puzzle_name", puzzle).eq("player", user);
+        const { error } = await supabaseClient.from("results").update({ raw_result: "" }).eq("date", today).eq("puzzle_name", puzzle).eq("player", user);
         if (error) {
           alert(`Cannot delete record: ${error.message}`);
           return false;
@@ -933,7 +931,7 @@ function displaySimplePuzzleStreaks() {
           return;
         }
         results[puzzle][user] = newVal;
-        const { error } = await supabase.from("results").upsert({
+        const { error } = await supabaseClient.from("results").upsert({
           date: today, puzzle_name: puzzle, player: user, raw_result: newVal
         }, { onConflict: ["date", "puzzle_name", "player"] });
         if (error) {
@@ -1008,7 +1006,7 @@ function displaySimplePuzzleStreaks() {
                   return;
                 }
                 results[puzzle][user] = newVal;
-                const { error } = await supabase.from("results").upsert({
+                const { error } = await supabaseClient.from("results").upsert({
                   date: today, puzzle_name: puzzle, player: user, raw_result: newVal
                 }, { onConflict: ["date", "puzzle_name", "player"] });
                 if (error) {
