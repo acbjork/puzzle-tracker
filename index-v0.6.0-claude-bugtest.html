@@ -46,10 +46,10 @@
     .message-text { font-size: 0.9em; line-height: 1.3; }
     .timestamp { font-size: 0.7em; opacity: 0.7; margin-top: 0.25em; }
     .chat-input-area { padding: 1em; background: white; border-top: 1px solid #ddd; display: flex; gap: 0.5em; align-items: flex-end; }
-    .chat-input { flex: 1; padding: 0.75em; border: 2px solid #ddd; border-radius: 20px; font-size: 0.9em; resize: none; min-height: 40px; max-height: 80px; outline: none; transition: border-color 0.2s; }
-    .chat-input:focus { border-color: #4ecdc4; }
-    .chat-send-btn { background: linear-gradient(135deg, #666, #333); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.2em; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; }
-    .chat-send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(102, 102, 102, 0.4); }
+    .chat-input { flex: 1; padding: 0.75em; border: 2px solid #ff6b35; border-radius: 20px; font-size: 0.9em; resize: none; min-height: 40px; max-height: 80px; outline: none; transition: border-color 0.2s; }
+    .chat-input:focus { border-color: #ff6b35; }
+    .chat-send-btn { background: linear-gradient(135deg, #ff6b35, #f7931e); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.2em; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; }
+    .chat-send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4); }
     .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
     .chat-empty { text-align: center; color: #888; font-style: italic; padding: 2em; }
     .unread-indicator { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7em; display: flex; align-items: center; justify-content: center; font-weight: bold; animation: pulse 2s infinite; }
@@ -272,10 +272,19 @@
     <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
   </div>
 
-  <button id="chatToggle" class="chat-toggle" style="display: none;">
-    💬 Trash Talk Central 🗑️
-    <span id="unreadBadge" class="unread-indicator" style="display: none;">0</span>
-  </button>
+  <div class="button-container">
+  <div>
+    <button id="chatToggle" class="chat-toggle" style="display: none;">
+      💬 Trash Talk Central 🗑️
+      <span id="unreadBadge" class="unread-indicator" style="display: none;">0</span>
+    </button>
+  </div>
+  <div>
+    <button id="historyToggle" class="history-toggle" style="display: none;">
+      🧩 History 📊
+    </button>
+  </div>
+</div>
 
   <div class="chat-modal" id="chatModal">
     <div class="chat-window">
@@ -292,6 +301,26 @@
       </div>
     </div>
   </div>
+  
+  <div class="history-modal" id="historyModal">
+  <div class="history-window">
+    <div class="history-header">
+      🧩 History 📊
+      <button class="history-close-btn" id="historyCloseBtn">✕</button>
+    </div>
+    <div class="history-content" id="historyContent">
+      <div class="overall-winner">
+        <h3>Most Recent Daily Winner</h3>
+        <div class="winner-name" id="lastOverallWinner">Loading...</div>
+        <div class="streak" id="overallStreak">Calculating streak...</div>
+      </div>
+      <div class="puzzle-winners">
+        <h4>Individual Puzzle Streaks</h4>
+        <div id="puzzleStreaks">Loading puzzle streaks...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <table id="puzzleTable">
     <thead>
@@ -334,6 +363,7 @@
     let isChatVisible = false;
     let isHistoryVisible = false;
     let hasUnreadMessages = false;
+    let lastReadmessageId = null;
 
     const userSelect = document.querySelector("#userSelect");
     if (userSelect) {
