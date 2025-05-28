@@ -363,7 +363,7 @@ const supabaseClient = createClient("https://iqhgsdpqqshfeiqrkrqw.supabase.co", 
 async function loadLastReadFromSupabase() {
   if (!currentUser) return;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("user_settings")
       .select("last_read_chat_message_id")
       .eq("user_id", currentUser)
@@ -380,7 +380,7 @@ async function loadLastReadFromSupabase() {
 async function saveLastReadToSupabase(messageId) {
   if (!currentUser || !messageId) return;
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("user_settings")
       .upsert({
         user_id: currentUser,
@@ -590,7 +590,7 @@ async function loadHistoryData() {
     document.getElementById('overallStreak').textContent = 'Calculating streak...';
     document.getElementById('puzzleStreaks').innerHTML = 'Loading puzzle streaks...';
     
-    const { data: recentResults, error } = await supabase
+    const { data: recentResults, error } = await supabaseClient
       .from("results")
       .select("*")
       .gte('date', getDateDaysAgo(30))
@@ -1036,7 +1036,7 @@ function displaySimplePuzzleStreaks() {
 
     function subscribeToChanges() {
       try {
-        supabase.channel("puzzle-results-realtime").on("postgres_changes", {
+        supabaseClient.channel("puzzle-results-realtime").on("postgres_changes", {
           event: "*", schema: "public", table: "results", filter: `date=eq.${today}`
         }, (payload) => {
           const puzzle = payload.new?.puzzle_name || payload.old?.puzzle_name;
@@ -1052,7 +1052,7 @@ function displaySimplePuzzleStreaks() {
           }
         }).subscribe();
 
-        supabase.channel("chat-messages-realtime").on("postgres_changes", {
+        supabaseClient.channel("chat-messages-realtime").on("postgres_changes", {
           event: "*", schema: "public", table: "chat_messages", filter: `date=eq.${today}`
         }, (payload) => {
           if (payload.eventType === "INSERT") {
