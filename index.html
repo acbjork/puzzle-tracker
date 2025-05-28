@@ -46,10 +46,10 @@
     .message-text { font-size: 0.9em; line-height: 1.3; }
     .timestamp { font-size: 0.7em; opacity: 0.7; margin-top: 0.25em; }
     .chat-input-area { padding: 1em; background: white; border-top: 1px solid #ddd; display: flex; gap: 0.5em; align-items: flex-end; }
-    .chat-input { flex: 1; padding: 0.75em; border: 2px solid #ddd; border-radius: 20px; font-size: 0.9em; resize: none; min-height: 40px; max-height: 80px; outline: none; transition: border-color 0.2s; }
-    .chat-input:focus { border-color: #4ecdc4; }
-    .chat-send-btn { background: linear-gradient(135deg, #666, #333); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.2em; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; }
-    .chat-send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(102, 102, 102, 0.4); }
+    .chat-input { flex: 1; padding: 0.75em; border: 2px solid #ff6b35; border-radius: 20px; font-size: 0.9em; resize: none; min-height: 40px; max-height: 80px; outline: none; transition: border-color 0.2s; }
+    .chat-input:focus { border-color: #ff6b35; }
+    .chat-send-btn { background: linear-gradient(135deg, #ff6b35, #f7931e); color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 1.2em; transition: transform 0.2s, box-shadow 0.2s; display: flex; align-items: center; justify-content: center; }
+    .chat-send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4); }
     .chat-send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
     .chat-empty { text-align: center; color: #888; font-style: italic; padding: 2em; }
     .unread-indicator { position: absolute; top: -5px; right: -5px; background: #ff4757; color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 0.7em; display: flex; align-items: center; justify-content: center; font-weight: bold; animation: pulse 2s infinite; }
@@ -246,20 +246,6 @@
 </head>
 <body>
   <div id="loadingOverlay">Loading…</div>
-
-  <!-- Load Supabase library and initialize -->
-  
-  <script>
-window.addEventListener("DOMContentLoaded", () => {
-  const { createClient } = supabase;
-  window.supabaseClient = createClient("https://iqhgsdpqqshfeiqrkrqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec"); // your key
-});
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-  
-
-  <!-- Now your main logic can safely reference `supabase` -->
-  
   <h1>🧠 I'm Puzzled ‼️</h1>
   <div class="subtitle">If you ain't first, you're last</div>
 
@@ -286,10 +272,19 @@ window.addEventListener("DOMContentLoaded", () => {
     <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
   </div>
 
-  <button id="chatToggle" class="chat-toggle" style="display: none;">
-    💬 Trash Talk Central 🗑️
-    <span id="unreadBadge" class="unread-indicator" style="display: none;">0</span>
-  </button>
+  <div class="button-container">
+  <div>
+    <button id="chatToggle" class="chat-toggle" style="display: none;">
+      💬 Trash Talk Central 🗑️
+      <span id="unreadBadge" class="unread-indicator" style="display: none;">0</span>
+    </button>
+  </div>
+  <div>
+    <button id="historyToggle" class="history-toggle" style="display: none;">
+      🧩 History 📊
+    </button>
+  </div>
+</div>
 
   <div class="chat-modal" id="chatModal">
     <div class="chat-window">
@@ -306,6 +301,26 @@ window.addEventListener("DOMContentLoaded", () => {
       </div>
     </div>
   </div>
+  
+  <div class="history-modal" id="historyModal">
+  <div class="history-window">
+    <div class="history-header">
+      🧩 History 📊
+      <button class="history-close-btn" id="historyCloseBtn">✕</button>
+    </div>
+    <div class="history-content" id="historyContent">
+      <div class="overall-winner">
+        <h3>Most Recent Daily Winner</h3>
+        <div class="winner-name" id="lastOverallWinner">Loading...</div>
+        <div class="streak" id="overallStreak">Calculating streak...</div>
+      </div>
+      <div class="puzzle-winners">
+        <h4>Individual Puzzle Streaks</h4>
+        <div id="puzzleStreaks">Loading puzzle streaks...</div>
+      </div>
+    </div>
+  </div>
+</div>
 
   <table id="puzzleTable">
     <thead>
@@ -327,9 +342,11 @@ window.addEventListener("DOMContentLoaded", () => {
 
   <div class="version">v0.6.0 - History and chat sync! 📚💬</div>
 
-  <!-- Load Supabase library globally -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
-<script>
+    const supabase = createClient("https://iqhgsdpqqshfeiqrkrqw.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlxaGdzZHBxcXNoZmVpcXJrcnF3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc4NjExMDAsImV4cCI6MjA2MzQzNzEwMH0.W3eH88RD9s3pmuVlA-H7VIfVWLq_ymtj22JLd2f9Cec");
+
     const today = new Date().toISOString().slice(0, 10);
     let currentUser = '';
     try {
@@ -346,6 +363,7 @@ window.addEventListener("DOMContentLoaded", () => {
     let isChatVisible = false;
     let isHistoryVisible = false;
     let hasUnreadMessages = false;
+    let lastReadmessageId = null;
 
     const userSelect = document.querySelector("#userSelect");
     if (userSelect) {
@@ -367,7 +385,7 @@ window.addEventListener("DOMContentLoaded", () => {
 async function loadLastReadFromSupabase() {
   if (!currentUser) return;
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabase
       .from("user_settings")
       .select("last_read_chat_message_id")
       .eq("user_id", currentUser)
@@ -384,7 +402,7 @@ async function loadLastReadFromSupabase() {
 async function saveLastReadToSupabase(messageId) {
   if (!currentUser || !messageId) return;
   try {
-    const { error } = await supabaseClient
+    const { error } = await supabase
       .from("user_settings")
       .upsert({
         user_id: currentUser,
@@ -404,7 +422,7 @@ async function saveLastReadToSupabase(messageId) {
 
     async function loadChatMessages() {
       try {
-        const { data, error } = await supabaseClient.from("chat_messages").select("*").eq("date", today).order("created_at", { ascending: true });
+        const { data, error } = await supabase.from("chat_messages").select("*").eq("date", today).order("created_at", { ascending: true });
         if (error) { console.error("Error loading chat messages:", error.message); return; }
         chatMessages = data || [];
         renderChatMessages();
@@ -452,7 +470,7 @@ async function saveLastReadToSupabase(messageId) {
 
     window.deleteMessage = async function(messageId) {
       try {
-        const { error } = await supabaseClient.from("chat_messages").update({ message: '[deleted]' }).eq("id", messageId);
+        const { error } = await supabase.from("chat_messages").update({ message: '[deleted]' }).eq("id", messageId);
         if (error) {
           console.error("Error deleting message:", error.message);
           alert("Failed to delete message. Try again.");
@@ -480,7 +498,7 @@ async function saveLastReadToSupabase(messageId) {
       sendBtn.disabled = true;
       sendBtn.textContent = '⏳';
       try {
-        const { error } = await supabaseClient.from("chat_messages").insert({ date: today, player: currentUser, message: message });
+        const { error } = await supabase.from("chat_messages").insert({ date: today, player: currentUser, message: message });
         if (error) {
           console.error("Error sending message:", error.message);
           alert("Failed to send message. Try again.");
@@ -594,7 +612,7 @@ async function loadHistoryData() {
     document.getElementById('overallStreak').textContent = 'Calculating streak...';
     document.getElementById('puzzleStreaks').innerHTML = 'Loading puzzle streaks...';
     
-    const { data: recentResults, error } = await supabaseClient
+    const { data: recentResults, error } = await supabase
       .from("results")
       .select("*")
       .gte('date', getDateDaysAgo(30))
@@ -768,7 +786,7 @@ function displaySimplePuzzleStreaks() {
       try {
         Object.keys(results).forEach(key => delete results[key]);
         Object.keys(cellMap).forEach(key => delete cellMap[key]);
-        const { data, error } = await supabaseClient.from("results").select("*").eq("date", today).neq("raw_result", "").order("created_at", { ascending: true });
+        const { data, error } = await supabase.from("results").select("*").eq("date", today).neq("raw_result", "").order("created_at", { ascending: true });
         if (error) console.error("Error loading Supabase results:", error.message);
         puzzles.forEach(puzzle => { results[puzzle] = { Adam: "", Jonathan: "" }; });
         if (data && data.length > 0) {
@@ -898,7 +916,7 @@ function displaySimplePuzzleStreaks() {
 
     async function deleteResult(puzzle, user) {
       try {
-        const { error } = await supabaseClient.from("results").update({ raw_result: "" }).eq("date", today).eq("puzzle_name", puzzle).eq("player", user);
+        const { error } = await supabase.from("results").update({ raw_result: "" }).eq("date", today).eq("puzzle_name", puzzle).eq("player", user);
         if (error) {
           alert(`Cannot delete record: ${error.message}`);
           return false;
@@ -935,7 +953,7 @@ function displaySimplePuzzleStreaks() {
           return;
         }
         results[puzzle][user] = newVal;
-        const { error } = await supabaseClient.from("results").upsert({
+        const { error } = await supabase.from("results").upsert({
           date: today, puzzle_name: puzzle, player: user, raw_result: newVal
         }, { onConflict: ["date", "puzzle_name", "player"] });
         if (error) {
@@ -1010,7 +1028,7 @@ function displaySimplePuzzleStreaks() {
                   return;
                 }
                 results[puzzle][user] = newVal;
-                const { error } = await supabaseClient.from("results").upsert({
+                const { error } = await supabase.from("results").upsert({
                   date: today, puzzle_name: puzzle, player: user, raw_result: newVal
                 }, { onConflict: ["date", "puzzle_name", "player"] });
                 if (error) {
@@ -1040,7 +1058,7 @@ function displaySimplePuzzleStreaks() {
 
     function subscribeToChanges() {
       try {
-        supabaseClient.channel("puzzle-results-realtime").on("postgres_changes", {
+        supabase.channel("puzzle-results-realtime").on("postgres_changes", {
           event: "*", schema: "public", table: "results", filter: `date=eq.${today}`
         }, (payload) => {
           const puzzle = payload.new?.puzzle_name || payload.old?.puzzle_name;
@@ -1056,7 +1074,7 @@ function displaySimplePuzzleStreaks() {
           }
         }).subscribe();
 
-        supabaseClient.channel("chat-messages-realtime").on("postgres_changes", {
+        supabase.channel("chat-messages-realtime").on("postgres_changes", {
           event: "*", schema: "public", table: "chat_messages", filter: `date=eq.${today}`
         }, (payload) => {
           if (payload.eventType === "INSERT") {
@@ -1168,6 +1186,6 @@ await loadLastReadFromSupabase(); // ADD THIS LINE
         overlay.style.display = "none";
       }
     });
-</script>
+  </script>
 </body>
 </html>
