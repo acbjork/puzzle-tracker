@@ -1,4 +1,4 @@
-//I'm Puzzled - Date Helpers Module v1.0
+// I'm Puzzled - Date Helpers Module v1.0
 // Utilities for date handling, formatting, and calculations
 
 class DateHelpers {
