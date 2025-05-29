@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧠 I'm Puzzled ‼️ - Debug</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 1em; }
+    .debug { background: #f0f0f0; padding: 1em; margin: 1em 0; border-radius: 8px; }
+    .error { background: #ffe6e6; border: 1px solid #ff9999; }
+    .success { background: #e6ffe6; border: 1px solid #99ff99; }
+  </style>
+</head>
+<body>
+  <h1>🧠 I'm Puzzled - Debug Module Loading</h1>
+  
+  <div id="debugLog" class="debug">
+    <h3>Debug Log:</h3>
+    <div id="logContent">Starting debug...</div>
+  </div>
+
+  <script type="module">
+    function log(message, isError = false) {
+      const logContent = document.getElementById('logContent');
+      const timestamp = new Date().toLocaleTimeString();
+      const className = isError ? 'error' : 'success';
+      logContent.innerHTML += `<div class="${className}">[${timestamp}] ${message}</div>`;
+      console.log(message);
+    }
+
+    log('🚀 Starting module loading debug...');
+
+    // Test each module one by one
+    const modulesToTest = [
+      './modules/core/supabase-client.js',
+      './modules/core/user-management.js', 
+      './modules/utils/date-helpers.js',
+      './modules/ui/puzzle-table.js',
+      './modules/ui/scoreboard.js',
+      './modules/ui/chat-system.js',
+      './modules/ui/history-modal.js',
+      './modules/app/main.js'
+    ];
+
+    async function testModules() {
+      for (const modulePath of modulesToTest) {
+        try {
+          log(`📥 Testing: ${modulePath}`);
+          const module = await import(modulePath);
+          log(`✅ SUCCESS: ${modulePath} loaded`);
+          
+          // Log what the module exports
+          if (module.default) {
+            log(`   📦 Has default export: ${typeof module.default}`);
+          }
+          const namedExports = Object.keys(module).filter(key => key !== 'default');
+          if (namedExports.length > 0) {
+            log(`   📦 Named exports: ${namedExports.join(', ')}`);
+          }
+          
+        } catch (error) {
+          log(`❌ FAILED: ${modulePath} - ${error.message}`, true);
+          log(`   📋 Error details: ${error.stack}`, true);
+        }
+      }
+      
+      log('🏁 Module testing complete!');
+    }
+
+    // Test Supabase first (we know this works)
+    try {
+      log('🔧 Testing known working Supabase module...');
+      const supabaseModule = await import('./modules/core/supabase-client.js');
+      log('✅ Supabase module loaded successfully!');
+      
+      const supabaseClient = supabaseModule.default;
+      const isHealthy = await supabaseClient.testConnection();
+      log(`🩺 Supabase health check: ${isHealthy ? 'HEALTHY' : 'FAILED'}`);
+      
+      // Now test all other modules
+      await testModules();
+      
+    } catch (error) {
+      log(`💥 Even Supabase failed: ${error.message}`, true);
+    }
+  </script>
+</body>
+</html>
