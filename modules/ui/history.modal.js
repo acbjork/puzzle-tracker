@@ -80,7 +80,7 @@ class HistoryModal {
       const fromDate = this.dateHelpers.getDateDaysAgo(30);
       const recentResults = await this.supabaseClient.loadHistoryResults(fromDate);
       
-      this.calculateAndDisplayHistory(recentResults);
+      this.displaySimpleHistory(recentResults);
     } catch (error) {
       console.error("Failed to load history data:", error);
       this.showError();
@@ -116,139 +116,36 @@ class HistoryModal {
     }
   }
 
-  // Calculate and display history
-  calculateAndDisplayHistory(recentResults) {
-    const resultsByDate = this.groupResultsByDate(recentResults);
-    const dailyWinners = this.calculateDailyWinners(resultsByDate);
-    
-    this.displayOverallWinner(dailyWinners);
-    this.displayPuzzleStreaks();
-  }
-
-  // Group results by date
-  groupResultsByDate(results) {
-    const grouped = {};
-    
-    results.forEach(result => {
-      if (!grouped[result.date]) {
-        grouped[result.date] = {};
-      }
-      if (!grouped[result.date][result.puzzle_name]) {
-        grouped[result.date][result.puzzle_name] = {};
-      }
-      grouped[result.date][result.puzzle_name][result.player] = result.raw_result;
-    });
-    
-    return grouped;
-  }
-
-  // Calculate daily winners
-  calculateDailyWinners(resultsByDate) {
-    const dailyWinners = [];
-    const sortedDates = Object.keys(resultsByDate).sort().reverse();
-    const puzzles = this.puzzleTable.getPuzzles();
-
-    sortedDates.forEach(date => {
-      const dayResults = resultsByDate[date];
-      let adamWins = 0, jonWins = 0, ties = 0;
-
-      puzzles.forEach(puzzle => {
-        if (dayResults[puzzle] && dayResults[puzzle].Adam && dayResults[puzzle].Jonathan) {
-          const winner = this.puzzleTable.determineWinner(
-            puzzle, 
-            dayResults[puzzle].Adam, 
-            dayResults[puzzle].Jonathan
-          );
-          
-          if (winner === 'Adam') adamWins++;
-          else if (winner === 'Jonathan') jonWins++;
-          else ties++;
-        }
-      });
-
-      if (adamWins > jonWins) {
-        dailyWinners.push({ 
-          date, 
-          winner: this.userManager.getUserDisplayName('Adam'), 
-          score: `${adamWins}-${jonWins}` 
-        });
-      } else if (jonWins > adamWins) {
-        dailyWinners.push({ 
-          date, 
-          winner: this.userManager.getUserDisplayName('Jonathan'), 
-          score: `${jonWins}-${adamWins}` 
-        });
-      } else if (adamWins + jonWins > 0) {
-        dailyWinners.push({ 
-          date, 
-          winner: 'Tie', 
-          score: `${adamWins}-${jonWins}` 
-        });
-      }
-    });
-
-    return dailyWinners;
-  }
-
-  // Display overall winner and streak
-  displayOverallWinner(dailyWinners) {
+  // Display simple history (placeholder for now)
+  displaySimpleHistory(recentResults) {
     const lastWinnerEl = document.getElementById('lastOverallWinner');
     const streakEl = document.getElementById('overallStreak');
-    
-    if (!lastWinnerEl || !streakEl) return;
+    const puzzleStreaksEl = document.getElementById('puzzleStreaks');
 
-    if (dailyWinners.length === 0) {
-      lastWinnerEl.textContent = 'No recent data';
-      streakEl.textContent = 'Play some games first!';
-      return;
+    if (lastWinnerEl) lastWinnerEl.textContent = 'Coming Soon!';
+    if (streakEl) streakEl.textContent = 'Historical analysis in development';
+    
+    if (puzzleStreaksEl) {
+      const puzzles = ["Connections", "Strands", "On the Record", "Keyword", "NYT Mini", "Apple Mini", "Globle", "Flagle", "Wordle", "Tightrope"];
+      
+      let html = '';
+      puzzles.forEach(puzzle => {
+        html += `
+          <div class="puzzle-winner-item">
+            <span class="puzzle-name-history">${puzzle}</span>
+            <span class="puzzle-streak">Coming soon!</span>
+          </div>
+        `;
+      });
+      
+      puzzleStreaksEl.innerHTML = html;
     }
-
-    const lastWinner = dailyWinners[0];
-    lastWinnerEl.textContent = lastWinner.winner;
-    
-    // Calculate streak
-    let currentStreak = 1;
-    const winnerName = lastWinner.winner;
-    
-    for (let i = 1; i < dailyWinners.length; i++) {
-      if (dailyWinners[i].winner === winnerName) {
-        currentStreak++;
-      } else {
-        break;
-      }
-    }
-    
-    if (winnerName === 'Tie') {
-      streakEl.textContent = `Tied ${lastWinner.score}`;
-    } else {
-      streakEl.textContent = `${currentStreak} day${currentStreak > 1 ? 's' : ''} winning streak!`;
-    }
-  }
-
-  // Display puzzle streaks (simplified for now)
-  displayPuzzleStreaks() {
-    const streaksContainer = document.getElementById('puzzleStreaks');
-    if (!streaksContainer) return;
-    
-    let html = '';
-    const puzzles = this.puzzleTable.getPuzzles();
-    
-    puzzles.forEach(puzzle => {
-      html += `
-        <div class="puzzle-winner-item">
-          <span class="puzzle-name-history">${puzzle}</span>
-          <span class="puzzle-streak">Coming soon!</span>
-        </div>
-      `;
-    });
-    
-    streaksContainer.innerHTML = html;
   }
 
   // Update interface visibility
   updateInterfaceVisibility() {
     const historyToggle = document.getElementById('historyToggle');
-    const canUseHistory = this.userManager.canRenderTable();
+    const canUseHistory = this.userManager && this.userManager.canRenderTable();
     
     if (historyToggle) {
       historyToggle.style.display = canUseHistory ? 'block' : 'none';
