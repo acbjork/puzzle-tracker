@@ -215,50 +215,52 @@
     </tbody>
   </table>
 
-  <div class="version">v0.7.0 - Bug fixes and UI improvements! 🐛✨</div>
+  <div class="version">v0.7.0 - Phase 2: Complete Modular Architecture! 🎯✨</div>
   
-   <script type="module">
-  console.log('🧠 I\'m Puzzled v0.7.0 - Modular Architecture');
-  
-  // Import the working Supabase client directly
-  import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
-    console.log('✅ Supabase module loaded');
+  <script type="module">
+    console.log('🧠 I\'m Puzzled v0.7.0 - Phase 2: Complete Modular Architecture');
     
-    // Make client globally available (like the old monolithic version)
-    const supabaseClient = supabaseModule.default;
-    window.supabase = supabaseClient.getClient(); // For backward compatibility
-    window.supabaseClient = supabaseClient; // New modular access
-    
-    // Test connection
-    const isHealthy = await supabaseClient.testConnection();
-    if (!isHealthy) {
-      console.error('❌ Database connection failed');
-      return;
-    }
-    
-    console.log('🎯 Modules loaded successfully!');
-    console.log('🔄 TODO: Load remaining modules (UI, utils, etc.)');
-    
-    // Initialize the app (simplified version for now)
-    console.log('🎮 App ready - Module system working!');
-    
-    // Remove loading overlay
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.style.display = 'none';
-    
-    // TODO: Replace with proper module initialization
-    console.log('⚠️ Currently using basic initialization');
-    console.log('📋 Next: Extract remaining 865 lines into modules');
-    
-  }).catch(error => {
-    console.error('💥 Module loading failed:', error);
-    console.error('🔄 Falling back to monolithic version would go here');
-    
-    // Remove loading overlay even on failure
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.style.display = 'none';
-  });
-</script>
-   
+    // Import and initialize the Supabase client first
+    import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
+      console.log('✅ Supabase module loaded');
+      
+      // Make client globally available
+      const supabaseClient = supabaseModule.default;
+      window.supabase = supabaseClient.getClient(); // For backward compatibility
+      window.supabaseClient = supabaseClient; // New modular access
+      
+      // Test connection
+      const isHealthy = await supabaseClient.testConnection();
+      if (!isHealthy) {
+        console.error('❌ Database connection failed');
+        document.getElementById('loadingOverlay').style.display = 'none';
+        return;
+      }
+      
+      // Now import and initialize the main app
+      const { default: app } = await import('./modules/app/main.js');
+      
+      // Initialize the complete application
+      await app.init();
+      
+      console.log('🎉 Phase 2 Complete! All modules loaded and functional.');
+      
+    }).catch(error => {
+      console.error('💥 Module loading failed:', error);
+      console.error('🔄 Check that all module files exist in the modules/ directory');
+      
+      // Remove loading overlay even on failure
+      document.getElementById('loadingOverlay').style.display = 'none';
+      
+      // Show error message
+      document.body.innerHTML += `
+        <div style="text-align: center; padding: 2em; color: #666;">
+          <h2>⚠️ Module Loading Failed</h2>
+          <p>Please check that all module files are present in the modules/ directory.</p>
+          <p><a href="index-v0.6.1.html">Click here for the working v0.6.1 version</a></p>
+        </div>
+      `;
+    });
+  </script>
 </body>
-</html>    
+</html>
