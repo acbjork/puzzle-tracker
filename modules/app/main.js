@@ -42,46 +42,45 @@ class App {
     }
   }
 
-  // Load all required modules
   async loadModules() {
-    const modulePromises = [
-      import('./modules/core/user-management.js'),
-      import('./modules/utils/date-helpers.js'),
-      import('./modules/ui/puzzle-table.js'),
-      import('./modules/ui/scoreboard.js'),
-      import('./modules/ui/chat-system.js'),
-      import('./modules/ui/history-modal.js')
-    ];
+  const modulePromises = [
+    import('../core/user-management.js'),
+    import('../utils/date-helpers.js'),
+    import('../ui/puzzle-table.js'),
+    import('../ui/scoreboard.js'),
+    import('../ui/chat-system.js'),
+    import('../ui/history-modal.js')
+  ];
 
-    const [
-      userManagementModule,
-      dateHelpersModule,
-      puzzleTableModule,
-      scoreboardModule,
-      chatSystemModule,
-      historyModalModule
-    ] = await Promise.all(modulePromises);
+  const [
+    userManagementModule,
+    dateHelpersModule,
+    puzzleTableModule,
+    scoreboardModule,
+    chatSystemModule,
+    historyModalModule
+  ] = await Promise.all(modulePromises);
 
-    // Store module instances
-    this.modules = {
-      userManager: userManagementModule.default,
-      dateHelpers: dateHelpersModule.default,
-      puzzleTable: puzzleTableModule.default,
-      scoreboard: scoreboardModule.default,
-      chatSystem: chatSystemModule.default,
-      historyModal: historyModalModule.default
-    };
+  // Store module instances
+  this.modules = {
+    userManager: userManagementModule.default,
+    dateHelpers: dateHelpersModule.default,
+    puzzleTable: puzzleTableModule.default,
+    scoreboard: scoreboardModule.default,
+    chatSystem: chatSystemModule.default,
+    historyModal: historyModalModule.default
+  };
 
-    // Make modules globally available for compatibility
-    window.userManager = this.modules.userManager;
-    window.dateHelpers = this.modules.dateHelpers;
-    window.puzzleTable = this.modules.puzzleTable;
-    window.scoreboard = this.modules.scoreboard;
-    window.chatSystem = this.modules.chatSystem;
-    window.historyModal = this.modules.historyModal;
+  // Make modules globally available for compatibility
+  window.userManager = this.modules.userManager;
+  window.dateHelpers = this.modules.dateHelpers;
+  window.puzzleTable = this.modules.puzzleTable;
+  window.scoreboard = this.modules.scoreboard;
+  window.chatSystem = this.modules.chatSystem;
+  window.historyModal = this.modules.historyModal;
 
-    console.log('📦 All modules loaded');
-  }
+  console.log('📦 All modules loaded');
+}
 
   // Initialize modules with dependencies
   async initializeModules() {
