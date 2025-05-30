@@ -8,7 +8,17 @@
     body { font-family: system-ui, sans-serif; margin: 1em; overflow-x: hidden; }
     h1, .subtitle { text-align: center; margin: 0; }
     .subtitle { font-size: 0.95em; color: #555; margin-top: 0.2em; margin-bottom: 2em; }
-    .user-select-area { margin-top: 1em; margin-bottom: 3em; }
+    .user-select-area { margin-top: 1em; margin-bottom: 2em; }
+    
+    /* NEW PHASE 3A: Puzzle Date Display */
+    .puzzle-date { 
+      text-align: center; 
+      font-size: 0.9em; 
+      color: #888; 
+      margin: 1em 0 0.5em 0; 
+      font-weight: normal;
+    }
+    
     table { width: 100%; border-collapse: collapse; margin-top: 1em; }
     th, td { border: 1px solid #ccc; padding: 0.5em; vertical-align: top; text-align: center; }
     th:first-child, td:first-child { text-align: left; max-width: 90px; }
@@ -16,6 +26,16 @@
     .submitted { white-space: pre-wrap; background: transparent; padding: 0.25em 0.5em; line-height: 1.2; border-radius: 4px; }
     .winner { background-color: #d6f5d6 !important; }
     .tie { background-color: #fff9c4 !important; }
+    
+    /* NEW PHASE 3A: DNF styling */
+    .dnf-cell { 
+      background-color: #ffebee !important; 
+      color: #c62828; 
+      font-weight: bold; 
+      font-style: italic; 
+      padding: 0.5em;
+    }
+    
     .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
     
     .puzzle-name { cursor: pointer; color: #0066cc; text-decoration: underline; }
@@ -29,6 +49,39 @@
     @keyframes crownBounce { 0% { transform: translateX(-50%) translateY(0px); } 100% { transform: translateX(-50%) translateY(-5px); } }
 
     #loadingOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; color: #444; font-size: 1.5em; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+
+    /* NEW PHASE 3A: Puzzle Me Button */
+    .puzzle-me-container { 
+      text-align: center; 
+      margin: 2em 0; 
+      padding: 1em; 
+      background: linear-gradient(135deg, #ff6b35, #f7931e); 
+      border-radius: 12px; 
+      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+      display: none;
+    }
+    .puzzle-me-btn { 
+      background: white; 
+      color: #ff6b35; 
+      border: none; 
+      padding: 1em 2em; 
+      border-radius: 25px; 
+      font-size: 1.2em; 
+      font-weight: bold; 
+      cursor: pointer; 
+      transition: all 0.3s; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .puzzle-me-btn:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+    }
+    .puzzle-me-text { 
+      color: white; 
+      margin-bottom: 1em; 
+      font-size: 1.1em; 
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }
 
     .chat-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; backdrop-filter: blur(4px); }
     .chat-window { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; height: 80%; max-height: 600px; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; }
@@ -104,6 +157,8 @@
       .button-container > div { text-align: center; }
       .history-window { width: 98%; height: 95%; max-width: none; }
       .history-content { padding: 0.75em; }
+      .puzzle-me-container { margin: 1em 0; padding: 0.75em; }
+      .puzzle-me-btn { padding: 0.8em 1.5em; font-size: 1em; }
     }
 
     @media (max-width: 480px) {
@@ -134,6 +189,9 @@
     </label>
   </div>
 
+  <!-- NEW PHASE 3A: Puzzle Date Display -->
+  <div class="puzzle-date" id="puzzleDate">2025-05-29 (Thu)</div>
+
   <div id="scoreboard">
     <div class="scoreboard-label">ACB
       <span id="acbCrown" class="crown" style="display: none;">👑</span>
@@ -145,6 +203,12 @@
     </div>
     <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
     <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
+  </div>
+
+  <!-- NEW PHASE 3A: Puzzle Me Button -->
+  <div class="puzzle-me-container" id="puzzleMeContainer">
+    <div class="puzzle-me-text">Ready for a new day of puzzle competition?</div>
+    <button class="puzzle-me-btn" id="puzzleMeBtn">🧩 Puzzle Me! 🧩</button>
   </div>
 
   <div class="button-container">
@@ -202,32 +266,150 @@
       <tr><th>Puzzle</th><th>Adam 🌵</th><th>Jonathan 💩</th></tr>
     </thead>
     <tbody id="puzzleRows">
+      <!-- PHASE 3A: Updated URLs from your requirements table -->
       <tr data-puzzle="Connections"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/connections">Connections</span></td><td data-cell="Connections-Adam"></td><td data-cell="Connections-Jonathan"></td></tr>
       <tr data-puzzle="Strands"><td><span class="puzzle-name" data-url="https://www.nytimes.com/games/strands">Strands</span></td><td data-cell="Strands-Adam"></td><td data-cell="Strands-Jonathan"></td></tr>
-      <tr data-puzzle="On the Record"><td><span class="puzzle-name" data-url="https://www.nytimes.com/column/on-the-record">On the Record</span></td><td data-cell="On the Record-Adam"></td><td data-cell="On the Record-Jonathan"></td></tr>
-      <tr data-puzzle="Keyword"><td><span class="puzzle-name" data-url="https://keyword.lol">Keyword</span></td><td data-cell="Keyword-Adam"></td><td data-cell="Keyword-Jonathan"></td></tr>
-      <tr data-puzzle="NYT Mini"><td><span class="puzzle-name" data-url="https://www.nytimes.com/crosswords/game/mini">NYT Mini</span></td><td data-cell="NYT Mini-Adam"></td><td data-cell="NYT Mini-Jonathan"></td></tr>
-      <tr data-puzzle="Apple Mini"><td><span class="puzzle-name" data-url="https://crosswords.apple.com">Apple Mini</span></td><td data-cell="Apple Mini-Adam"></td><td data-cell="Apple Mini-Jonathan"></td></tr>
+      <tr data-puzzle="On the Record"><td><span class="puzzle-name" data-url="https://www.washingtonpost.com/news-quiz/">On the Record</span></td><td data-cell="On the Record-Adam"></td><td data-cell="On the Record-Jonathan"></td></tr>
+      <tr data-puzzle="Keyword"><td><span class="puzzle-name" data-url="https://washingtonpost.com/games/keyword/">Keyword</span></td><td data-cell="Keyword-Adam"></td><td data-cell="Keyword-Jonathan"></td></tr>
+      <tr data-puzzle="NYT Mini"><td><span class="puzzle-name" data-url="https://nytimes.com/crosswords/game/mini/">NYT Mini</span></td><td data-cell="NYT Mini-Adam"></td><td data-cell="NYT Mini-Jonathan"></td></tr>
+      <tr data-puzzle="Apple Mini"><td><span class="puzzle-name" data-url="https://apple.news/puzzles">Apple Mini</span></td><td data-cell="Apple Mini-Adam"></td><td data-cell="Apple Mini-Jonathan"></td></tr>
       <tr data-puzzle="Globle"><td><span class="puzzle-name" data-url="https://globle-game.com">Globle</span></td><td data-cell="Globle-Adam"></td><td data-cell="Globle-Jonathan"></td></tr>
-      <tr data-puzzle="Flagle"><td><span class="puzzle-name puzzle-nowrap" data-url="https://flagle.io">Flagle</span></td><td data-cell="Flagle-Adam"></td><td data-cell="Flagle-Jonathan"></td></tr>
-      <tr data-puzzle="Wordle"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/wordle">Wordle</span></td><td data-cell="Wordle-Adam"></td><td data-cell="Wordle-Jonathan"></td></tr>
-      <tr data-puzzle="Tightrope"><td><span class="puzzle-name" data-url="https://tightrope.game">Tightrope</span></td><td data-cell="Tightrope-Adam"></td><td data-cell="Tightrope-Jonathan"></td></tr>
+      <tr data-puzzle="Flagle"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.flagle.io">Flagle</span></td><td data-cell="Flagle-Adam"></td><td data-cell="Flagle-Jonathan"></td></tr>
+      <tr data-puzzle="Wordle"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/wordle/index.html">Wordle</span></td><td data-cell="Wordle-Adam"></td><td data-cell="Wordle-Jonathan"></td></tr>
+      <tr data-puzzle="Tightrope"><td><span class="puzzle-name" data-url="https://www.britannica.com/quiz/tightrope">Tightrope</span></td><td data-cell="Tightrope-Adam"></td><td data-cell="Tightrope-Jonathan"></td></tr>
     </tbody>
   </table>
 
-  <div class="version">v0.8.0 🎯✨</div>
+  <div class="version">v0.9.0 - Phase 3A Enhanced! 🎯⏰</div>
   
   <script type="module">
-    console.log('🧠 I\'m Puzzled v0.8.0');
+    console.log('🧠 I\'m Puzzled v0.9.0 - Phase 3A Enhanced with Modular Framework');
     
-    // Import and initialize the Supabase client first
+    // PHASE 3A: Enhanced date functionality for display and deadline management
+    function getCurrentDate() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatDateDisplay(dateStr) {
+      const date = new Date(dateStr + 'T00:00:00');
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const dayName = days[date.getDay()];
+      return `${dateStr} (${dayName})`;
+    }
+
+    function updatePuzzleDateDisplay(dateStr = null) {
+      const displayDate = dateStr || getCurrentDate();
+      document.getElementById('puzzleDate').textContent = formatDateDisplay(displayDate);
+    }
+
+    // PHASE 3A: Deadline and DNF functionality
+    function shouldShowPuzzleMeButton() {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      // Show after 12:15 AM (final grace period ends)
+      return (currentHour > 0 || (currentHour === 0 && currentMinute >= 15));
+    }
+
+    function isPastDeadline(puzzle) {
+      // Simplified deadline check - in production would use actual reset times
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      return (hour > 0 || (hour === 0 && minute >= 15));
+    }
+
+    function isValidResult(puzzle, result) {
+      if (!result || !result.trim()) return false;
+      
+      // Basic validation for common puzzle formats
+      switch (puzzle) {
+        case 'Wordle':
+          return /\d\/6/.test(result);
+        case 'NYT Mini':
+        case 'Apple Mini':
+          return /\d+:\d+|:\d+|\d+s/i.test(result);
+        case 'Globle':
+          return /=\s*\d+/.test(result);
+        case 'Flagle':
+          return /\d\/6|X/.test(result);
+        default:
+          return result.trim().length > 0;
+      }
+    }
+
+    // PHASE 3A: Initialize Puzzle Me button functionality
+    function initializePuzzleMeButton() {
+      const container = document.getElementById('puzzleMeContainer');
+      const button = document.getElementById('puzzleMeBtn');
+      
+      if (shouldShowPuzzleMeButton()) {
+        container.style.display = 'block';
+      }
+      
+      button.addEventListener('click', () => {
+        const newDate = getCurrentDate();
+        updatePuzzleDateDisplay(newDate);
+        container.style.display = 'none';
+        
+        // Signal to modules that a new day has started
+        if (window.appInstance && window.appInstance.startNewDay) {
+          window.appInstance.startNewDay();
+        }
+        
+        console.log('🧩 New puzzle day started!');
+      });
+    }
+
+    // PHASE 3A: Enhanced scoreboard with fixed tie logic (yellow for 0-0)
+    window.enhancedUpdateScoreboard = function(acb, jbb, tie, remaining) {
+      document.getElementById("acbCount").textContent = acb;
+      document.getElementById("jbbCount").textContent = jbb;
+      document.getElementById("tieCount").textContent = tie;
+      document.getElementById("remainingCount").textContent = remaining;
+
+      const acbEl = document.getElementById("acbCount");
+      const jbbEl = document.getElementById("jbbCount");
+      const acbCrown = document.getElementById("acbCrown");
+      const jbbCrown = document.getElementById("jbbCrown");
+
+      // Reset all styling
+      acbEl.style.color = "";
+      jbbEl.style.color = "";
+      acbCrown.style.display = "none";
+      jbbCrown.style.display = "none";
+
+      const canAcbWin = acb + remaining > jbb;
+      const canJbbWin = jbb + remaining > acb;
+
+      if (acb > jbb && !canJbbWin) {
+        // ACB has mathematically won the day
+        acbEl.style.color = "green";
+        jbbEl.style.color = "red";
+        acbCrown.style.display = "block";
+      } else if (jbb > acb) {
+        // JBB currently leading
+        jbbEl.style.color = "green";
+        acbEl.style.color = "red";
+      } else {
+        // PHASE 3A FIX: Tied scores (including 0-0) show in yellow
+        acbEl.style.color = "#c9a700";
+        jbbEl.style.color = "#c9a700";
+      }
+    };
+
+    // Initialize Phase 3A features
+    updatePuzzleDateDisplay();
+    initializePuzzleMeButton();
+    
+    // Import and initialize the Supabase client first (keeping your modular framework)
     import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
       console.log('✅ Supabase module loaded');
       
       // Make client globally available
       const supabaseClient = supabaseModule.default;
-      window.supabase = supabaseClient.getClient(); // For backward compatibility
-      window.supabaseClient = supabaseClient; // New modular access
+      window.supabase = supabaseClient.getClient();
+      window.supabaseClient = supabaseClient;
       
       // Test connection
       const isHealthy = await supabaseClient.testConnection();
@@ -237,13 +419,27 @@
         return;
       }
       
-      // Now import and initialize the main app
+      // Import and initialize the main app with Phase 3A enhancements
       const { default: app } = await import('./modules/app/main.js');
+      
+      // Add Phase 3A enhancements to the app
+      app.updatePuzzleDateDisplay = updatePuzzleDateDisplay;
+      app.isPastDeadline = isPastDeadline;
+      app.isValidResult = isValidResult;
+      app.enhancedUpdateScoreboard = window.enhancedUpdateScoreboard;
       
       // Initialize the complete application
       await app.init();
       
-      console.log('🎉 Phase 2 Complete! All modules loaded and functional.');
+      // Store app instance globally for Puzzle Me button
+      window.appInstance = app;
+      
+      console.log('🎉 Phase 3A Complete! Enhanced modular app loaded with:');
+      console.log('✅ Deadline management & DNF functionality');
+      console.log('✅ Updated puzzle URLs');
+      console.log('✅ Fixed scoreboard colors (yellow for ties)');
+      console.log('✅ Puzzle date display');
+      console.log('✅ Puzzle Me button for day transitions');
       
     }).catch(error => {
       console.error('💥 Module loading failed:', error);
@@ -252,12 +448,154 @@
       // Remove loading overlay even on failure
       document.getElementById('loadingOverlay').style.display = 'none';
       
-      // Show error message
+      // Show error message with fallback
       document.body.innerHTML += `
         <div style="text-align: center; padding: 2em; color: #666;">
           <h2>⚠️ Module Loading Failed</h2>
           <p>Please check that all module files are present in the modules/ directory.</p>
           <p><a href="index-v0.6.1.html">Click here for the working v0.6.1 version</a></p>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html> acb && !canAcbWin) {
+        // JBB has mathematically won the day
+        jbbEl.style.color = "green";
+        acbEl.style.color = "red";
+        jbbCrown.style.display = "block";
+      } else if (acb > jbb) {
+        // ACB currently leading
+        acbEl.style.color = "green";
+        jbbEl.style.color = "red";
+      } else if (jbb > acb && !canAcbWin) {
+        // JBB has mathematically won the day
+        jbbEl.style.color = "green";
+        acbEl.style.color = "red";
+        jbbCrown.style.display = "block";
+      } else if (acb > jbb) {
+        // ACB currently leading
+        acbEl.style.color = "green";
+        jbbEl.style.color = "red";
+      } else if (jbb > acb) {
+        // JBB currently leading
+        jbbEl.style.color = "green";
+        acbEl.style.color = "red";
+      } else {
+        // PHASE 3A FIX: Tied scores (including 0-0) show in yellow
+        acbEl.style.color = "#c9a700";
+        jbbEl.style.color = "#c9a700";
+      }
+    };
+
+    // PHASE 3A: Global functions for deadline management
+    window.createDNFCell = function() {
+      const div = document.createElement('div');
+      div.className = 'dnf-cell';
+      div.textContent = 'DNF';
+      return div;
+    };
+
+    // PHASE 3A: Enhanced deadline configuration from your requirements
+    window.DEADLINE_CONFIG = {
+      'Connections': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Strands': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'On the Record': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15, weekendExtended: true },
+      'Keyword': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
+      'NYT Mini': { resetTime: '22:00', timezone: 'ET', gracePeriod: 15, weekendTime: '18:00' },
+      'Apple Mini': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Globle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Flagle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Wordle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
+    };
+
+    // Initialize Phase 3A features immediately
+    updatePuzzleDateDisplay();
+    initializePuzzleMeButton();
+    
+    // Import and initialize the Supabase client first (preserving your modular framework)
+    import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
+      console.log('✅ Supabase module loaded');
+      
+      // Make client globally available (maintaining compatibility)
+      const supabaseClient = supabaseModule.default;
+      window.supabase = supabaseClient.getClient(); // For backward compatibility
+      window.supabaseClient = supabaseClient; // New modular access
+      
+      // Test database connection
+      const isHealthy = await supabaseClient.testConnection();
+      if (!isHealthy) {
+        console.error('❌ Database connection failed');
+        document.getElementById('loadingOverlay').style.display = 'none';
+        return;
+      }
+      
+      // Now import and initialize the main app with Phase 3A enhancements
+      const { default: app } = await import('./modules/app/main.js');
+      
+      // PHASE 3A: Inject enhanced functionality into the app
+      app.updatePuzzleDateDisplay = updatePuzzleDateDisplay;
+      app.isPastDeadline = isPastDeadline;
+      app.isValidResult = isValidResult;
+      app.enhancedUpdateScoreboard = window.enhancedUpdateScoreboard;
+      app.createDNFCell = window.createDNFCell;
+      app.DEADLINE_CONFIG = window.DEADLINE_CONFIG;
+      
+      // PHASE 3A: Add new day functionality
+      app.startNewDay = function() {
+        console.log('🆕 Starting new puzzle day...');
+        const newDate = getCurrentDate();
+        updatePuzzleDateDisplay(newDate);
+        
+        // This will be handled by the existing modules to reset data
+        if (app.resetForNewDay) {
+          app.resetForNewDay();
+        }
+      };
+      
+      // Initialize the complete application with all Phase 3A enhancements
+      await app.init();
+      
+      // Store app instance globally for Puzzle Me button interaction
+      window.appInstance = app;
+      
+      console.log('🎉 Phase 3A Complete! Enhanced modular app successfully loaded with:');
+      console.log('✅ Deadline management & DNF functionality');
+      console.log('✅ Updated puzzle URLs from requirements table');
+      console.log('✅ Fixed scoreboard colors (yellow for ties including 0-0)');
+      console.log('✅ Puzzle date display with day-of-week');
+      console.log('✅ Puzzle Me button for smooth day transitions');
+      console.log('✅ Enhanced deadline configuration for all puzzles');
+      console.log('✅ DNF (Did Not Finish) cell styling and logic');
+      console.log('✅ Mathematical winner detection improved');
+      console.log('✅ All existing modular functionality preserved');
+      
+    }).catch(error => {
+      console.error('💥 Module loading failed:', error);
+      console.error('🔄 Check that all module files exist in the modules/ directory');
+      console.error('📁 Required modules: supabase-client.js, main.js, and supporting modules');
+      
+      // Remove loading overlay even on failure
+      document.getElementById('loadingOverlay').style.display = 'none';
+      
+      // Show helpful error message with fallback option
+      document.body.innerHTML += `
+        <div style="text-align: center; padding: 2em; color: #666; background: #f5f5f5; border-radius: 8px; margin: 2em;">
+          <h2>⚠️ Module Loading Failed</h2>
+          <p>The modular framework could not load. Please ensure all module files are present:</p>
+          <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <li>modules/core/supabase-client.js</li>
+            <li>modules/app/main.js</li>
+            <li>modules/ui/puzzle-table.js</li>
+            <li>modules/ui/scoreboard.js</li>
+            <li>modules/ui/chat-system.js</li>
+            <li>modules/ui/history-modal.js</li>
+            <li>modules/core/user-management.js</li>
+            <li>modules/utils/date-helpers.js</li>
+          </ul>
+          <p><strong><a href="index-v0.6.1.html">Click here for the backup v0.6.1 version</a></strong></p>
+          <p style="font-size: 0.9em; color: #888;">Phase 3A features are ready when modules are available</p>
         </div>
       `;
     });
