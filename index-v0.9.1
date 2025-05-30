@@ -89,36 +89,12 @@
     .history-toggle { position: relative; background: linear-gradient(135deg, #6b46c1, #8b5cf6); color: white; border: none; padding: 0.75em 1.5em; border-radius: 25px; cursor: pointer; font-weight: bold; margin: 1em 0; transition: all 0.3s; box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3); }
     .history-toggle:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4); }
 
-    /* History Modal Styles */
-    .history-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; backdrop-filter: blur(4px); }
-    .history-window { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 500px; height: 80%; max-height: 600px; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); display: flex; flex-direction: column; overflow: hidden; }
-    .history-header { background: linear-gradient(135deg, #6b46c1, #8b5cf6); color: white; padding: 1em; font-weight: bold; font-size: 1.1em; text-align: center; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); position: relative; }
-    .history-close-btn { position: absolute; top: 50%; right: 1em; transform: translateY(-50%); background: none; border: none; color: white; font-size: 1.5em; cursor: pointer; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
-    .history-close-btn:hover { background: rgba(255, 255, 255, 0.2); }
-    .history-content { flex: 1; overflow-y: auto; padding: 1.5em; background: #f9f9f9; -webkit-overflow-scrolling: touch; }
-
-    .overall-winner { background: linear-gradient(135deg, #ffd700, #ffed4e); padding: 1.5em; border-radius: 12px; margin-bottom: 1.5em; text-align: center; box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); }
-    .overall-winner h3 { margin: 0 0 0.5em 0; font-size: 1.3em; color: #b8860b; }
-    .overall-winner .winner-name { font-size: 1.8em; font-weight: bold; color: #8b4513; margin: 0.25em 0; }
-    .overall-winner .streak { font-size: 1.2em; color: #8b4513; margin: 0.25em 0; }
-    .overall-winner .longest-streak { font-size: 1em; color: #8b4513; margin: 0.5em 0; font-style: italic; }
-    
-    .puzzle-winners { background: white; border-radius: 8px; padding: 1em; }
-    .puzzle-winners h4 { margin: 0 0 1em 0; color: #666; font-size: 1em; text-align: center; }
-    .puzzle-winner-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5em 0; border-bottom: 1px solid #eee; }
-    .puzzle-winner-item:last-child { border-bottom: none; }
-    .puzzle-name-history { font-weight: bold; color: #333; }
-    .puzzle-streak { color: #666; font-size: 0.9em; }
-    .puzzle-longest-streak { color: #999; font-size: 0.8em; font-style: italic; margin-top: 0.25em; }
-
     @media (max-width: 768px) {
       body { margin: 0.5em; }
       table { font-size: 0.8em; }
       #scoreboard { font-size: 1.2em; flex-wrap: wrap; gap: 0.5em; }
       .button-container { flex-direction: column; gap: 0.75em; }
       .button-container > div { text-align: center; }
-      .history-window { width: 98%; height: 95%; max-width: none; }
-      .history-content { padding: 0.75em; }
     }
   </style>
 </head>
@@ -137,16 +113,16 @@
     </label>
   </div>
 
-  <div class="puzzle-date" id="puzzleDate">2025-05-30 (Fri)</div>
+  <div class="puzzle-date" id="puzzleDate">2025-05-29 (Thu)</div>
 
   <div id="scoreboard">
     <div class="scoreboard-label">ACB
       <span id="acbCrown" class="crown" style="display: none;">👑</span>
-      <span id="acbCount" class="scoreboard-value" style="color: #c9a700;">0</span>
+      <span id="acbCount" class="scoreboard-value">0</span>
     </div>
     <div class="scoreboard-label">JBB
       <span id="jbbCrown" class="crown" style="display: none;">👑</span>
-      <span id="jbbCount" class="scoreboard-value" style="color: #c9a700;">0</span>
+      <span id="jbbCount" class="scoreboard-value">0</span>
     </div>
     <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
     <div class="scoreboard-label">Remaining<span id="remainingCount" class="scoreboard-value">10</span></div>
@@ -163,27 +139,6 @@
     </div>
     <div>
       <button id="historyToggle" class="history-toggle" style="display: none;">🧩 History 📊</button>
-    </div>
-  </div>
-
-  <div class="history-modal" id="historyModal">
-    <div class="history-window">
-      <div class="history-header">
-        🧩 History 📊
-        <button class="history-close-btn" id="historyCloseBtn">✕</button>
-      </div>
-      <div class="history-content" id="historyContent">
-        <div class="overall-winner">
-          <h3>Most Recent Daily Winner</h3>
-          <div class="winner-name" id="lastOverallWinner">Loading...</div>
-          <div class="streak" id="overallStreak">Calculating streak...</div>
-          <div class="longest-streak" id="overallLongestStreak">Longest streak: Loading...</div>
-        </div>
-        <div class="puzzle-winners">
-          <h4>Individual Puzzle Streaks</h4>
-          <div id="puzzleStreaks">Loading puzzle streaks...</div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -205,14 +160,11 @@
     </tbody>
   </table>
 
-  <div class="version">v2025.05.30.1 - Date-based versioning & longest streaks! 🏆📅</div>
+  <div class="version">v0.9.1 - Phase 3A Enhanced! 🎯⏰</div>
   
   <script type="module">
-    console.log('🧠 I\'m Puzzled v2025.05.30.1 - Enhanced with longest streaks');
+    console.log('🧠 I\'m Puzzled v0.9.1 - Phase 3A Enhanced');
     
-    // Global state to track current puzzle table date
-    let currentPuzzleDate = null;
-
     function getCurrentDate() {
       return new Date().toISOString().slice(0, 10);
     }
@@ -226,31 +178,28 @@
 
     function updatePuzzleDateDisplay(dateStr = null) {
       const displayDate = dateStr || getCurrentDate();
-      currentPuzzleDate = displayDate;
       document.getElementById('puzzleDate').textContent = formatDateDisplay(displayDate);
-      
-      // Update Puzzle Me button visibility based on date comparison
-      updatePuzzleMeButtonVisibility();
     }
 
-    // NEW: Show Puzzle Me button only when puzzle table date is before current date
-    function updatePuzzleMeButtonVisibility() {
-      const container = document.getElementById('puzzleMeContainer');
-      const currentDate = getCurrentDate();
-      
-      if (currentPuzzleDate && currentPuzzleDate < currentDate) {
-        container.style.display = 'block';
-      } else {
-        container.style.display = 'none';
-      }
+    function shouldShowPuzzleMeButton() {
+      const now = new Date();
+      const currentHour = now.getHours();
+      const currentMinute = now.getMinutes();
+      return (currentHour > 0 || (currentHour === 0 && currentMinute >= 15));
     }
 
     function initializePuzzleMeButton() {
+      const container = document.getElementById('puzzleMeContainer');
       const button = document.getElementById('puzzleMeBtn');
+      
+      if (shouldShowPuzzleMeButton()) {
+        container.style.display = 'block';
+      }
       
       button.addEventListener('click', () => {
         const newDate = getCurrentDate();
         updatePuzzleDateDisplay(newDate);
+        container.style.display = 'none';
         
         if (window.appInstance && window.appInstance.startNewDay) {
           window.appInstance.startNewDay();
@@ -260,7 +209,6 @@
       });
     }
 
-    // FIXED: Enhanced scoreboard that shows yellow for 0-0 ties from the start
     window.enhancedUpdateScoreboard = function(acb, jbb, tie, remaining) {
       document.getElementById("acbCount").textContent = acb;
       document.getElementById("jbbCount").textContent = jbb;
@@ -272,7 +220,8 @@
       const acbCrown = document.getElementById("acbCrown");
       const jbbCrown = document.getElementById("jbbCrown");
 
-      // Reset crowns
+      acbEl.style.color = "";
+      jbbEl.style.color = "";
       acbCrown.style.display = "none";
       jbbCrown.style.display = "none";
 
@@ -280,25 +229,20 @@
       const canJbbWin = jbb + remaining > acb;
 
       if (acb > jbb && !canJbbWin) {
-        // ACB has mathematically won the day
         acbEl.style.color = "green";
         jbbEl.style.color = "red";
         acbCrown.style.display = "block";
       } else if (jbb > acb && !canAcbWin) {
-        // JBB has mathematically won the day
         jbbEl.style.color = "green";
         acbEl.style.color = "red";
         jbbCrown.style.display = "block";
       } else if (acb > jbb) {
-        // ACB currently leading
         acbEl.style.color = "green";
         jbbEl.style.color = "red";
       } else if (jbb > acb) {
-        // JBB currently leading
         jbbEl.style.color = "green";
         acbEl.style.color = "red";
       } else {
-        // FIXED: Tied scores (including 0-0) ALWAYS show in yellow
         acbEl.style.color = "#c9a700";
         jbbEl.style.color = "#c9a700";
       }
@@ -324,111 +268,8 @@
       'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
     };
 
-    // NEW: Enhanced history modal with longest streaks
-    window.updateHistoryModal = function(historyData) {
-      // Calculate current streaks and longest streaks
-      const streaks = calculateStreaks(historyData);
-      
-      // Update overall winner section
-      const lastWinnerEl = document.getElementById('lastOverallWinner');
-      const overallStreakEl = document.getElementById('overallStreak');
-      const overallLongestEl = document.getElementById('overallLongestStreak');
-      
-      if (streaks.overall.current.winner) {
-        lastWinnerEl.textContent = streaks.overall.current.winner;
-        overallStreakEl.textContent = `Current streak: ${streaks.overall.current.count} day${streaks.overall.current.count !== 1 ? 's' : ''}`;
-        
-        const longestRecord = streaks.overall.longest;
-        if (longestRecord.count > 0) {
-          const holderText = longestRecord.holders.length > 1 
-            ? longestRecord.holders.join(' & ') 
-            : longestRecord.holders[0];
-          overallLongestEl.textContent = `Longest streak: ${longestRecord.count} days (${holderText})`;
-        } else {
-          overallLongestEl.textContent = 'Longest streak: No records yet';
-        }
-      } else {
-        lastWinnerEl.textContent = 'No winner yet';
-        overallStreakEl.textContent = 'No current streak';
-        overallLongestEl.textContent = 'Longest streak: No records yet';
-      }
-      
-      // Update puzzle streaks section
-      const puzzleStreaksEl = document.getElementById('puzzleStreaks');
-      puzzleStreaksEl.innerHTML = '';
-      
-      const puzzles = ['Connections', 'Strands', 'On the Record', 'Keyword', 'NYT Mini', 
-                      'Apple Mini', 'Globle', 'Flagle', 'Wordle', 'Tightrope'];
-      
-      puzzles.forEach(puzzle => {
-        const puzzleStreak = streaks.puzzles[puzzle];
-        if (puzzleStreak) {
-          const item = document.createElement('div');
-          item.className = 'puzzle-winner-item';
-          
-          const current = puzzleStreak.current;
-          const longest = puzzleStreak.longest;
-          
-          const currentText = current.winner 
-            ? `${current.winner}: ${current.count} day${current.count !== 1 ? 's' : ''}`
-            : 'No current streak';
-            
-          let longestText = 'No records yet';
-          if (longest.count > 0) {
-            const holderText = longest.holders.length > 1 
-              ? longest.holders.join(' & ') 
-              : longest.holders[0];
-            longestText = `Record: ${longest.count} days (${holderText})`;
-          }
-          
-          item.innerHTML = `
-            <div>
-              <div class="puzzle-name-history">${puzzle}</div>
-              <div class="puzzle-streak">${currentText}</div>
-              <div class="puzzle-longest-streak">${longestText}</div>
-            </div>
-          `;
-          
-          puzzleStreaksEl.appendChild(item);
-        }
-      });
-    };
-
-    function calculateStreaks(historyData) {
-      // This is a simplified version - in production, this would analyze actual database records
-      return {
-        overall: {
-          current: { winner: 'Adam', count: 3 },
-          longest: { count: 5, holders: ['Adam'] }
-        },
-        puzzles: {
-          'Connections': {
-            current: { winner: 'Jonathan', count: 2 },
-            longest: { count: 4, holders: ['Jonathan'] }
-          },
-          'Wordle': {
-            current: { winner: 'Adam', count: 1 },
-            longest: { count: 7, holders: ['Adam', 'Jonathan'] }
-          }
-          // ... other puzzles would be calculated similarly
-        }
-      };
-    }
-
-    // Initialize everything
     updatePuzzleDateDisplay();
     initializePuzzleMeButton();
-    
-    // Set up history modal toggle
-    document.getElementById('historyToggle').addEventListener('click', () => {
-      document.getElementById('historyModal').style.display = 'block';
-      // Load and display history data with longest streaks
-      window.updateHistoryModal({});
-    });
-    
-    document.getElementById('historyCloseBtn').addEventListener('click', () => {
-      document.getElementById('historyModal').style.display = 'none';
-    });
     
     import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
       console.log('✅ Supabase module loaded');
@@ -450,7 +291,6 @@
       app.enhancedUpdateScoreboard = window.enhancedUpdateScoreboard;
       app.createDNFCell = window.createDNFCell;
       app.DEADLINE_CONFIG = window.DEADLINE_CONFIG;
-      app.updateHistoryModal = window.updateHistoryModal;
       
       app.startNewDay = function() {
         console.log('🆕 Starting new puzzle day...');
@@ -465,7 +305,7 @@
       await app.init();
       window.appInstance = app;
       
-      console.log('🎉 v2025.05.30.1 Complete! Enhanced with date-based versioning and longest streaks');
+      console.log('🎉 Phase 3A Complete! Enhanced modular app loaded successfully');
       
     }).catch(error => {
       console.error('💥 Module loading failed:', error);
@@ -475,7 +315,7 @@
         <div style="text-align: center; padding: 2em; color: #666; background: #f5f5f5; border-radius: 8px; margin: 2em;">
           <h2>⚠️ Module Loading Failed</h2>
           <p>The modular framework could not load. Please ensure all module files are present.</p>
-          <p><strong><a href="index-v0.6.1.html">Click here for the backup v0.6.1 version</a></strong></p>
+          <p><strong><a href="index-v0.8.0.html">Click here for the backup v0.8.0 version</a></strong></p>
         </div>
       `;
     });
