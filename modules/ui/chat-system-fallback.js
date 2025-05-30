@@ -1,5 +1,5 @@
-// I'm Puzzled - Chat System Module v2025.05.30.2 - Claude-Style Interface
-// Handles real-time chat in bottom expandable panel (not modal)
+// I'm Puzzled - Chat System Module v1.0
+// Handles real-time chat functionality, unread badges, and message management
 
 class ChatSystem {
   constructor() {
@@ -9,7 +9,7 @@ class ChatSystem {
     this.lastReadMessageId = null;
     this.currentUser = null;
     
-    console.log('💬 Chat System initialized for Claude-style interface');
+    console.log('💬 Chat System initialized');
   }
 
   // Initialize chat system
@@ -23,13 +23,13 @@ class ChatSystem {
     await this.loadLastReadStatus();
     await this.loadMessages();
     
-    // Setup event listeners for Claude-style interface
+    // Setup event listeners
     this.setupEventListeners();
     
     // Show/hide interface based on user
     this.updateInterfaceVisibility();
     
-    console.log('💬 Chat System ready for Claude-style interface');
+    console.log('💬 Chat System ready');
   }
 
   // Load last read message status from database
@@ -71,13 +71,13 @@ class ChatSystem {
     }
   }
 
-  // Render chat messages in the Claude-style expanded panel
+  // Render chat messages in the UI
   renderMessages() {
     const container = document.getElementById('chatMessages');
     if (!container) return;
 
     if (this.messages.length === 0) {
-      container.innerHTML = '<div style="text-align: center; color: #888; font-style: italic; padding: 2em;">No trash talk yet... someone needs to start the smack down! 🔥</div>';
+      container.innerHTML = '<div class="chat-empty">No trash talk yet... someone needs to start the smack down! 🔥</div>';
       return;
     }
 
@@ -129,22 +129,10 @@ class ChatSystem {
     
     const confirmDiv = document.createElement('div');
     confirmDiv.className = 'delete-confirmation';
-    confirmDiv.style.position = 'absolute';
-    confirmDiv.style.top = '-40px';
-    confirmDiv.style.right = '0';
-    confirmDiv.style.background = '#dc2626';
-    confirmDiv.style.color = 'white';
-    confirmDiv.style.padding = '0.5em';
-    confirmDiv.style.borderRadius = '8px';
-    confirmDiv.style.fontSize = '0.8em';
-    confirmDiv.style.whiteSpace = 'nowrap';
-    confirmDiv.style.zIndex = '10';
-    confirmDiv.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
-    
     confirmDiv.innerHTML = `
       Delete this message? 
-      <button onclick="window.chatSystem.deleteMessage('${messageId}')" style="background: white; color: #dc2626; border: none; padding: 0.25em 0.5em; margin: 0 0.25em; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Yes</button> 
-      <button onclick="this.parentElement.remove()" style="background: white; color: #dc2626; border: none; padding: 0.25em 0.5em; margin: 0 0.25em; border-radius: 4px; cursor: pointer; font-size: 0.8em;">No</button>
+      <button onclick="window.chatSystem.deleteMessage('${messageId}')">Yes</button> 
+      <button onclick="this.parentElement.remove()">No</button>
     `;
     
     bubbleElement.style.position = 'relative';
@@ -176,7 +164,7 @@ class ChatSystem {
     document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
   }
 
-  // Send a new message (works with Claude-style interface)
+  // Send a new message
   async sendMessage() {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('chatSendBtn');
@@ -203,7 +191,7 @@ class ChatSystem {
     }
   }
 
-  // ENHANCED: Update unread message badge for Claude-style bottom strip
+  // Update unread message badge
   updateUnreadBadge() {
     const unreadBadge = document.getElementById('unreadBadge');
     if (!unreadBadge) return;
@@ -246,46 +234,63 @@ class ChatSystem {
     this.updateUnreadBadge();
   }
 
-  // CLAUDE-STYLE: Show chat in bottom expanded panel (not modal)
+  // Show chat modal
   showChat() {
-    const bottomOverlay = document.getElementById('bottomOverlay');
+    const chatModal = document.getElementById('chatModal');
     const chatInput = document.getElementById('chatInput');
     
-    if (!bottomOverlay) return;
+    if (!chatModal) return;
     
-    bottomOverlay.style.display = 'block';
+    chatModal.style.display = 'block';
     this.isVisible = true;
     document.body.style.overflow = 'hidden';
     
     this.markAsRead();
     
     if (chatInput) chatInput.focus();
-    
-    console.log('💬 Claude-style chat panel opened');
   }
 
-  // CLAUDE-STYLE: Hide chat panel (not modal)
+  // Hide chat modal
   hideChat() {
-    const bottomOverlay = document.getElementById('bottomOverlay');
+    const chatModal = document.getElementById('chatModal');
     
-    if (!bottomOverlay) return;
+    if (!chatModal) return;
     
-    bottomOverlay.style.display = 'none';
+    chatModal.style.display = 'none';
     this.isVisible = false;
     document.body.style.overflow = '';
     
     this.updateUnreadBadge();
-    
-    console.log('💬 Claude-style chat panel closed');
   }
 
-  // CLAUDE-STYLE: Setup event listeners for bottom strip and panel
+  // Setup event listeners
   setupEventListeners() {
-    // Note: Main click events are handled in the HTML file's setupClaudeInterface()
-    // This handles the input and send functionality
-    
+    const chatToggle = document.getElementById('chatToggle');
+    const chatModal = document.getElementById('chatModal');
+    const chatCloseBtn = document.getElementById('chatCloseBtn');
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
+
+    if (chatToggle) {
+      chatToggle.addEventListener('click', () => this.showChat());
+    }
+
+    if (chatCloseBtn) {
+      chatCloseBtn.addEventListener('click', () => this.hideChat());
+    }
+
+    if (chatModal) {
+      chatModal.addEventListener('click', (e) => {
+        if (e.target === chatModal) this.hideChat();
+      });
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && this.isVisible) {
+        this.hideChat();
+      }
+    });
 
     if (chatSendBtn) {
       chatSendBtn.addEventListener('click', () => this.sendMessage());
@@ -308,16 +313,16 @@ class ChatSystem {
     }
   }
 
-  // ENHANCED: Update interface visibility for Claude-style layout
+  // Update interface visibility based on user permissions
   updateInterfaceVisibility() {
-    const bottomStrip = document.getElementById('bottomStrip');
+    const chatToggle = document.getElementById('chatToggle');
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
     
     const canUseChat = this.userManager.canSendChatMessage();
     
-    if (bottomStrip) {
-      bottomStrip.style.display = canUseChat ? 'flex' : 'none';
+    if (chatToggle) {
+      chatToggle.style.display = canUseChat ? 'block' : 'none';
     }
     
     if (chatInput) {
@@ -331,8 +336,6 @@ class ChatSystem {
     if (!canUseChat) {
       this.hideChat();
     }
-    
-    console.log('💬 Chat interface visibility updated:', canUseChat ? 'visible' : 'hidden');
   }
 
   // Handle real-time message updates

@@ -1,5 +1,5 @@
-// I'm Puzzled - Scoreboard Module v2025.05.30.2 - Claude-Style Interface
-// Handles scoreboard calculations, display for BOTH mini and expanded views
+// I'm Puzzled - Scoreboard Module v1.0
+// Handles scoreboard calculations, display, and crown logic
 
 class Scoreboard {
   constructor() {
@@ -10,7 +10,7 @@ class Scoreboard {
       remaining: 10
     };
     
-    console.log('🏆 Scoreboard initialized with Claude-style dual display');
+    console.log('🏆 Scoreboard initialized');
   }
 
   // Calculate scores from puzzle table results
@@ -50,31 +50,13 @@ class Scoreboard {
     return this.scores;
   }
 
-  // ENHANCED: Update BOTH mini scoreboard (top strip) AND expanded scoreboard
+  // Update the visual scoreboard
   updateDisplay() {
-    // Use the enhanced global function that updates both displays
-    if (window.enhancedUpdateScoreboard) {
-      window.enhancedUpdateScoreboard(this.scores.acb, this.scores.jbb, this.scores.tie, this.scores.remaining);
-    } else {
-      // Fallback to original method if enhanced function not available
-      this.updateLegacyDisplay();
-    }
-
-    console.log(`🏆 Scoreboard updated: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
-  }
-
-  // Legacy display update for backward compatibility
-  updateLegacyDisplay() {
-    // Update score values (original display)
-    const acbCount = document.getElementById("acbCount");
-    const jbbCount = document.getElementById("jbbCount");
-    const tieCount = document.getElementById("tieCount");
-    const remainingCount = document.getElementById("remainingCount");
-    
-    if (acbCount) acbCount.textContent = this.scores.acb;
-    if (jbbCount) jbbCount.textContent = this.scores.jbb;
-    if (tieCount) tieCount.textContent = this.scores.tie;
-    if (remainingCount) remainingCount.textContent = this.scores.remaining;
+    // Update score values
+    document.getElementById("acbCount").textContent = this.scores.acb;
+    document.getElementById("jbbCount").textContent = this.scores.jbb;
+    document.getElementById("tieCount").textContent = this.scores.tie;
+    document.getElementById("remainingCount").textContent = this.scores.remaining;
 
     // Get DOM elements for styling
     const acbEl = document.getElementById("acbCount");
@@ -82,13 +64,11 @@ class Scoreboard {
     const acbCrown = document.getElementById("acbCrown");
     const jbbCrown = document.getElementById("jbbCrown");
 
-    if (!acbEl || !jbbEl) return;
-
     // Reset styles
     acbEl.style.color = "";
     jbbEl.style.color = "";
-    if (acbCrown) acbCrown.style.display = "none";
-    if (jbbCrown) jbbCrown.style.display = "none";
+    acbCrown.style.display = "none";
+    jbbCrown.style.display = "none";
 
     // Calculate win conditions
     const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
@@ -99,12 +79,12 @@ class Scoreboard {
       // ACB has definitively won
       acbEl.style.color = "green";
       jbbEl.style.color = "red";
-      if (acbCrown) acbCrown.style.display = "block";
+      acbCrown.style.display = "block";
     } else if (this.scores.jbb > this.scores.acb && !canAcbWin) {
       // JBB has definitively won
       jbbEl.style.color = "green";
       acbEl.style.color = "red";
-      if (jbbCrown) jbbCrown.style.display = "block";
+      jbbCrown.style.display = "block";
     } else if (this.scores.acb > this.scores.jbb) {
       // ACB is ahead but JBB can still win
       acbEl.style.color = "green";
@@ -113,22 +93,14 @@ class Scoreboard {
       // JBB is ahead but ACB can still win
       jbbEl.style.color = "green";
       acbEl.style.color = "red";
-    } else {
-      // FIXED: Tied scores (including 0-0) show in yellow
-      acbEl.style.color = "#ffd700";
-      jbbEl.style.color = "#ffd700";
+    } else if (this.scores.acb === this.scores.jbb && this.scores.acb > 0) {
+      // Currently tied with some games played
+      acbEl.style.color = "#c9a700"; // Gold color for ties
+      jbbEl.style.color = "#c9a700";
     }
-  }
+    // If 0-0, leave default colors (no special styling)
 
-  // ENHANCED: Force immediate update of all scoreboard displays
-  forceUpdate() {
-    this.updateDisplay();
-    
-    // Trigger any additional update events
-    const event = new CustomEvent('scoreboardUpdated', {
-      detail: this.scores
-    });
-    document.dispatchEvent(event);
+    console.log(`🏆 Scoreboard updated: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
   }
 
   // Get current scores
@@ -243,10 +215,10 @@ class Scoreboard {
     console.log('🔄 Scoreboard reset');
   }
 
-  // ENHANCED: Update scoreboard from puzzle table with forced refresh
+  // Update scoreboard from puzzle table
   update(puzzleTable) {
     this.calculateScores(puzzleTable);
-    this.forceUpdate(); // Use enhanced update method
+    this.updateDisplay();
   }
 }
 
