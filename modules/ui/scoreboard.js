@@ -1,10 +1,5 @@
-<<<<<<< main
 // I'm Puzzled - Scoreboard Module v2025.05.30.3
 // Enhanced with Phase 3C improvements: Better tie handling, improved colors
-=======
-// I'm Puzzled - Scoreboard Module v2025.05.30.2 - Claude-Style Interface
-// Handles scoreboard calculations, display for BOTH mini and expanded views
->>>>>>> origin/main
 
 class Scoreboard {
   constructor() {
@@ -15,11 +10,7 @@ class Scoreboard {
       remaining: 10
     };
     
-<<<<<<< main
     console.log('🏆 Scoreboard initialized v2025.05.30.3');
-=======
-    console.log('🏆 Scoreboard initialized with Claude-style dual display');
->>>>>>> origin/main
   }
 
   // Calculate scores from puzzle table results
@@ -59,35 +50,13 @@ class Scoreboard {
     return this.scores;
   }
 
-<<<<<<< main
   // ENHANCED: Updated visual scoreboard with Phase 3C improvements
-=======
-  // ENHANCED: Update BOTH mini scoreboard (top strip) AND expanded scoreboard
->>>>>>> origin/main
   updateDisplay() {
-    // Use the enhanced global function that updates both displays
-    if (window.enhancedUpdateScoreboard) {
-      window.enhancedUpdateScoreboard(this.scores.acb, this.scores.jbb, this.scores.tie, this.scores.remaining);
-    } else {
-      // Fallback to original method if enhanced function not available
-      this.updateLegacyDisplay();
-    }
-
-    console.log(`🏆 Scoreboard updated: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
-  }
-
-  // Legacy display update for backward compatibility
-  updateLegacyDisplay() {
-    // Update score values (original display)
-    const acbCount = document.getElementById("acbCount");
-    const jbbCount = document.getElementById("jbbCount");
-    const tieCount = document.getElementById("tieCount");
-    const remainingCount = document.getElementById("remainingCount");
-    
-    if (acbCount) acbCount.textContent = this.scores.acb;
-    if (jbbCount) jbbCount.textContent = this.scores.jbb;
-    if (tieCount) tieCount.textContent = this.scores.tie;
-    if (remainingCount) remainingCount.textContent = this.scores.remaining;
+    // Update score values
+    document.getElementById("acbCount").textContent = this.scores.acb;
+    document.getElementById("jbbCount").textContent = this.scores.jbb;
+    document.getElementById("tieCount").textContent = this.scores.tie;
+    document.getElementById("remainingCount").textContent = this.scores.remaining;
 
     // Get DOM elements for styling
     const acbEl = document.getElementById("acbCount");
@@ -95,13 +64,11 @@ class Scoreboard {
     const acbCrown = document.getElementById("acbCrown");
     const jbbCrown = document.getElementById("jbbCrown");
 
-    if (!acbEl || !jbbEl) return;
-
     // Reset styles
     acbEl.style.color = "";
     jbbEl.style.color = "";
-    if (acbCrown) acbCrown.style.display = "none";
-    if (jbbCrown) jbbCrown.style.display = "none";
+    acbCrown.style.display = "none";
+    jbbCrown.style.display = "none";
 
     // Calculate win conditions
     const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
@@ -110,7 +77,6 @@ class Scoreboard {
     // ENHANCED: Apply Phase 3C color scheme and tie handling
     if (this.scores.acb > this.scores.jbb && !canJbbWin) {
       // ACB has definitively won
-<<<<<<< main
       acbEl.style.color = "#10b981"; // Modern green
       jbbEl.style.color = "#ef4444"; // Modern red
       acbCrown.style.display = "block";
@@ -119,23 +85,12 @@ class Scoreboard {
       jbbEl.style.color = "#10b981"; // Modern green
       acbEl.style.color = "#ef4444"; // Modern red
       jbbCrown.style.display = "block";
-=======
-      acbEl.style.color = "green";
-      jbbEl.style.color = "red";
-      if (acbCrown) acbCrown.style.display = "block";
-    } else if (this.scores.jbb > this.scores.acb && !canAcbWin) {
-      // JBB has definitively won
-      jbbEl.style.color = "green";
-      acbEl.style.color = "red";
-      if (jbbCrown) jbbCrown.style.display = "block";
->>>>>>> origin/main
     } else if (this.scores.acb > this.scores.jbb) {
       // ACB is ahead but JBB can still win
       acbEl.style.color = "#10b981"; // Modern green
       jbbEl.style.color = "#ef4444"; // Modern red
     } else if (this.scores.jbb > this.scores.acb) {
       // JBB is ahead but ACB can still win
-<<<<<<< main
       jbbEl.style.color = "#10b981"; // Modern green
       acbEl.style.color = "#ef4444"; // Modern red
     } else {
@@ -145,26 +100,6 @@ class Scoreboard {
     }
 
     console.log(`🏆 Scoreboard updated v3C: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
-=======
-      jbbEl.style.color = "green";
-      acbEl.style.color = "red";
-    } else {
-      // FIXED: Tied scores (including 0-0) show in yellow
-      acbEl.style.color = "#ffd700";
-      jbbEl.style.color = "#ffd700";
-    }
-  }
-
-  // ENHANCED: Force immediate update of all scoreboard displays
-  forceUpdate() {
-    this.updateDisplay();
-    
-    // Trigger any additional update events
-    const event = new CustomEvent('scoreboardUpdated', {
-      detail: this.scores
-    });
-    document.dispatchEvent(event);
->>>>>>> origin/main
   }
 
   // Get current scores
@@ -279,10 +214,10 @@ class Scoreboard {
     console.log('🔄 Scoreboard reset v3C');
   }
 
-  // ENHANCED: Update scoreboard from puzzle table with forced refresh
+  // Update scoreboard from puzzle table
   update(puzzleTable) {
     this.calculateScores(puzzleTable);
-    this.forceUpdate(); // Use enhanced update method
+    this.updateDisplay();
   }
 
   // NEW: Enhanced scoreboard update for compatibility with Phase 3C
