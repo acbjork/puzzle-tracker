@@ -1,5 +1,5 @@
-// I'm Puzzled - History Modal Module v2025.05.30.3
-// Enhanced with Phase 3C improvements + Environment-Based Mock Data Control
+// I'm Puzzled - History Modal Module v2025.05.30.6
+// FIXED: Current champ panel functionality + emoji names
 
 class HistoryModal {
   constructor() {
@@ -9,86 +9,44 @@ class HistoryModal {
     this.dateHelpers = null;
     this.puzzleTable = null;
     
-    // ENVIRONMENT DETECTION & MOCK DATA CONTROL
     this.isDevelopment = this.detectDevelopmentEnvironment();
     this.useMockData = this.isDevelopment;
     
-    console.log(`📊 History Modal initialized v2025.05.30.3 (${this.isDevelopment ? 'DEV' : 'PROD'} mode)`);
+    console.log(`📊 History Modal initialized v2025.05.30.6 (${this.isDevelopment ? 'DEV' : 'PROD'} mode)`);
   }
 
-  // NEW: Smart environment detection with Recommended Combo Setup
   detectDevelopmentEnvironment() {
-    console.log('🔍 Starting environment detection...');
-    
-    // PRIORITY ORDER (first match wins):
-    
-    // 1. URL override (highest priority)
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('dev') === 'true') {
-      console.log('🔧 Development forced: URL parameter ?dev=true');
-      return true;
-    }
-    if (urlParams.get('prod') === 'true') {
-      console.log('🔧 Production forced: URL parameter ?prod=true');
-      return false;
-    }
-    if (urlParams.get('debug') === 'true' || urlParams.get('mock') === 'true') {
-      console.log('🔧 Development forced: URL parameter ?debug=true or ?mock=true');
-      return true;
-    }
+    if (urlParams.get('dev') === 'true') return true;
+    if (urlParams.get('prod') === 'true') return false;
+    if (urlParams.get('debug') === 'true' || urlParams.get('mock') === 'true') return true;
     
-    // 2. HTML meta tag
     const envMeta = document.querySelector('meta[name="environment"]');
-    if (envMeta?.content === 'development') {
-      console.log('📄 Development detected: HTML meta tag');
-      return true;
-    }
-    if (envMeta?.content === 'production') {
-      console.log('📄 Production forced: HTML meta tag');
-      return false;
-    }
+    if (envMeta?.content === 'development') return true;
+    if (envMeta?.content === 'production') return false;
     
-    // 3. Hostname detection
     const hostname = window.location.hostname;
-    if (hostname === 'localhost' || 
-        hostname === '127.0.0.1' || 
-        hostname.includes('localhost') ||
-        hostname === '') {  // file:// protocol
-      console.log('🏠 Development detected: localhost/file protocol');
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.includes('localhost') || hostname === '') {
       return true;
     }
     
-    // 4. Branch/path detection
     const href = window.location.href;
-    if (href.includes('/dev') || 
-        href.includes('-dev') ||
-        href.includes('dev.') ||
-        href.includes('staging.') ||
-        href.includes('test.') ||
-        href.includes('preview.')) {
-      console.log('🌿 Development detected: dev/staging URL pattern');
+    if (href.includes('/dev') || href.includes('-dev') || href.includes('dev.') || 
+        href.includes('staging.') || href.includes('test.') || href.includes('preview.')) {
       return true;
     }
     
-    // 5. GitHub Pages development branch detection
-    if (href.includes('github.io') && 
-        (href.includes('/dev') || href.includes('-dev'))) {
-      console.log('🌿 Development detected: GitHub Pages dev branch');
+    if (href.includes('github.io') && (href.includes('/dev') || href.includes('-dev'))) {
       return true;
     }
     
-    // 6. Title indicator (fallback)
     if (document.title.includes('[DEV]') || document.title.includes('DEV')) {
-      console.log('📄 Development detected: page title contains [DEV]');
       return true;
     }
     
-    // 7. Default to production (safest)
-    console.log('🌐 Production mode: default (no dev indicators found)');
     return false;
   }
 
-  // NEW: Manual override methods
   enableMockData() {
     this.useMockData = true;
     console.log('🚧 Mock data manually enabled');
@@ -114,7 +72,7 @@ class HistoryModal {
     this.setupEventListeners();
     this.updateInterfaceVisibility();
     
-    console.log('📊 History Modal ready v3C');
+    console.log('📊 History Modal ready v2025.05.30.6');
     return true;
   }
 
@@ -161,28 +119,18 @@ class HistoryModal {
     }
   }
 
-  // ENHANCED: Environment-aware data loading
   async loadHistoryData() {
-    const lastWinnerEl = document.getElementById('lastOverallWinner');
-    const streakEl = document.getElementById('overallStreak');
-    const longestEl = document.getElementById('overallLongestStreak');
+    // FIXED: Update current champ panel
+    this.updateCurrentChampPanel();
     
-    // Update UI to show loading
-    if (lastWinnerEl) lastWinnerEl.textContent = 'Loading...';
-    if (streakEl) streakEl.textContent = 'Calculating streak...';
-    if (longestEl) longestEl.textContent = 'Loading longest streak...';
-
     try {
-      // Try to load real data first (if available)
       if (this.supabaseClient && this.userManager && this.userManager.canRenderTable()) {
         console.log('📊 Attempting to load real history data...');
         await this.loadRealHistoryData();
       } else if (this.useMockData) {
-        // Development mode: show mock data
         console.log('🚧 Using mock data (development mode)');
         this.loadMockHistoryData();
       } else {
-        // Production mode: show "no data yet" message
         console.log('📊 No data available (production mode)');
         this.showNoDataMessage();
       }
@@ -190,26 +138,46 @@ class HistoryModal {
       console.error('Error loading history:', error);
       
       if (this.useMockData) {
-        // Development: fall back to mock data on error
         console.log('🚧 Falling back to mock data due to error');
         this.loadMockHistoryData();
       } else {
-        // Production: show error message
         this.showErrorMessage();
       }
     }
   }
 
-  // NEW: Real history data loading
+  // FIXED: Update current champ panel from scoreboard
+  updateCurrentChampPanel() {
+    const champName = document.getElementById('currentChampName');
+    const champStreak = document.getElementById('currentChampStreak');
+    
+    if (!champName || !champStreak) return;
+    
+    // Get current champion from scoreboard
+    if (window.scoreboard && window.scoreboard.getCurrentChampion) {
+      const champ = window.scoreboard.getCurrentChampion();
+      if (champ) {
+        // FIXED: Include emoji in champion name
+        const emoji = champ.name === 'Adam' ? ' 🌵' : ' 💩';
+        champName.textContent = champ.name + emoji;
+        champStreak.textContent = `${champ.streak} day${champ.streak !== 1 ? 's' : ''} streak`;
+      } else {
+        champName.textContent = 'No champion yet';
+        champStreak.textContent = 'Start competing!';
+      }
+    } else {
+      champName.textContent = 'No champion yet';
+      champStreak.textContent = 'Start competing!';
+    }
+  }
+
   async loadRealHistoryData() {
     try {
-      // Calculate date range (last 30 days)
       const endDate = new Date();
       const startDate = new Date();
       startDate.setDate(endDate.getDate() - 30);
       const fromDate = startDate.toISOString().slice(0, 10);
 
-      // Load historical results
       const historyData = await this.supabaseClient.loadHistoryResults(fromDate);
       
       if (!historyData || historyData.length === 0) {
@@ -218,30 +186,21 @@ class HistoryModal {
         return;
       }
       
-      // Calculate streaks from real data
       const streaks = this.calculateStreaksFromData(historyData);
-      
-      // Update displays
-      this.updateOverallWinnerDisplay(streaks);
       this.updatePuzzleStreaksTable(streaks);
       
       console.log('✅ Real history data loaded successfully');
       
     } catch (error) {
       console.error('Failed to load real history data:', error);
-      throw error; // Re-throw to trigger fallback logic
+      throw error;
     }
   }
 
-  // ENHANCED: Mock data with development indicator
   loadMockHistoryData() {
     console.log('🚧 Loading mock data for development/testing');
     
     const mockStreaks = {
-      overall: {
-        current: { winner: 'Adam', count: 3 },
-        longest: { count: 7, holders: ['Adam'] }
-      },
       puzzles: {
         'Connections': { 
           current: { winner: 'Adam', count: 2 }, 
@@ -286,14 +245,10 @@ class HistoryModal {
       }
     };
 
-    this.updateOverallWinnerDisplay(mockStreaks);
     this.updatePuzzleStreaksTable(mockStreaks);
-    
-    // Add development indicator
     this.addDevelopmentIndicator();
   }
 
-  // NEW: Add visual indicator for development mode
   addDevelopmentIndicator() {
     const historyHeader = document.querySelector('.history-header');
     if (historyHeader && this.isDevelopment) {
@@ -315,16 +270,8 @@ class HistoryModal {
     }
   }
 
-  // NEW: No data message for production
   showNoDataMessage() {
-    const lastWinnerEl = document.getElementById('lastOverallWinner');
-    const streakEl = document.getElementById('overallStreak');
-    const longestEl = document.getElementById('overallLongestStreak');
-    const puzzleStreaksEl = document.getElementById('puzzleStreaks');
-    
-    if (lastWinnerEl) lastWinnerEl.textContent = 'No competitions yet';
-    if (streakEl) streakEl.textContent = 'Start competing to track streaks!';
-    if (longestEl) longestEl.textContent = 'Records will appear here';
+    const puzzleStreaksEl = document.getElementById('historyTableBody');
     
     if (puzzleStreaksEl) {
       puzzleStreaksEl.innerHTML = `
@@ -346,16 +293,8 @@ class HistoryModal {
     console.log('📊 Displaying "no data yet" message');
   }
 
-  // NEW: Error message display
   showErrorMessage() {
-    const lastWinnerEl = document.getElementById('lastOverallWinner');
-    const streakEl = document.getElementById('overallStreak');
-    const longestEl = document.getElementById('overallLongestStreak');
-    const puzzleStreaksEl = document.getElementById('puzzleStreaks');
-    
-    if (lastWinnerEl) lastWinnerEl.textContent = 'Unable to load data';
-    if (streakEl) streakEl.textContent = 'Please try again later';
-    if (longestEl) longestEl.textContent = 'Connection error';
+    const puzzleStreaksEl = document.getElementById('historyTableBody');
     
     if (puzzleStreaksEl) {
       puzzleStreaksEl.innerHTML = `
@@ -375,109 +314,70 @@ class HistoryModal {
     console.log('❌ Displaying error message');
   }
 
-  // Update overall winner section
-  updateOverallWinnerDisplay(streaks) {
-    const lastWinnerEl = document.getElementById('lastOverallWinner');
-    const streakEl = document.getElementById('overallStreak');
-    const longestEl = document.getElementById('overallLongestStreak');
-    
-    if (streaks.overall.current.winner) {
-      if (lastWinnerEl) lastWinnerEl.textContent = streaks.overall.current.winner;
-      if (streakEl) streakEl.textContent = `Current streak: ${streaks.overall.current.count} day${streaks.overall.current.count !== 1 ? 's' : ''}`;
-      
-      const longestRecord = streaks.overall.longest;
-      if (longestEl) {
-        if (longestRecord.count > 0) {
-          const holderText = longestRecord.holders.length > 1 
-            ? longestRecord.holders.join(' & ') 
-            : longestRecord.holders[0];
-          longestEl.textContent = `Longest streak: ${longestRecord.count} days (${holderText})`;
-        } else {
-          longestEl.textContent = 'Longest streak: No records yet';
-        }
-      }
-    } else {
-      if (lastWinnerEl) lastWinnerEl.textContent = 'No winner yet';
-      if (streakEl) streakEl.textContent = 'No current streak';
-      if (longestEl) longestEl.textContent = 'Longest streak: No records yet';
-    }
-  }
-
-  // Update the 3-column puzzle streaks table
+  // FIXED: Update puzzle streaks table with emojis
   updatePuzzleStreaksTable(streaks) {
-    const puzzleStreaksEl = document.getElementById('puzzleStreaks');
+    const puzzleStreaksEl = document.getElementById('historyTableBody');
     if (!puzzleStreaksEl) return;
 
-    // Clear existing content
     puzzleStreaksEl.innerHTML = '';
 
-    // Define puzzles in order
     const puzzles = [
       'Connections', 'Strands', 'On the Record', 'Keyword', 'NYT Mini',
       'Apple Mini', 'Globle', 'Flagle', 'Wordle', 'Tightrope'
     ];
 
-    // Create table rows for each puzzle
     puzzles.forEach(puzzle => {
       const puzzleData = streaks.puzzles[puzzle];
       if (!puzzleData) return;
 
       const row = document.createElement('tr');
       
-      // Column 1: Puzzle name
       const nameCell = document.createElement('td');
       nameCell.className = 'puzzle-name-history';
       nameCell.textContent = puzzle;
       
-      // Column 2: Current streak
       const currentCell = document.createElement('td');
       currentCell.className = 'streak-current';
       const current = puzzleData.current;
       if (current.winner && current.count > 0) {
-        currentCell.textContent = `${current.winner} (${current.count} day${current.count !== 1 ? 's' : ''})`;
+        // FIXED: Include emoji in current streak display
+        const emoji = current.winner === 'Adam' ? ' 🌵' : ' 💩';
+        currentCell.textContent = `${current.winner}${emoji} (${current.count} day${current.count !== 1 ? 's' : ''})`;
       } else {
         currentCell.textContent = '--';
       }
       
-      // Column 3: Record streak
       const recordCell = document.createElement('td');
       recordCell.className = 'streak-record';
       const longest = puzzleData.longest;
       if (longest.count > 0) {
-        const holderText = longest.holders.length > 1 
-          ? longest.holders.join(' & ') 
-          : longest.holders[0];
+        // FIXED: Include emojis in record streak display
+        const holderText = longest.holders.map(holder => {
+          const emoji = holder === 'Adam' ? ' 🌵' : ' 💩';
+          return holder + emoji;
+        }).join(' & ');
         recordCell.textContent = `${holderText} (${longest.count} day${longest.count !== 1 ? 's' : ''})`;
       } else {
         recordCell.textContent = 'No records yet';
       }
       
-      // Add cells to row
       row.appendChild(nameCell);
       row.appendChild(currentCell);
       row.appendChild(recordCell);
       
-      // Add row to table
       puzzleStreaksEl.appendChild(row);
     });
 
-    console.log('📊 3-column history table updated v3C');
+    console.log('📊 History table updated with emojis v2025.05.30.6');
   }
 
-  // Calculate streaks from historical data
   calculateStreaksFromData(historyData) {
-    // This is a simplified version - in production, this would analyze actual database records
-    // Group by date and calculate daily winners, then compute streaks
-    
-    const dailyWinners = {};
-    const puzzleStreaks = {};
-    
-    // Initialize puzzle streaks
     const puzzles = [
       'Connections', 'Strands', 'On the Record', 'Keyword', 'NYT Mini',
       'Apple Mini', 'Globle', 'Flagle', 'Wordle', 'Tightrope'
     ];
     
+    const puzzleStreaks = {};
     puzzles.forEach(puzzle => {
       puzzleStreaks[puzzle] = {
         current: { winner: null, count: 0 },
@@ -485,18 +385,9 @@ class HistoryModal {
       };
     });
 
-    // TODO: Implement real streak calculation from historyData
-    // For now, return basic structure with no streaks
-    return {
-      overall: {
-        current: { winner: null, count: 0 },
-        longest: { count: 0, holders: [] }
-      },
-      puzzles: puzzleStreaks
-    };
+    return { puzzles: puzzleStreaks };
   }
 
-  // Legacy method for compatibility
   loadBasicHistory() {
     this.loadHistoryData();
   }
@@ -506,7 +397,7 @@ class HistoryModal {
     if (historyToggle && this.userManager) {
       const shouldShow = this.userManager.canRenderTable();
       historyToggle.style.display = shouldShow ? 'block' : 'none';
-      console.log('📊 History button visibility v3C:', shouldShow ? 'visible' : 'hidden');
+      console.log('📊 History button visibility v2025.05.30.6:', shouldShow ? 'visible' : 'hidden');
     }
   }
 
@@ -514,25 +405,22 @@ class HistoryModal {
     return this.isVisible;
   }
 
-  // Refresh history data
   async refreshHistory() {
     if (this.isVisible) {
       await this.loadHistoryData();
     }
   }
 
-  // Get current modal state
   getModalState() {
     return {
       isVisible: this.isVisible,
       isDevelopment: this.isDevelopment,
       useMockData: this.useMockData,
-      hasData: !!document.getElementById('puzzleStreaks')?.children.length,
-      version: 'v2025.05.30.3'
+      hasData: !!document.getElementById('historyTableBody')?.children.length,
+      version: 'v2025.05.30.6'
     };
   }
 
-  // NEW: Debug information
   getDebugInfo() {
     return {
       environment: this.isDevelopment ? 'development' : 'production',
@@ -546,12 +434,8 @@ class HistoryModal {
   }
 }
 
-// Create and export singleton instance
 const historyModal = new HistoryModal();
-
-// Make debug methods globally accessible for testing
 window.historyModal = historyModal;
 
-// Export both the instance and the class
 export default historyModal;
 export { HistoryModal };

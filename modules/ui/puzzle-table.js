@@ -1,5 +1,5 @@
-// I'm Puzzled - Puzzle Table Module v2025.05.30.3
-// Enhanced with Phase 3C improvements: Button styling, color compatibility
+// I'm Puzzled - Puzzle Table Module v2025.05.30.6
+// FIXED: Hide edit/submit buttons when no user selected + real-time scoreboard trigger
 
 class PuzzleTable {
   constructor() {
@@ -25,23 +25,19 @@ class PuzzleTable {
     this.results = {};
     this.cellMap = {};
     
-    console.log('🧩 Puzzle Table initialized v2025.05.30.3');
+    console.log('🧩 Puzzle Table initialized v2025.05.30.6 - FIXED');
   }
 
-  // Initialize results structure
   initializeResults() {
     this.puzzles.forEach(puzzle => {
       this.results[puzzle] = { Adam: "", Jonathan: "" };
     });
   }
 
-  // Load results from database and populate results object
   loadResults(resultsData) {
-    // Clear existing results
     this.initializeResults();
     Object.keys(this.cellMap).forEach(key => delete this.cellMap[key]);
 
-    // Populate from database results
     if (resultsData && resultsData.length > 0) {
       for (const entry of resultsData) {
         const { puzzle_name, player, raw_result } = entry;
@@ -53,10 +49,9 @@ class PuzzleTable {
       }
     }
 
-    console.log('📊 Results loaded v3C:', Object.keys(this.results).length, 'puzzles');
+    console.log('📊 Results loaded v2025.05.30.6:', Object.keys(this.results).length, 'puzzles');
   }
 
-  // Determine winner for a specific puzzle
   determineWinner(puzzle, adamResult, jonResult) {
     if (!adamResult || !jonResult) return 'none';
     if (adamResult === jonResult) return 'tie';
@@ -64,43 +59,32 @@ class PuzzleTable {
     switch (puzzle) {
       case "Connections":
         return this.determineConnectionsWinner(adamResult, jonResult);
-      
       case "Strands":
         return this.determineStrandsWinner(adamResult, jonResult);
-      
       case "Keyword":
         return this.determineKeywordWinner(adamResult, jonResult);
-      
       case "Wordle":
         return this.determineWordleWinner(adamResult, jonResult);
-      
       case "On the Record":
         return this.determineOnTheRecordWinner(adamResult, jonResult);
-      
       case "Apple Mini":
       case "NYT Mini":
         return this.determineMiniWinner(adamResult, jonResult);
-      
       case "Globle":
         return this.determineGlobleWinner(adamResult, jonResult);
-      
       case "Flagle":
         return this.determineFlagleWinner(adamResult, jonResult);
-      
       case "Tightrope":
         return this.determineTightropeWinner(adamResult, jonResult);
-      
       default:
         return 'tie';
     }
   }
 
-  // Connections winner logic
   determineConnectionsWinner(adamResult, jonResult) {
     const aLines = adamResult.split("\n");
     const jLines = jonResult.split("\n");
     
-    // Find purple group (🟪🟪🟪🟪) - hardest group, wins if solved first
     const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
     const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
     
@@ -110,22 +94,18 @@ class PuzzleTable {
     return 'tie';
   }
 
-  // Strands winner logic
   determineStrandsWinner(adamResult, jonResult) {
     const aHints = (adamResult.match(/💡/g) || []).length;
     const jHints = (jonResult.match(/💡/g) || []).length;
     const aTotal = adamResult.split("\n").length;
     const jTotal = jonResult.split("\n").length;
     
-    // Fewer total lines wins first
     if (aTotal < jTotal) return 'Adam';
     if (jTotal < aTotal) return 'Jonathan';
     
-    // If same lines, fewer hints wins
     if (aHints < jHints) return 'Adam';
     if (jHints < aHints) return 'Jonathan';
     
-    // If same hints, earlier theme word (🟡) wins
     const aThemeIndex = adamResult.indexOf("🟡");
     const jThemeIndex = jonResult.indexOf("🟡");
     
@@ -135,16 +115,13 @@ class PuzzleTable {
     return 'tie';
   }
 
-  // Keyword winner logic
   determineKeywordWinner(adamResult, jonResult) {
     const aGuesses = parseInt(adamResult.match(/(\d+) guesses/)?.[1] || "999");
     const jGuesses = parseInt(jonResult.match(/(\d+) guesses/)?.[1] || "999");
     
-    // Fewer guesses wins
     if (aGuesses < jGuesses) return 'Adam';
     if (jGuesses < aGuesses) return 'Jonathan';
     
-    // If same guesses, faster time wins
     const aTime = this.parseTime(adamResult.match(/(\d+:\d+)/)?.[1] || "99:99");
     const jTime = this.parseTime(jonResult.match(/(\d+:\d+)/)?.[1] || "99:99");
     
@@ -154,76 +131,63 @@ class PuzzleTable {
     return 'tie';
   }
 
-  // Wordle winner logic
   determineWordleWinner(adamResult, jonResult) {
     const aScore = parseInt(adamResult.match(/\b(\d)\/6/)?.[1] || "7");
     const jScore = parseInt(jonResult.match(/\b(\d)\/6/)?.[1] || "7");
     
-    // Fewer guesses wins
     if (aScore < jScore) return 'Adam';
     if (jScore < aScore) return 'Jonathan';
     
     return 'tie';
   }
 
-  // On the Record winner logic
   determineOnTheRecordWinner(adamResult, jonResult) {
     const aScore = parseInt(adamResult.match(/\b(\d{1,3})\b/)?.[1] || "0");
     const jScore = parseInt(jonResult.match(/\b(\d{1,3})\b/)?.[1] || "0");
     
-    // Higher score wins
     if (aScore > jScore) return 'Adam';
     if (jScore > aScore) return 'Jonathan';
     
     return 'tie';
   }
 
-  // Mini crossword winner logic (both Apple and NYT)
   determineMiniWinner(adamResult, jonResult) {
     const aTime = this.parseComplexTime(adamResult);
     const jTime = this.parseComplexTime(jonResult);
     
-    // Faster time wins
     if (aTime < jTime) return 'Adam';
     if (jTime < aTime) return 'Jonathan';
     
     return 'tie';
   }
 
-  // Globle winner logic
   determineGlobleWinner(adamResult, jonResult) {
     const aGuesses = parseInt(adamResult.match(/=\s*(\d+)/)?.[1] || "999");
     const jGuesses = parseInt(jonResult.match(/=\s*(\d+)/)?.[1] || "999");
     
-    // Fewer guesses wins
     if (aGuesses < jGuesses) return 'Adam';
     if (jGuesses < aGuesses) return 'Jonathan';
     
     return 'tie';
   }
 
-  // Flagle winner logic
   determineFlagleWinner(adamResult, jonResult) {
     const aScore = adamResult.includes("X") ? 7 : parseInt(adamResult.match(/(\d)\/6/)?.[1] || "7");
     const jScore = jonResult.includes("X") ? 7 : parseInt(jonResult.match(/(\d)\/6/)?.[1] || "7");
     
-    // Fewer guesses wins
     if (aScore < jScore) return 'Adam';
     if (jScore < aScore) return 'Jonathan';
     
     return 'tie';
   }
 
-  // Tightrope winner logic
   determineTightropeWinner(adamResult, jonResult) {
     const aChecks = (adamResult.match(/✅/g) || []).length;
     const jChecks = (jonResult.match(/✅/g) || []).length;
     
-    // More correct answers wins first
     if (aChecks > jChecks) return 'Adam';
     if (jChecks > aChecks) return 'Jonathan';
     
-    // If same correct answers, check score
     const aScore = parseInt(adamResult.match(/My Score:\s*(\d+)/)?.[1] || "0");
     const jScore = parseInt(jonResult.match(/My Score:\s*(\d+)/)?.[1] || "0");
     
@@ -233,30 +197,25 @@ class PuzzleTable {
     return 'tie';
   }
 
-  // Helper: Parse time from string (MM:SS format)
   parseTime(timeString) {
     if (!timeString) return 9999;
     const [min, sec] = timeString.split(":").map(Number);
     return min * 60 + sec;
   }
 
-  // Helper: Parse complex time formats (for Mini crosswords)
   parseComplexTime(timeString) {
     if (!timeString) return 9999;
     
-    // Try "Xm Ys" format first
     let match = timeString.match(/(\d{1,2})\s*m[^\d]*(\d{1,2})\s*s/i);
     if (match) {
       return parseInt(match[1]) * 60 + parseInt(match[2]);
     }
     
-    // Try "X:Y" format
     match = timeString.match(/(\d{1,2})\s*[:\s]\s*(\d{1,2})/);
     if (match) {
       return parseInt(match[1]) * 60 + parseInt(match[2]);
     }
     
-    // Try seconds only "Xs"
     match = timeString.match(/^(\d+)\s*s$/i);
     if (match) {
       return parseInt(match[1]);
@@ -265,7 +224,6 @@ class PuzzleTable {
     return 9999;
   }
 
-  // Apply winner highlighting to table cells
   highlightWinners() {
     this.puzzles.forEach(puzzle => {
       const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
@@ -274,7 +232,6 @@ class PuzzleTable {
       const adamCell = row.children[1];
       const jonCell = row.children[2];
       
-      // Clear existing classes
       adamCell.classList.remove("winner", "tie");
       jonCell.classList.remove("winner", "tie");
 
@@ -295,12 +252,11 @@ class PuzzleTable {
           adamCell.classList.add("tie");
           jonCell.classList.add("tie");
           break;
-        // 'none' case: no highlighting
       }
     });
   }
 
-  // Render the complete puzzle table
+  // FIXED: Enhanced render with proper button visibility control
   render(userManager, supabaseClient, today) {
     const tbody = document.getElementById("puzzleRows");
     
@@ -315,18 +271,15 @@ class PuzzleTable {
       const tr = document.createElement("tr");
       tr.setAttribute("data-puzzle", puzzle);
       
-      // Puzzle name cell with clickable link
       const tdPuzzle = document.createElement("td");
       const puzzleSpan = document.createElement("span");
       puzzleSpan.className = "puzzle-name";
       puzzleSpan.textContent = puzzle;
       
-      // Add nowrap class for specific puzzles
       if (["Connections", "Wordle", "Flagle"].includes(puzzle)) {
         puzzleSpan.classList.add("puzzle-nowrap");
       }
       
-      // Make puzzle name clickable
       const url = this.puzzleUrls[puzzle];
       if (url) {
         puzzleSpan.setAttribute("data-url", url);
@@ -338,41 +291,38 @@ class PuzzleTable {
       tdPuzzle.appendChild(puzzleSpan);
       tr.appendChild(tdPuzzle);
 
-      // Create cells for Adam and Jonathan
       ["Adam", "Jonathan"].forEach(user => {
         const td = document.createElement("td");
         const result = this.results[puzzle][user];
         
-        // Store cell reference for later access
         if (!this.cellMap[puzzle]) this.cellMap[puzzle] = {};
         this.cellMap[puzzle][user] = td;
         
         if (userManager.isCurrentUser(user)) {
-          // Current user's cell - can edit
           if (result) {
-            // Show existing result with edit button
             const resultDiv = document.createElement("div");
             resultDiv.className = "submitted";
             resultDiv.textContent = result;
             td.appendChild(resultDiv);
             
-            // ENHANCED: Use Phase 3C button styling
             const buttonContainer = document.createElement("div");
             buttonContainer.className = "action-buttons";
             
             const editBtn = document.createElement("button");
             editBtn.textContent = "Edit";
-            editBtn.className = "btn btn-edit"; // NEW: Phase 3C classes
+            editBtn.className = "btn btn-edit";
+            // FIXED: Check if user is selected
+            if (!userManager.getCurrentUser()) {
+              editBtn.classList.add("hidden");
+            }
             editBtn.onclick = () => this.enableEdit(td, puzzle, user, result, supabaseClient, today);
             
             buttonContainer.appendChild(editBtn);
             td.appendChild(buttonContainer);
           } else {
-            // Show input for new result
-            this.createInputCell(td, puzzle, user, supabaseClient, today);
+            this.createInputCell(td, puzzle, user, supabaseClient, today, userManager);
           }
         } else {
-          // Other user's cell - read only
           if (result) {
             const div = document.createElement("div");
             div.className = "submitted";
@@ -387,14 +337,20 @@ class PuzzleTable {
       tbody.appendChild(tr);
     });
 
-    // Apply winner highlighting
     this.highlightWinners();
     
-    console.log('🏆 Puzzle table rendered v3C');
+    // FIXED: Trigger real-time scoreboard update after rendering
+    setTimeout(() => {
+      if (window.scoreboard) {
+        window.scoreboard.update(this);
+      }
+    }, 100);
+    
+    console.log('🏆 Puzzle table rendered v2025.05.30.6');
   }
 
-  // ENHANCED: Create input cell with Phase 3C button styling
-  createInputCell(td, puzzle, user, supabaseClient, today) {
+  // FIXED: Create input cell with proper button visibility
+  createInputCell(td, puzzle, user, supabaseClient, today, userManager) {
     const textarea = document.createElement("textarea");
     textarea.placeholder = "Enter result...";
     
@@ -403,7 +359,11 @@ class PuzzleTable {
     
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "Submit";
-    submitBtn.className = "btn btn-submit"; // NEW: Phase 3C classes
+    submitBtn.className = "btn btn-submit";
+    // FIXED: Hide button if no user selected
+    if (!userManager.getCurrentUser()) {
+      submitBtn.classList.add("hidden");
+    }
     submitBtn.onclick = () => this.submitResult(textarea.value.trim(), puzzle, user, supabaseClient, today);
     
     buttonContainer.appendChild(submitBtn);
@@ -411,7 +371,7 @@ class PuzzleTable {
     td.appendChild(buttonContainer);
   }
 
-  // ENHANCED: Enable editing with Phase 3C button styling
+  // FIXED: Enable editing with proper button visibility
   enableEdit(td, puzzle, user, oldValue, supabaseClient, today) {
     td.innerHTML = "";
     
@@ -424,11 +384,11 @@ class PuzzleTable {
     
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "Submit";
-    submitBtn.className = "btn btn-submit"; // NEW: Phase 3C classes
+    submitBtn.className = "btn btn-submit";
     
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
-    deleteBtn.className = "btn btn-delete"; // NEW: Phase 3C red delete button
+    deleteBtn.className = "btn btn-delete";
 
     submitBtn.onclick = async () => {
       const newValue = textarea.value.trim();
@@ -456,42 +416,50 @@ class PuzzleTable {
     td.appendChild(buttonContainer);
   }
 
-  // Submit new or updated result
+  // FIXED: Enhanced submit with real-time scoreboard trigger
   async submitResult(value, puzzle, user, supabaseClient, today) {
     if (!value) return;
     
     try {
-      // Update local state
       this.results[puzzle][user] = value;
-      
-      // Save to database
       await supabaseClient.saveResult(today, puzzle, user, value);
       
-      // Re-render table
-      const userManager = window.userManager; // Access global instance
+      const userManager = window.userManager;
       this.render(userManager, supabaseClient, today);
       
-      console.log(`✅ Result submitted v3C: ${puzzle} - ${user}`);
+      // FIXED: Force immediate scoreboard update
+      setTimeout(() => {
+        if (window.scoreboard) {
+          window.scoreboard.update(this);
+          window.scoreboard.triggerRealtimeUpdate();
+        }
+      }, 50);
+      
+      console.log(`✅ Result submitted v2025.05.30.6: ${puzzle} - ${user}`);
     } catch (error) {
       console.error("Submission failed:", error.message);
       alert("Submission failed. Try again.");
     }
   }
 
-  // Delete result
+  // FIXED: Enhanced delete with real-time scoreboard trigger
   async deleteResult(puzzle, user, supabaseClient, today) {
     try {
-      // Update local state
       this.results[puzzle][user] = "";
-      
-      // Delete from database
       await supabaseClient.deleteResult(today, puzzle, user);
       
-      // Re-render table
-      const userManager = window.userManager; // Access global instance
+      const userManager = window.userManager;
       this.render(userManager, supabaseClient, today);
       
-      console.log(`🗑️ Result deleted v3C: ${puzzle} - ${user}`);
+      // FIXED: Force immediate scoreboard update
+      setTimeout(() => {
+        if (window.scoreboard) {
+          window.scoreboard.update(this);
+          window.scoreboard.triggerRealtimeUpdate();
+        }
+      }, 50);
+      
+      console.log(`🗑️ Result deleted v2025.05.30.6: ${puzzle} - ${user}`);
       return true;
     } catch (error) {
       console.error("Deletion failed:", error.message);
@@ -500,29 +468,24 @@ class PuzzleTable {
     }
   }
 
-  // Get current results (for external access)
   getResults() {
     return { ...this.results };
   }
 
-  // Get cell references (for external access)
   getCellMap() {
     return { ...this.cellMap };
   }
 
-  // Get puzzle list
   getPuzzles() {
     return [...this.puzzles];
   }
 
-  // NEW: Check if table has any results
   hasResults() {
     return Object.values(this.results).some(puzzle => 
       puzzle.Adam || puzzle.Jonathan
     );
   }
 
-  // NEW: Get completion status
   getCompletionStatus() {
     let completed = 0;
     let total = this.puzzles.length;
@@ -541,9 +504,7 @@ class PuzzleTable {
   }
 }
 
-// Create and export singleton instance
 const puzzleTable = new PuzzleTable();
 
-// Export both the instance and the class
 export default puzzleTable;
 export { PuzzleTable };

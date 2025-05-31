@@ -1,5 +1,5 @@
-// I'm Puzzled - Chat System Module v2025.05.30.3
-// Enhanced with Phase 3C improvements: Color compatibility, interface updates
+// I'm Puzzled - Chat System Module v2025.05.30.6
+// FIXED: Double-send prevention, modern bubbles, emoji names
 
 class ChatSystem {
   constructor() {
@@ -8,31 +8,27 @@ class ChatSystem {
     this.hasUnreadMessages = false;
     this.lastReadMessageId = null;
     this.currentUser = null;
+    this.isProcessing = false; // FIXED: Anti-double-send flag
     
-    console.log('💬 Chat System initialized v2025.05.30.3');
+    console.log('💬 Chat System initialized v2025.05.30.6 - FIXED');
   }
 
-  // Initialize chat system
   async init(userManager, supabaseClient, dateHelpers) {
     this.userManager = userManager;
     this.supabaseClient = supabaseClient;
     this.dateHelpers = dateHelpers;
     this.currentUser = userManager.getCurrentUser();
     
-    // Load read status and messages
     await this.loadLastReadStatus();
     await this.loadMessages();
     
-    // Setup event listeners
+    // FIXED: Don't setup duplicate event listeners
     this.setupEventListeners();
-    
-    // Show/hide interface based on user
     this.updateInterfaceVisibility();
     
-    console.log('💬 Chat System ready v3C');
+    console.log('💬 Chat System ready v2025.05.30.6');
   }
 
-  // Load last read message status from database
   async loadLastReadStatus() {
     if (!this.currentUser) return;
     
@@ -46,7 +42,6 @@ class ChatSystem {
     }
   }
 
-  // Save last read message status to database
   async saveLastReadStatus(messageId) {
     if (!this.currentUser || !messageId) return;
     
@@ -58,7 +53,6 @@ class ChatSystem {
     }
   }
 
-  // Load chat messages for today
   async loadMessages() {
     try {
       const today = this.dateHelpers.getToday();
@@ -71,7 +65,7 @@ class ChatSystem {
     }
   }
 
-  // ENHANCED: Render chat messages with Phase 3C styling
+  // FIXED: Modern chat bubbles with proper sizing and emoji names
   renderMessages() {
     const container = document.getElementById('chatMessages');
     if (!container) return;
@@ -98,32 +92,15 @@ class ChatSystem {
     this.messages.forEach(msg => {
       const messageDiv = document.createElement('div');
       const isCurrentUser = msg.player === this.currentUser;
-      messageDiv.className = `chat-message ${isCurrentUser ? 'current-user' : 'other-user'}`;
+      messageDiv.className = 'chat-message';
       
+      // FIXED: Include emoji in sender name
       const senderEmoji = this.userManager.getUserEmoji(msg.player);
+      const senderName = `${msg.player} ${senderEmoji}`;
       const timestamp = this.dateHelpers.formatChatTimestamp(msg.created_at);
       
       const bubbleDiv = document.createElement('div');
       bubbleDiv.className = `message-bubble ${isCurrentUser ? 'current-user' : 'other-user'}`;
-      
-      // ENHANCED: Phase 3C compatible styling
-      if (isCurrentUser) {
-        bubbleDiv.style.background = 'linear-gradient(135deg, #c4b5fd, #a78bfa)';
-        bubbleDiv.style.color = 'white';
-        bubbleDiv.style.marginLeft = '2em';
-        bubbleDiv.style.textAlign = 'right';
-      } else {
-        bubbleDiv.style.background = '#f1f5f9';
-        bubbleDiv.style.color = '#475569';
-        bubbleDiv.style.marginRight = '2em';
-        bubbleDiv.style.borderLeft = '3px solid #6b46c1';
-      }
-      
-      bubbleDiv.style.padding = '0.75em';
-      bubbleDiv.style.borderRadius = '12px';
-      bubbleDiv.style.margin = '0.5em';
-      bubbleDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-      bubbleDiv.style.transition = 'all 0.2s';
       
       if (msg.message === '[deleted]') {
         bubbleDiv.classList.add('deleted');
@@ -131,7 +108,7 @@ class ChatSystem {
         bubbleDiv.style.fontStyle = 'italic';
         bubbleDiv.innerHTML = `
           <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
-            ${msg.player} ${senderEmoji}
+            ${senderName}
           </div>
           <div class="message-text" style="margin: 0.25em 0;">
             This message was deleted
@@ -143,7 +120,7 @@ class ChatSystem {
       } else {
         bubbleDiv.innerHTML = `
           <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
-            ${msg.player} ${senderEmoji}
+            ${senderName}
           </div>
           <div class="message-text" style="margin: 0.25em 0; word-wrap: break-word;">
             ${this.escapeHtml(msg.message)}
@@ -153,14 +130,13 @@ class ChatSystem {
           </div>
         `;
         
-        // Add delete functionality for current user's messages
         if (isCurrentUser) {
           bubbleDiv.style.cursor = 'pointer';
           bubbleDiv.addEventListener('mouseenter', () => {
-            bubbleDiv.style.transform = 'scale(1.02)';
+            bubbleDiv.style.transform = 'translateY(-1px)';
           });
           bubbleDiv.addEventListener('mouseleave', () => {
-            bubbleDiv.style.transform = 'scale(1)';
+            bubbleDiv.style.transform = 'translateY(0)';
           });
           bubbleDiv.addEventListener('click', () => this.showDeleteConfirmation(bubbleDiv, msg.id));
         }
@@ -170,13 +146,10 @@ class ChatSystem {
       container.appendChild(messageDiv);
     });
     
-    // Scroll to bottom
     container.scrollTop = container.scrollHeight;
   }
 
-  // ENHANCED: Show delete confirmation with Phase 3C styling
   showDeleteConfirmation(bubbleElement, messageId) {
-    // Remove any existing confirmations
     document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
     
     const confirmDiv = document.createElement('div');
@@ -213,18 +186,15 @@ class ChatSystem {
     bubbleElement.style.position = 'relative';
     bubbleElement.appendChild(confirmDiv);
     
-    // Auto-remove after 5 seconds
     setTimeout(() => {
       if (confirmDiv.parentElement) confirmDiv.remove();
     }, 5000);
   }
 
-  // Delete a message
   async deleteMessage(messageId) {
     try {
       await this.supabaseClient.deleteChatMessage(messageId);
       
-      // Update local state
       const msgIndex = this.messages.findIndex(m => m.id === messageId);
       if (msgIndex !== -1) {
         this.messages[msgIndex].message = '[deleted]';
@@ -235,12 +205,16 @@ class ChatSystem {
       alert("Failed to delete message. Try again.");
     }
     
-    // Remove confirmation dialogs
     document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
   }
 
-  // Send a new message
+  // FIXED: Prevent double-sending with processing flag
   async sendMessage() {
+    if (this.isProcessing) {
+      console.log('💬 Message sending already in progress, ignoring duplicate request');
+      return;
+    }
+
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('chatSendBtn');
     
@@ -249,24 +223,35 @@ class ChatSystem {
     const message = chatInput.value.trim();
     if (!message || !this.currentUser) return;
     
-    // Disable UI during send
+    // FIXED: Set processing flag and disable UI
+    this.isProcessing = true;
     sendBtn.disabled = true;
     sendBtn.textContent = '⏳';
     
     try {
       const today = this.dateHelpers.getToday();
       await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
+      
+      // Clear input only after successful send
       chatInput.value = '';
+      
+      console.log('💬 Message sent successfully');
     } catch (error) {
       console.error("Error sending message:", error);
       alert("Failed to send message. Try again.");
     } finally {
+      // FIXED: Always reset processing state
+      this.isProcessing = false;
       sendBtn.disabled = false;
       sendBtn.textContent = '🚮';
+      
+      // Update button state based on input content
+      const hasText = chatInput.value.trim().length > 0;
+      const hasUser = !!this.currentUser;
+      sendBtn.disabled = !hasText || !hasUser;
     }
   }
 
-  // ENHANCED: Update unread badge with Phase 3C styling
   updateUnreadBadge() {
     const unreadBadge = document.getElementById('unreadBadge');
     if (!unreadBadge) return;
@@ -301,7 +286,6 @@ class ChatSystem {
     }
   }
 
-  // Mark chat as read
   async markAsRead() {
     if (this.messages.length > 0) {
       const otherPlayerMessages = this.messages.filter(msg => 
@@ -318,7 +302,6 @@ class ChatSystem {
     this.updateUnreadBadge();
   }
 
-  // Show chat modal
   showChat() {
     const chatModal = document.getElementById('chatModal');
     const chatInput = document.getElementById('chatInput');
@@ -334,7 +317,6 @@ class ChatSystem {
     if (chatInput) chatInput.focus();
   }
 
-  // Hide chat modal
   hideChat() {
     const chatModal = document.getElementById('chatModal');
     
@@ -347,8 +329,11 @@ class ChatSystem {
     this.updateUnreadBadge();
   }
 
-  // Setup event listeners
+  // FIXED: Don't setup duplicate event listeners
   setupEventListeners() {
+    // Only setup if not already done
+    if (this.listenersSetup) return;
+    
     const chatToggle = document.getElementById('chatToggle');
     const chatModal = document.getElementById('chatModal');
     const chatCloseBtn = document.getElementById('chatCloseBtn');
@@ -369,7 +354,6 @@ class ChatSystem {
       });
     }
 
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && this.isVisible) {
         this.hideChat();
@@ -391,13 +375,15 @@ class ChatSystem {
       chatInput.addEventListener('input', () => {
         const hasText = chatInput.value.trim().length > 0;
         if (chatSendBtn) {
-          chatSendBtn.disabled = !hasText || !this.currentUser;
+          chatSendBtn.disabled = !hasText || !this.currentUser || this.isProcessing;
         }
       });
     }
+    
+    this.listenersSetup = true;
+    console.log('🎧 Chat event listeners setup complete');
   }
 
-  // Update interface visibility based on user permissions
   updateInterfaceVisibility() {
     const chatToggle = document.getElementById('chatToggle');
     const chatInput = document.getElementById('chatInput');
@@ -421,10 +407,9 @@ class ChatSystem {
       this.hideChat();
     }
     
-    console.log('💬 Chat interface visibility v3C:', canUseChat ? 'enabled' : 'disabled');
+    console.log('💬 Chat interface visibility v2025.05.30.6:', canUseChat ? 'enabled' : 'disabled');
   }
 
-  // Handle real-time message updates
   handleRealtimeUpdate(payload) {
     if (payload.eventType === "INSERT") {
       this.messages.push(payload.new);
@@ -445,19 +430,16 @@ class ChatSystem {
     }
   }
 
-  // Utility: Escape HTML to prevent XSS
   escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
-  // Get current message count
   getMessageCount() {
     return this.messages.length;
   }
 
-  // Get unread message count
   getUnreadCount() {
     return this.messages.filter(msg => {
       if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
@@ -466,24 +448,20 @@ class ChatSystem {
     }).length;
   }
 
-  // NEW: Get chat status for debugging
   getChatStatus() {
     return {
       messageCount: this.messages.length,
       unreadCount: this.getUnreadCount(),
       isVisible: this.isVisible,
       currentUser: this.currentUser,
-      version: 'v2025.05.30.3'
+      isProcessing: this.isProcessing,
+      version: 'v2025.05.30.6'
     };
   }
 }
 
-// Create and export singleton instance
 const chatSystem = new ChatSystem();
-
-// Make it globally accessible for delete functionality
 window.chatSystem = chatSystem;
 
-// Export both the instance and the class
 export default chatSystem;
 export { ChatSystem };
