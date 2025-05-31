@@ -16,54 +16,75 @@ class HistoryModal {
     console.log(`📊 History Modal initialized v2025.05.30.3 (${this.isDevelopment ? 'DEV' : 'PROD'} mode)`);
   }
 
-  // NEW: Smart environment detection
+  // NEW: Smart environment detection with Recommended Combo Setup
   detectDevelopmentEnvironment() {
-    // Method 1: Check hostname
+    console.log('🔍 Starting environment detection...');
+    
+    // PRIORITY ORDER (first match wins):
+    
+    // 1. URL override (highest priority)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('dev') === 'true') {
+      console.log('🔧 Development forced: URL parameter ?dev=true');
+      return true;
+    }
+    if (urlParams.get('prod') === 'true') {
+      console.log('🔧 Production forced: URL parameter ?prod=true');
+      return false;
+    }
+    if (urlParams.get('debug') === 'true' || urlParams.get('mock') === 'true') {
+      console.log('🔧 Development forced: URL parameter ?debug=true or ?mock=true');
+      return true;
+    }
+    
+    // 2. HTML meta tag
+    const envMeta = document.querySelector('meta[name="environment"]');
+    if (envMeta?.content === 'development') {
+      console.log('📄 Development detected: HTML meta tag');
+      return true;
+    }
+    if (envMeta?.content === 'production') {
+      console.log('📄 Production forced: HTML meta tag');
+      return false;
+    }
+    
+    // 3. Hostname detection
     const hostname = window.location.hostname;
     if (hostname === 'localhost' || 
         hostname === '127.0.0.1' || 
         hostname.includes('localhost') ||
         hostname === '') {  // file:// protocol
-      console.log('🏠 Development detected: localhost/file');
+      console.log('🏠 Development detected: localhost/file protocol');
       return true;
     }
     
-    // Method 2: Check for development URL patterns
+    // 4. Branch/path detection
     const href = window.location.href;
-    if (href.includes('dev.') ||
+    if (href.includes('/dev') || 
         href.includes('-dev') ||
+        href.includes('dev.') ||
         href.includes('staging.') ||
         href.includes('test.') ||
         href.includes('preview.')) {
-      console.log('🚧 Development detected: dev URL pattern');
+      console.log('🌿 Development detected: dev/staging URL pattern');
       return true;
     }
     
-    // Method 3: Check for URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('dev') === 'true' || 
-        urlParams.get('debug') === 'true' ||
-        urlParams.get('mock') === 'true') {
-      console.log('🔧 Development forced: URL parameter');
-      return true;
-    }
-    
-    // Method 4: Check for development indicators in HTML
-    if (document.title.includes('[DEV]') || 
-        document.querySelector('meta[name="environment"]')?.content === 'development') {
-      console.log('📄 Development detected: HTML meta/title');
-      return true;
-    }
-    
-    // Method 5: Check for GitHub Pages development branch
+    // 5. GitHub Pages development branch detection
     if (href.includes('github.io') && 
         (href.includes('/dev') || href.includes('-dev'))) {
       console.log('🌿 Development detected: GitHub Pages dev branch');
       return true;
     }
     
-    // Default to production
-    console.log('🌐 Production mode detected');
+    // 6. Title indicator (fallback)
+    if (document.title.includes('[DEV]') || document.title.includes('DEV')) {
+      console.log('📄 Development detected: page title contains [DEV]');
+      return true;
+    }
+    
+    // 7. Default to production (safest)
+    console.log('🌐 Production mode: default (no dev indicators found)');
     return false;
   }
 
