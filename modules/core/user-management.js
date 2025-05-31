@@ -1,5 +1,5 @@
-// I'm Puzzled - User Management Module v2025.05.30.6
-// FIXED: Enhanced state management for UI visibility control
+// I'm Puzzled - User Management Module v2025.05.31.1
+// FIXED: User dropdown display issue after login
 
 class UserManager {
   constructor() {
@@ -21,7 +21,7 @@ class UserManager {
       
       this.currentUser = urlUser || storedUser || "";
       
-      console.log(`👤 User Manager initialized v2025.05.30.6: ${this.currentUser || 'No user selected'}`);
+      console.log(`👤 User Manager initialized v2025.05.31.1: ${this.currentUser || 'No user selected'}`);
     } catch (error) {
       console.error('❌ User Manager initialization failed:', error);
       this.currentUser = "";
@@ -32,7 +32,7 @@ class UserManager {
     return this.currentUser;
   }
 
-  // FIXED: Enhanced setCurrentUser with callback trigger
+  // ISSUE 2 FIX: Enhanced setCurrentUser with immediate dropdown update
   setCurrentUser(user) {
     if (!this.isValidUser(user)) {
       throw new Error(`Invalid user: ${user}`);
@@ -46,6 +46,12 @@ class UserManager {
     const url = new URL(window.location);
     url.searchParams.set('user', user);
     window.history.replaceState({}, '', url);
+    
+    // FIXED: Update dropdown display immediately
+    const userSelect = document.querySelector("#userSelect");
+    if (userSelect) {
+      userSelect.value = user;
+    }
     
     console.log(`👤 User switched from ${oldUser || 'none'} to: ${user}`);
     
@@ -114,7 +120,7 @@ class UserManager {
       }
     });
 
-    console.log('🔧 User selector initialized v2025.05.30.6');
+    console.log('🔧 User selector initialized v2025.05.31.1');
   }
 
   // FIXED: Immediate UI update for user changes
@@ -147,7 +153,7 @@ class UserManager {
       chatSendBtn.disabled = !this.canSendChatMessage();
     }
 
-    console.log('🎨 UI updated for user change v2025.05.30.6');
+    console.log('🎨 UI updated for user change v2025.05.31.1');
   }
 
   getOtherUser() {
@@ -192,7 +198,7 @@ class UserManager {
     // FIXED: Update UI immediately
     this.updateUIForUserChange();
     
-    console.log('👤 User reset v2025.05.30.6');
+    console.log('👤 User reset v2025.05.31.1');
   }
 
   // FIXED: Check if user has sufficient permissions for specific actions
@@ -223,7 +229,7 @@ class UserManager {
         canChat: this.canSendChatMessage(),
         canViewHistory: this.canRenderTable()
       },
-      version: 'v2025.05.30.6'
+      version: 'v2025.05.31.1'
     };
   }
 
@@ -236,7 +242,7 @@ class UserManager {
       this.onUserChanged(this.currentUser, null);
     }
     
-    console.log('🔄 All user-dependent UI refreshed');
+    console.log('🔄 All user-dependent UI refreshed v2025.05.31.1');
   }
 }
 

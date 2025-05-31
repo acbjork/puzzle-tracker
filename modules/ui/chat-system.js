@@ -1,5 +1,5 @@
-// I'm Puzzled - Chat System Module v2025.05.30.6
-// FIXED: Double-send prevention, modern bubbles, emoji names
+// I'm Puzzled - Chat System Module v2025.05.31.1
+// FIXED: Unread badge disappearing + keyboard behavior for multiline input
 
 class ChatSystem {
   constructor() {
@@ -10,7 +10,7 @@ class ChatSystem {
     this.currentUser = null;
     this.isProcessing = false; // FIXED: Anti-double-send flag
     
-    console.log('💬 Chat System initialized v2025.05.30.6 - FIXED');
+    console.log('💬 Chat System initialized v2025.05.31.1 - FIXED');
   }
 
   async init(userManager, supabaseClient, dateHelpers) {
@@ -26,7 +26,7 @@ class ChatSystem {
     this.setupEventListeners();
     this.updateInterfaceVisibility();
     
-    console.log('💬 Chat System ready v2025.05.30.6');
+    console.log('💬 Chat System ready v2025.05.31.1');
   }
 
   async loadLastReadStatus() {
@@ -286,6 +286,7 @@ class ChatSystem {
     }
   }
 
+  // ISSUE 1 FIX: Enhanced markAsRead with forced badge update
   async markAsRead() {
     if (this.messages.length > 0) {
       const otherPlayerMessages = this.messages.filter(msg => 
@@ -299,7 +300,10 @@ class ChatSystem {
     }
     
     this.hasUnreadMessages = false;
-    this.updateUnreadBadge();
+    // FIXED: Force badge update with timeout to ensure DOM is ready
+    setTimeout(() => {
+      this.updateUnreadBadge();
+    }, 100);
   }
 
   showChat() {
@@ -365,11 +369,14 @@ class ChatSystem {
     }
 
     if (chatInput) {
+      // ISSUE 4 FIX: Changed keyboard behavior - only send on Enter without modifiers
       chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
+        // FIXED: Only send on Enter WITHOUT modifier keys
+        if (e.key === 'Enter' && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
           e.preventDefault();
           this.sendMessage();
         }
+        // Allow Shift+Enter, Option+Enter, etc. for new lines
       });
 
       chatInput.addEventListener('input', () => {
@@ -381,7 +388,7 @@ class ChatSystem {
     }
     
     this.listenersSetup = true;
-    console.log('🎧 Chat event listeners setup complete');
+    console.log('🎧 Chat event listeners setup complete v2025.05.31.1');
   }
 
   updateInterfaceVisibility() {
@@ -407,7 +414,7 @@ class ChatSystem {
       this.hideChat();
     }
     
-    console.log('💬 Chat interface visibility v2025.05.30.6:', canUseChat ? 'enabled' : 'disabled');
+    console.log('💬 Chat interface visibility v2025.05.31.1:', canUseChat ? 'enabled' : 'disabled');
   }
 
   handleRealtimeUpdate(payload) {
@@ -455,7 +462,7 @@ class ChatSystem {
       isVisible: this.isVisible,
       currentUser: this.currentUser,
       isProcessing: this.isProcessing,
-      version: 'v2025.05.30.6'
+      version: 'v2025.05.31.1'
     };
   }
 }

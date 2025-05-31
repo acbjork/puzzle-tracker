@@ -1,1460 +1,1683 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>🧠 I'm Puzzled ‼️</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I'm Puzzled</title>
   <style>
+    /* I'm Puzzled v2025.05.31.1 - FIXED all 5 polish issues */
+    
     :root {
-      /* Phase 3C Color Palette */
-      --primary-light: #f8fafc;
-      --primary-medium: #e2e8f0;
-      --purple-light: #ddd6fe;
-      --purple-medium: #c4b5fd;
-      --purple-dark: #6b46c1;
-      --accent-dark: #475569;
-      --strip-bg: #ddd6fe;
-      --table-header: #f1f5f9;
-      --swipe-indicator: #6b46c1;
+      --purple: #6b46c1;
+      --light-purple: #a855f7;
+      --green: #059669;
+      --red: #dc2626;
+      --amber: #f59e0b;
+      --gray: #64748b;
+      --light-gray: #f1f5f9;
+      --dark-gray: #334155;
     }
-
+    
     * {
       box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding-top: 140px; /* ISSUE 3 FIX: Increased for crown space */
+      padding-bottom: 80px;
+      overflow-x: hidden;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--primary-light);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* CLAUDE-STYLE INTERFACE: Fixed Top Strip */
+    
+    /* ISSUE 3 FIX: Crown positioning and spacing */
     .top-strip {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      background: var(--strip-bg);
-      border-bottom: 1px solid var(--purple-medium);
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      padding: 12px 20px 16px 20px; /* FIXED: Added bottom padding */
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
       z-index: 1000;
-      transition: height 0.3s ease;
-      height: 110px;
-      box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
+      height: 140px; /* FIXED: Increased height for crown */
+      display: flex;
+      align-items: flex-start; /* FIXED: Align to top for better spacing */
+      justify-content: space-between;
     }
-
-    .top-strip.expanded {
-      height: 60vh;
+    
+    .scoreboard-container {
+      padding-top: 20px; /* FIXED: Added padding for crown space */
     }
-
-    /* CLAUDE-STYLE INTERFACE: Fixed Bottom Strip */
+    
+    .scoreboard-mini {
+      display: flex;
+      align-items: flex-start; /* FIXED: Align to top */
+      gap: 25px;
+      color: white;
+      font-size: 0.95em;
+      position: relative;
+    }
+    
+    .score-item {
+      text-align: center;
+      position: relative;
+      padding-top: 25px; /* FIXED: Space for crown */
+    }
+    
+    .crown {
+      position: absolute;
+      top: -30px; /* ISSUE 3 FIX: Adjusted position to not clip */
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 1.8em;
+      z-index: 10; /* FIXED: Ensure crown is visible */
+      animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+      40% { transform: translateX(-50%) translateY(-10px); }
+      60% { transform: translateX(-50%) translateY(-5px); }
+    }
+    
+    .score-label {
+      font-weight: 600;
+      margin-bottom: 2px;
+      font-size: 0.8em;
+      opacity: 0.9;
+    }
+    
+    .score-value {
+      font-size: 1.4em;
+      font-weight: 700;
+    }
+    
+    .app-title {
+      color: white;
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      margin: 0 20px;
+      flex: 1;
+      padding-top: 35px;
+    }
+    
+    .tagline {
+      font-size: 0.7em;
+      opacity: 0.8;
+      margin-top: 2px;
+      font-style: italic;
+    }
+    
+    .user-selector {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      color: white;
+      font-size: 0.8em;
+      padding-top: 35px;
+    }
+    
+    .user-label {
+      margin-bottom: 5px;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+    
+    #userSelect {
+      padding: 6px 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.15);
+      color: white;
+      font-size: 0.9em;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    #userSelect:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: rgba(255,255,255,0.5);
+    }
+    
+    #userSelect:focus {
+      outline: none;
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.3);
+    }
+    
+    #userSelect option {
+      background: #4f46e5;
+      color: white;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+      backdrop-filter: blur(20px);
+      overflow: hidden;
+    }
+    
+    .date-header {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--light-purple) 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 1.3em;
+      font-weight: 700;
+      margin: 0;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .table-container {
+      padding: 0;
+      overflow-x: auto;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+    
+    th {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: var(--dark-gray);
+      padding: 16px 12px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.9em;
+      border-bottom: 2px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    
+    th:first-child {
+      width: 200px;
+      min-width: 200px;
+    }
+    
+    th:not(:first-child) {
+      width: 120px;
+      min-width: 120px;
+      text-align: center;
+    }
+    
+    td {
+      padding: 12px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
+      transition: background-color 0.2s ease;
+    }
+    
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+    
+    .puzzle-name {
+      font-weight: 600;
+      color: var(--dark-gray);
+      font-size: 0.95em;
+    }
+    
+    .cell-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+    }
+    
+    .result-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-width: 60px;
+      text-align: center;
+    }
+    
+    .result-perfect {
+      background: linear-gradient(135deg, var(--green) 0%, #10b981 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+    }
+    
+    .result-close {
+      background: linear-gradient(135deg, var(--amber) 0%, #fbbf24 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.3);
+    }
+    
+    .result-struggled {
+      background: linear-gradient(135deg, var(--red) 0%, #ef4444 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(220,38,38,0.3);
+    }
+    
+    .result-badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    
+    .btn-edit, .btn-submit {
+      background: none;
+      border: 2px solid var(--purple);
+      color: var(--purple);
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.7em;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-edit:hover, .btn-submit:hover {
+      background: var(--purple);
+      color: white;
+      transform: translateY(-1px);
+    }
+    
+    .btn-submit {
+      border-color: var(--green);
+      color: var(--green);
+    }
+    
+    .btn-submit:hover {
+      background: var(--green);
+      color: white;
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
     .bottom-strip {
       position: fixed;
       bottom: 0;
       left: 0;
       right: 0;
-      background: var(--strip-bg);
-      border-top: 1px solid var(--purple-medium);
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
       z-index: 1000;
-      transition: height 0.3s ease;
-      height: 70px;
-      box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
+      cursor: pointer;
+      transition: height 0.3s ease, transform 0.3s ease;
     }
-
+    
     .bottom-strip.expanded {
       height: 70vh;
+      cursor: default;
     }
-
-    /* Main Content Area */
-    .main-content {
-      flex: 1;
-      margin-top: 110px;
-      margin-bottom: 70px;
-      overflow-y: auto;
-      padding: 1em;
-      -webkit-overflow-scrolling: touch;
+    
+    .strip-content {
+      color: white;
+      font-weight: 600;
+      font-size: 0.9em;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       position: relative;
     }
-
-    /* FIXED: Overlay for tap-to-dismiss functionality */
-    .overlay {
+    
+    .strip-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    
+    .bottom-strip.expanded .strip-toggle {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .chat-container {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: white;
+      border-radius: 16px 16px 0 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s ease;
+    }
+    
+    .bottom-strip.expanded .chat-container {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .chat-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: var(--purple);
+    }
+    
+    .chat-close {
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: var(--gray);
+      padding: 5px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+    
+    .chat-close:hover {
+      background: #f1f5f9;
+      color: var(--red);
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f8fafc;
+      border-radius: 12px;
+      min-height: 200px;
+    }
+    
+    .chat-message {
+      margin-bottom: 16px;
+    }
+    
+    .message-bubble {
+      max-width: 80%;
+      padding: 12px 16px;
+      border-radius: 18px;
+      position: relative;
+      word-wrap: break-word;
+      line-height: 1.4;
+    }
+    
+    .message-bubble.current-user {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--light-purple) 100%);
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 6px;
+    }
+    
+    .message-bubble.other-user {
+      background: white;
+      color: var(--dark-gray);
+      border: 1px solid #e2e8f0;
+      margin-right: auto;
+      border-bottom-left-radius: 6px;
+    }
+    
+    .chat-input-container {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    
+    .chat-input {
+      flex: 1;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.9em;
+      resize: vertical;
+      min-height: 44px;
+      max-height: 120px;
+      font-family: inherit;
+      transition: border-color 0.2s ease;
+    }
+    
+    .chat-input:focus {
+      outline: none;
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(107,70,193,0.1);
+    }
+    
+    .chat-send-btn {
+      background: linear-gradient(135deg, var(--purple) 0%, var(--light-purple) 100%);
+      border: none;
+      color: white;
+      padding: 12px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.8em; /* ISSUE 5 FIX: Bigger emoji */
+      min-width: 60px; /* ISSUE 5 FIX: Wider button */
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    
+    .chat-send-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(107,70,193,0.3);
+    }
+    
+    .chat-send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    #unreadBadge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      min-width: 20px;
+      height: 20px;
+      font-size: 0.7em;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    .version-info {
+      position: fixed;
+      bottom: 70px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.7em;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      z-index: 999;
+    }
+    
+    /* Pull to refresh styles */
+    .pull-refresh {
+      position: fixed;
+      top: -60px;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      z-index: 1001;
+      transition: transform 0.3s ease;
+    }
+    
+    .pull-refresh.visible {
+      transform: translateY(60px);
+    }
+    
+    /* Loading overlay */
+    .loading-overlay {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background: rgba(0,0,0,0.3);
-      z-index: 999;
+      background: rgba(255,255,255,0.9);
       display: none;
-      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(5px);
     }
-
-    .overlay.visible {
-      display: block;
+    
+    .loading-overlay.visible {
+      display: flex;
     }
-
-    /* Swipe Indicators */
-    .swipe-indicator {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
+    
+    .loading-spinner {
       width: 40px;
-      height: 4px;
-      background: var(--swipe-indicator);
-      border-radius: 2px;
-      opacity: 0.6;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      z-index: 1001; /* FIXED: Ensure indicator is always visible */
-    }
-
-    .top-strip .swipe-indicator {
-      bottom: 8px;
-    }
-
-    .bottom-strip .swipe-indicator {
-      top: 8px;
-    }
-
-    .swipe-indicator:hover {
-      opacity: 1;
-      transform: translateX(-50%) scale(1.1);
-    }
-
-    /* ENHANCED SCOREBOARD (Top Strip Content) */
-    .scoreboard-container {
-      padding: 1em;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .scoreboard-mini {
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      font-weight: 600;
-      font-size: 1.4em;
-      height: 80px;
-    }
-
-    .scoreboard-item {
-      text-align: center;
-      position: relative;
-      min-width: 70px;
-    }
-
-    .scoreboard-label {
-      font-size: 0.8em;
-      color: var(--accent-dark);
-      margin-bottom: 4px;
-      font-weight: 800;
-    }
-
-    .scoreboard-value {
-      font-size: 1.8em;
-      font-weight: 900;
-      color: var(--purple-dark);
-    }
-
-    .crown {
-      position: absolute;
-      top: -45px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2.5em;
-      animation: crownBounce 1s ease-in-out infinite alternate;
-    }
-
-    @keyframes crownBounce {
-      0% { transform: translateX(-50%) translateY(0px); }
-      100% { transform: translateX(-50%) translateY(-3px); }
-    }
-
-    /* EXPANDED HISTORY & STATS (Top Strip Expanded) */
-    .history-expanded {
-      display: none;
-      padding: 2em 1em;
-      height: calc(100% - 80px);
-      overflow-y: auto;
-    }
-
-    .top-strip.expanded .history-expanded {
-      display: block;
-    }
-
-    .top-strip.expanded .scoreboard-mini {
-      height: 80px;
-      border-bottom: 1px solid var(--purple-medium);
-      margin-bottom: 1em;
-    }
-
-    .history-title {
-      text-align: center;
-      font-size: 1.5em;
-      font-weight: bold;
-      color: var(--purple-dark);
-      margin-bottom: 1.5em;
-    }
-
-    /* FIXED: Current Champ Panel */
-    .current-champ-panel {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5em;
-      margin-bottom: 1.5em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      border: 1px solid var(--purple-medium);
-    }
-
-    .current-champ-title {
-      text-align: center;
-      font-size: 1.2em;
-      font-weight: 700;
-      color: var(--purple-dark);
-      margin-bottom: 1em;
-    }
-
-    .champ-info {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.75em 1em;
-      background: linear-gradient(135deg, var(--purple-light), var(--purple-medium));
-      border-radius: 8px;
-    }
-
-    .champ-name {
-      font-size: 1.1em;
-      font-weight: 600;
-      color: var(--purple-dark);
-    }
-
-    .champ-streak {
-      font-size: 0.9em;
-      color: var(--accent-dark);
-      font-weight: 500;
-    }
-
-    /* DATE PICKER */
-    .date-picker-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1em;
-      margin-bottom: 1.5em;
-      padding: 1em;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .date-picker {
-      padding: 0.5em 1em;
-      border: 2px solid var(--purple-medium);
-      border-radius: 8px;
-      font-size: 1em;
-      background: white;
-    }
-
-    .date-nav-btn {
-      background: var(--purple-medium);
-      color: var(--purple-dark);
-      border: none;
-      padding: 0.5em 1em;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .date-nav-btn:hover {
-      background: var(--purple-dark);
-      color: white;
-    }
-
-    /* HISTORY TABLE */
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .history-table th {
-      background: var(--table-header);
-      padding: 0.75em;
-      text-align: left;
-      font-weight: 600;
-      color: var(--accent-dark);
-      border-bottom: 2px solid var(--primary-medium);
-    }
-
-    .history-table td {
-      padding: 0.75em;
-      border-bottom: 1px solid #f0f0f0;
-      vertical-align: middle;
-    }
-
-    .history-table tr:last-child td {
-      border-bottom: none;
-    }
-
-    .history-table tr:hover {
-      background: #f8fafc;
-    }
-
-    .streak-current {
-      font-weight: 600;
-      color: var(--purple-dark);
-    }
-
-    .streak-record {
-      font-weight: 500;
-      color: #059669;
-    }
-
-    /* CHAT SYSTEM (Bottom Strip) */
-    .chat-container {
-      padding: 1em;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .chat-mini {
-      display: flex;
-      align-items: center;
-      gap: 0.5em; /* FIXED: Reduced gap for better spacing */
       height: 40px;
-    }
-
-    .chat-indicator {
-      font-size: 1.5em;
-      color: var(--purple-dark);
-    }
-
-    .chat-status {
-      flex: 1;
-      font-weight: 600;
-      color: var(--accent-dark);
-      font-size: 1.1em;
-    }
-
-    .unread-badge {
-      background: #ef4444;
-      color: white;
+      border: 4px solid #e2e8f0;
+      border-top: 4px solid var(--purple);
       border-radius: 50%;
-      min-width: 24px;
-      height: 24px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8em;
-      font-weight: bold;
+      animation: spin 1s linear infinite;
     }
-
-    /* EXPANDED CHAT (Bottom Strip Expanded) */
-    .chat-expanded {
-      display: none;
-      padding: 1em;
-      height: calc(100% - 40px);
-      flex-direction: column;
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-
-    .bottom-strip.expanded .chat-expanded {
-      display: flex;
-    }
-
-    .bottom-strip.expanded .chat-mini {
-      height: 40px;
-      border-bottom: 1px solid var(--purple-medium);
-      margin-bottom: 1em;
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1em;
-      background: white;
-      border-radius: 8px;
-      margin-bottom: 1em;
-      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* FIXED: Modern chat bubbles */
-    .chat-message {
-      margin-bottom: 1em;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .message-bubble {
-      max-width: 75%; /* FIXED: Responsive width based on content */
-      word-wrap: break-word;
-      padding: 0.75em 1em;
-      border-radius: 16px;
-      margin: 0.25em 0;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      transition: all 0.2s;
-      width: fit-content; /* FIXED: Size based on content */
-    }
-
-    .message-bubble.current-user {
-      background: linear-gradient(135deg, #6b46c1, #8b5cf6);
-      color: white;
-      align-self: flex-end; /* FIXED: Right-aligned */
-      border-bottom-right-radius: 4px;
-    }
-
-    .message-bubble.other-user {
-      background: #f8fafc;
-      color: var(--accent-dark);
-      align-self: flex-start; /* FIXED: Left-aligned */
-      border: 1px solid var(--primary-medium);
-      border-bottom-left-radius: 4px;
-    }
-
-    .message-bubble:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .chat-input-container {
-      display: flex;
-      gap: 0.5em;
-      padding: 1em;
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .chat-input {
-      flex: 1;
-      padding: 0.75em;
-      border: 2px solid var(--purple-medium);
-      border-radius: 6px;
-      font-size: 1em;
-      resize: none;
-    }
-
-    .chat-send-btn {
-      background: var(--purple-dark);
-      color: white;
-      border: none;
-      padding: 0.75em; /* FIXED: Removed text padding */
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-      font-size: 1.2em; /* FIXED: Larger emoji */
-      min-width: 50px; /* FIXED: Consistent button size */
-    }
-
-    .chat-send-btn:hover {
-      background: #553c9a;
-    }
-
-    .chat-send-btn:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
-
-    /* MAIN CONTENT STYLING */
-    h1 {
-      text-align: center;
-      margin: 0 0 0.5em 0;
-      font-size: 2em;
-      color: var(--purple-dark);
-    }
-
-    .subtitle {
-      text-align: center;
-      font-size: 0.95em;
-      color: #666;
-      margin: 0 0 1.5em 0;
-    }
-
-    .user-select-area {
-      text-align: center;
-      margin-bottom: 1.5em;
-    }
-
-    .user-select-area select {
-      padding: 0.5em 1em;
-      border: 2px solid var(--purple-medium);
-      border-radius: 8px;
-      background: white;
-      font-size: 1em;
-    }
-
-    .puzzle-date {
-      text-align: center;
-      font-size: 0.9em;
-      color: #888;
-      margin: 0.5em 0 1.5em 0;
-      font-weight: 500;
-    }
-
-    /* PUZZLE TABLE */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1em 0;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    th {
-      background: var(--table-header);
-      padding: 0.75em 0.5em;
-      text-align: center;
-      font-weight: 600;
-      color: var(--accent-dark);
-      border-right: 1px solid var(--primary-medium);
-    }
-
-    th:first-child {
-      text-align: left;
-      max-width: 90px;
-    }
-
-    th:last-child {
-      border-right: none;
-    }
-
-    td {
-      padding: 0.5em;
-      text-align: center;
-      vertical-align: top;
-      border-right: 1px solid var(--primary-medium);
-      border-bottom: 1px solid #f0f0f0;
-    }
-
-    td:first-child {
-      text-align: left;
-      max-width: 90px;
-      font-weight: 500;
-    }
-
-    td:last-child {
-      border-right: none;
-    }
-
-    /* PUZZLE RESULTS */
-    .submitted {
-      background: transparent !important;
-      white-space: pre-wrap;
-      padding: 0.25em 0.5em;
-      line-height: 1.2;
-      border-radius: 4px;
-      font-family: monospace;
-    }
-
-    .winner {
-      background-color: #d4ffd4 !important;
-    }
-
-    .tie {
-      background-color: #fff9c4 !important;
-    }
-
-    .dnf-cell {
-      background-color: #ffebee !important;
-      color: #c62828;
-      font-weight: bold;
-      font-style: italic;
-      padding: 0.5em;
-    }
-
-    /* ACTION BUTTONS */
-    .action-buttons {
-      display: flex;
-      gap: 0.5em;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      padding: 0.4em 0.8em;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.8em;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-
-    .btn-edit {
-      background: var(--purple-medium);
-      color: var(--purple-dark);
-    }
-
-    .btn-submit {
-      background: #10b981;
-      color: white;
-    }
-
-    .btn-delete {
-      background: #ef4444;
-      color: white;
-    }
-
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    /* FIXED: Hide buttons when no user selected */
-    .btn.hidden {
-      display: none;
-    }
-
-    /* PUZZLE LINKS */
-    .puzzle-name {
-      cursor: pointer;
-      color: var(--purple-dark);
-      text-decoration: underline;
-      font-weight: 500;
-    }
-
-    .puzzle-name:hover {
-      color: #553c9a;
-    }
-
-    .puzzle-nowrap {
-      white-space: nowrap;
-    }
-
-    /* TEXTAREA */
-    textarea {
-      width: 100%;
-      min-height: 60px;
-      padding: 0.5em;
-      border: 2px solid var(--purple-medium);
-      border-radius: 6px;
-      font-family: monospace;
-      resize: vertical;
-    }
-
-    /* LOADING OVERLAY */
-    #loadingOverlay {
+    
+    /* Modal backdrop */
+    .modal-backdrop {
       position: fixed;
       top: 0;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background: white;
-      color: #444;
-      font-size: 1.5em;
-      display: flex;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
       align-items: center;
       justify-content: center;
-      z-index: 9999;
+      z-index: 1500;
+      backdrop-filter: blur(3px);
+      padding: 20px;
     }
-
-    /* MOBILE OPTIMIZATIONS */
+    
+    .modal-backdrop.visible {
+      display: flex;
+    }
+    
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+    }
+    
+    .modal-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: var(--purple);
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5em;
+      cursor: pointer;
+      color: var(--gray);
+      padding: 5px;
+      border-radius: 50%;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close:hover {
+      background: #f1f5f9;
+      color: var(--red);
+    }
+    
+    /* Responsive design */
     @media (max-width: 768px) {
-      .main-content {
-        padding: 0.5em;
-        margin-top: 110px;
+      body {
+        padding-top: 120px;
+        padding-bottom: 70px;
       }
-
-      table {
+      
+      .top-strip {
+        height: 120px;
+        padding: 8px 15px 12px 15px;
+      }
+      
+      .scoreboard-mini {
+        gap: 15px;
         font-size: 0.85em;
       }
-
-      .scoreboard-mini {
-        font-size: 1.1em;
-        padding: 0.75em;
+      
+      .app-title {
+        font-size: 1em;
+        padding-top: 25px;
       }
-
-      .scoreboard-value {
-        font-size: 1.6em;
+      
+      .user-selector {
+        padding-top: 25px;
       }
-
-      .top-strip.expanded {
-        height: 65vh;
+      
+      .container {
+        margin: 0 10px;
+        border-radius: 12px;
       }
-
-      .bottom-strip.expanded {
-        height: 75vh;
+      
+      .table-container {
+        overflow-x: auto;
       }
-
-      .puzzle-date {
+      
+      th, td {
+        padding: 8px 6px;
         font-size: 0.8em;
-        margin: 0.25em 0 1em 0;
       }
-
-      .history-expanded {
-        padding: 1em 0.5em;
+      
+      th:first-child {
+        width: 150px;
+        min-width: 150px;
       }
-
-      .chat-expanded {
-        padding: 0.5em;
+      
+      th:not(:first-child) {
+        width: 80px;
+        min-width: 80px;
       }
-
-      .message-bubble {
-        max-width: 85%;
+      
+      .result-badge {
+        padding: 4px 8px;
+        font-size: 0.7em;
+        min-width: 50px;
       }
-    }
-
-    /* PULL TO REFRESH */
-    .refresh-indicator {
-      text-align: center;
-      padding: 1em;
-      color: var(--purple-dark);
-      font-weight: 500;
-      opacity: 0;
-      transform: translateY(-20px);
-      transition: all 0.3s ease;
-    }
-
-    .refresh-indicator.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* VERSION */
-    .version {
-      text-align: right;
-      font-size: 0.8em;
-      color: #888;
-      margin-top: 2em;
-      padding: 1em 0;
+      
+      .bottom-strip.expanded {
+        height: 80vh;
+      }
+      
+      .chat-container {
+        padding: 15px;
+      }
+      
+      .version-info {
+        bottom: 80px;
+        font-size: 0.6em;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="loadingOverlay">Loading…</div>
-
-  <!-- FIXED: Overlay for tap-to-dismiss -->
-  <div class="overlay" id="overlay"></div>
-
-  <!-- CLAUDE-STYLE TOP STRIP: Scoreboard + History & Stats -->
-  <div class="top-strip" id="topStrip">
-    <div class="swipe-indicator" id="topSwipeIndicator"></div>
-    
+  <div id="pullRefresh" class="pull-refresh">↓ Release to refresh ↓</div>
+  <div id="loadingOverlay" class="loading-overlay"><div class="loading-spinner"></div></div>
+  
+  <div class="top-strip">
     <div class="scoreboard-container">
-      <!-- Mini Scoreboard (Always Visible) -->
-      <div class="scoreboard-mini" id="scoreboardMini">
-        <div class="scoreboard-item">
-          <div class="scoreboard-label">ACB</div>
-          <div id="acbCrown" class="crown" style="display: none;">👑</div>
-          <div id="acbCount" class="scoreboard-value">0</div>
+      <div class="scoreboard-mini">
+        <div id="adamScore" class="score-item">
+          <div class="score-label">ACB</div>
+          <div class="score-value">0</div>
         </div>
-        <div class="scoreboard-item">
-          <div class="scoreboard-label">JBB</div>
-          <div id="jbbCrown" class="crown" style="display: none;">👑</div>
-          <div id="jbbCount" class="scoreboard-value">0</div>
+        <div id="jonathanScore" class="score-item">
+          <div class="score-label">JBB</div>
+          <div class="score-value">0</div>
         </div>
-        <div class="scoreboard-item">
-          <div class="scoreboard-label">Tie</div>
-          <div id="tieCount" class="scoreboard-value">0</div>
+        <div id="tieScore" class="score-item">
+          <div class="score-label">Tie</div>
+          <div class="score-value">0</div>
         </div>
-        <div class="scoreboard-item">
-          <div class="scoreboard-label">Left</div>
-          <div id="remainingCount" class="scoreboard-value">10</div>
+        <div id="leftScore" class="score-item">
+          <div class="score-label">Left</div>
+          <div class="score-value">10</div>
         </div>
       </div>
-
-      <!-- Expanded History & Stats (Shown on Swipe Down) -->
-      <div class="history-expanded" id="historyExpanded">
-        <div class="history-title">📊 History & Stats</div>
-        
-        <!-- FIXED: Current Champ Panel -->
-        <div class="current-champ-panel">
-          <div class="current-champ-title">🏆 Current Champion</div>
-          <div class="champ-info">
-            <div class="champ-name" id="currentChampName">No champion yet</div>
-            <div class="champ-streak" id="currentChampStreak">Start competing!</div>
-          </div>
-        </div>
-        
-        <!-- Date Picker -->
-        <div class="date-picker-container">
-          <button class="date-nav-btn" id="prevDateBtn">◀ Prev</button>
-          <input type="date" class="date-picker" id="datePicker" />
-          <button class="date-nav-btn" id="nextDateBtn">Next ▶</button>
-          <button class="date-nav-btn" id="todayBtn">Today</button>
-        </div>
-
-        <!-- Streak Data Table -->
-        <table class="history-table">
-          <thead>
-            <tr>
-              <th>Puzzle</th>
-              <th>Current Streak</th>
-              <th>Record Streak</th>
-            </tr>
-          </thead>
-          <tbody id="historyTableBody">
-            <tr>
-              <td>Loading...</td>
-              <td>--</td>
-              <td>--</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
-  </div>
-
-  <!-- MAIN CONTENT AREA: Scrollable Puzzle Table -->
-  <div class="main-content" id="mainContent">
-    <div class="refresh-indicator" id="refreshIndicator">
-      ↓ Release to refresh ↓
-    </div>
-
-    <h1>🧠 I'm Puzzled ‼️</h1>
-    <div class="subtitle">If you ain't first, you're last</div>
-
-    <div class="user-select-area">
-      <label for="userSelect">Signed in as:
-        <select id="userSelect">
-          <option value="">(choose)</option>
-          <option value="Adam">Adam 🌵</option>
-          <option value="Jonathan">Jonathan 💩</option>
-        </select>
-      </label>
-    </div>
-
-    <div class="puzzle-date" id="puzzleDate">2025-05-30 (Fri)</div>
-
-    <table id="puzzleTable">
-      <thead>
-        <tr>
-          <th>Puzzle</th>
-          <th>Adam 🌵</th>
-          <th>Jonathan 💩</th>
-        </tr>
-      </thead>
-      <tbody id="puzzleRows">
-        <tr data-puzzle="Connections">
-          <td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/connections">Connections</span></td>
-          <td data-cell="Connections-Adam"></td>
-          <td data-cell="Connections-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Strands">
-          <td><span class="puzzle-name" data-url="https://www.nytimes.com/games/strands">Strands</span></td>
-          <td data-cell="Strands-Adam"></td>
-          <td data-cell="Strands-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="On the Record">
-          <td><span class="puzzle-name" data-url="https://www.washingtonpost.com/news-quiz/">On the Record</span></td>
-          <td data-cell="On the Record-Adam"></td>
-          <td data-cell="On the Record-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Keyword">
-          <td><span class="puzzle-name" data-url="https://washingtonpost.com/games/keyword/">Keyword</span></td>
-          <td data-cell="Keyword-Adam"></td>
-          <td data-cell="Keyword-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="NYT Mini">
-          <td><span class="puzzle-name" data-url="https://nytimes.com/crosswords/game/mini/">NYT Mini</span></td>
-          <td data-cell="NYT Mini-Adam"></td>
-          <td data-cell="NYT Mini-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Apple Mini">
-          <td><span class="puzzle-name" data-url="https://apple.news/puzzles">Apple Mini</span></td>
-          <td data-cell="Apple Mini-Adam"></td>
-          <td data-cell="Apple Mini-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Globle">
-          <td><span class="puzzle-name" data-url="https://globle-game.com">Globle</span></td>
-          <td data-cell="Globle-Adam"></td>
-          <td data-cell="Globle-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Flagle">
-          <td><span class="puzzle-name puzzle-nowrap" data-url="https://www.flagle.io">Flagle</span></td>
-          <td data-cell="Flagle-Adam"></td>
-          <td data-cell="Flagle-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Wordle">
-          <td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/wordle/index.html">Wordle</span></td>
-          <td data-cell="Wordle-Adam"></td>
-          <td data-cell="Wordle-Jonathan"></td>
-        </tr>
-        <tr data-puzzle="Tightrope">
-          <td><span class="puzzle-name" data-url="https://www.britannica.com/quiz/tightrope">Tightrope</span></td>
-          <td data-cell="Tightrope-Adam"></td>
-          <td data-cell="Tightrope-Jonathan"></td>
-        </tr>
-      </tbody>
-    </table>
-
-    <div class="version">v2025.05.30.6 - Fixed All 11 Issues! 🎯✅</div>
-  </div>
-
-  <!-- CLAUDE-STYLE BOTTOM STRIP: Chat -->
-  <div class="bottom-strip" id="bottomStrip">
-    <div class="swipe-indicator" id="bottomSwipeIndicator"></div>
     
-    <div class="chat-container">
-      <!-- Mini Chat Status (Always Visible) -->
-      <div class="chat-mini" id="chatMini">
-        <div class="chat-indicator">🗑️</div>
-        <div class="chat-status" id="chatStatus">Trash Talk Central 🔥</div>
-        <div class="unread-badge" id="unreadBadge">0</div>
-      </div>
+    <div class="app-title">
+      🧠 I'm Puzzled ‼️
+      <div class="tagline">If you ain't first, you're last</div>
+    </div>
+    
+    <div class="user-selector">
+      <div class="user-label">Signed in as:</div>
+      <select id="userSelect">
+        <option value="">(choose)</option>
+        <option value="Adam">Adam 🌵</option>
+        <option value="Jonathan">Jonathan 💩</option>
+      </select>
+    </div>
+  </div>
 
-      <!-- Expanded Chat (Shown on Swipe Up) -->
-      <div class="chat-expanded" id="chatExpanded">
-        <div class="chat-messages" id="chatMessages">
-          <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
-            Select a user to start trash talking! 🔥
-          </div>
+  <div class="container">
+    <div class="date-header" id="dateHeader">2025-05-30 (Fri)</div>
+    <div class="table-container">
+      <table id="puzzleTable">
+        <thead>
+          <tr><th>Puzzle</th><th>Adam 🌵</th><th>Jonathan 💩</th></tr>
+        </thead>
+        <tbody id="puzzleTableBody">
+          <tr><td class="puzzle-name">Connections</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Strands</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">On the Record</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Keyword</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">NYT Mini</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Apple Mini</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Globle</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Flagle</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Wordle</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+          <tr><td class="puzzle-name">Tightrope</td><td><div class="cell-content"></div></td><td><div class="cell-content"></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="version-info">v2025.05.31.1 - Fixed All 5 Polish Issues! 🎯✅</div>
+
+  <div id="bottomStrip" class="bottom-strip">
+    <div class="strip-content">
+      <div class="strip-toggle" id="chatToggle">
+        🚮 <span>Trash Talk Central 🔥</span>
+        <div id="unreadBadge" style="display: none;"></div>
+      </div>
+      <div class="chat-container">
+        <div class="chat-header">
+          <div class="chat-title">Trash Talk Central 🔥</div>
+          <button class="chat-close" id="chatCloseBtn">×</button>
         </div>
-        
+        <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input-container">
-          <textarea class="chat-input" id="chatInput" placeholder="Type your trash talk..." rows="2" disabled></textarea>
-          <button class="chat-send-btn" id="chatSendBtn" disabled>🚮</button>
+          <textarea id="chatInput" class="chat-input" placeholder="Type your trash talk here..." rows="1"></textarea>
+          <button id="chatSendBtn" class="chat-send-btn" disabled>🚮</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="historyModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Historical Results</div>
+        <button class="modal-close" id="historyCloseBtn">×</button>
+      </div>
+      <div id="historyContent"></div>
+    </div>
+  </div>
+
+  <div id="resultModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title" id="resultModalTitle">Select Result</div>
+        <button class="modal-close" id="resultCloseBtn">×</button>
+      </div>
+      <div id="resultModalContent">
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+          <button class="result-badge result-perfect" onclick="selectResult('perfect')">Perfect</button>
+          <button class="result-badge result-close" onclick="selectResult('close')">Close</button>
+          <button class="result-badge result-struggled" onclick="selectResult('struggled')">Struggled</button>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button onclick="selectResult('delete')" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Delete</button>
+          <button onclick="closeResultModal()" style="background: #6b7280; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer;">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="chatModal" class="modal-backdrop">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">Trash Talk Central 🔥</div>
+        <button class="modal-close" id="chatModalCloseBtn">×</button>
+      </div>
+      <div class="chat-messages" id="chatModalMessages" style="height: 300px; overflow-y: auto; margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 12px;"></div>
+      <div class="chat-input-container">
+        <textarea id="chatModalInput" class="chat-input" placeholder="Type your trash talk here..." rows="1"></textarea>
+        <button id="chatModalSendBtn" class="chat-send-btn" disabled>🚮</button>
       </div>
     </div>
   </div>
 
   <script type="module">
-    console.log('🧠 I\'m Puzzled v2025.05.30.6 - FIXED All 11 Issues');
-    
-    let currentPuzzleDate = null;
-    let topStripExpanded = false;
-    let bottomStripExpanded = false;
-    let pullStartY = 0;
-    let isPulling = false;
+    import userManager from './modules/core/user-management.js';
+    import supabaseClient from './modules/core/supabase-client.js';
+    import dateHelpers from './modules/utils/date-helpers.js';
+    import puzzleTable from './modules/ui/puzzle-table.js';
+    import scoreboard from './modules/ui/scoreboard.js';
+    import chatSystem from './modules/ui/chat-system.js';
+    import historyModal from './modules/ui/history-modal.js';
+    import mainApp from './modules/app/main.js';
 
-    function getCurrentDate() {
-      return new Date().toISOString().slice(0, 10);
-    }
+    let currentPuzzle = '';
+    let currentUser = '';
+    let isInitialized = false;
+    let realtimeSubscription = null;
+    let loadingTimeout = null;
+    let pullRefreshActive = false;
+    let startY = 0;
+    let currentY = 0;
+    let pulling = false;
+    let lastFocusTime = Date.now();
+    let connectionRetries = 0;
+    let maxRetries = 3;
+    let retryDelay = 2000;
 
-    function formatDateDisplay(dateStr) {
-      const date = new Date(dateStr + 'T00:00:00');
-      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const dayName = days[date.getDay()];
-      return `${dateStr} (${dayName})`;
-    }
-
-    function updatePuzzleDateDisplay(dateStr = null) {
-      const displayDate = dateStr || getCurrentDate();
-      currentPuzzleDate = displayDate;
-      document.getElementById('puzzleDate').textContent = formatDateDisplay(displayDate);
-      
-      const datePicker = document.getElementById('datePicker');
-      if (datePicker) {
-        datePicker.value = displayDate;
+    function showLoading(message = 'Loading...') {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) {
+        overlay.classList.add('visible');
+        if (loadingTimeout) clearTimeout(loadingTimeout);
+        loadingTimeout = setTimeout(() => {
+          hideLoading();
+          console.warn('Loading timeout - auto-hiding overlay');
+        }, 15000);
       }
     }
 
-    function showOverlay() {
-      const overlay = document.getElementById('overlay');
-      overlay.classList.add('visible');
+    function hideLoading() {
+      const overlay = document.getElementById('loadingOverlay');
+      if (overlay) overlay.classList.remove('visible');
+      if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+      }
     }
 
-    function hideOverlay() {
-      const overlay = document.getElementById('overlay');
-      overlay.classList.remove('visible');
+    function createNotification(type, title, message, duration = 5000) {
+      const colors = {
+        error: { bg: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', shadow: 'rgba(239, 68, 68, 0.3)' },
+        success: { bg: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', shadow: 'rgba(16, 185, 129, 0.3)' },
+        warning: { bg: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', shadow: 'rgba(245, 158, 11, 0.3)' },
+        info: { bg: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', shadow: 'rgba(59, 130, 246, 0.3)' }
+      };
+
+      const existingNotifications = document.querySelectorAll('.app-notification');
+      if (existingNotifications.length >= 3) {
+        existingNotifications[0].remove();
+      }
+
+      const notificationDiv = document.createElement('div');
+      notificationDiv.className = 'app-notification';
+      const color = colors[type] || colors.info;
+      
+      notificationDiv.style.cssText = `
+        position: fixed;
+        top: ${20 + (existingNotifications.length * 80)}px;
+        right: 20px;
+        background: ${color.bg};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px ${color.shadow};
+        z-index: 2001;
+        max-width: 320px;
+        word-wrap: break-word;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      `;
+      
+      notificationDiv.innerHTML = `
+        <div style="font-weight: 600; margin-bottom: 4px; font-size: 0.9em;">${title}</div>
+        <div style="font-size: 0.8em; opacity: 0.9; line-height: 1.3;">${message}</div>
+      `;
+      
+      notificationDiv.addEventListener('mouseenter', () => {
+        notificationDiv.style.transform = 'scale(1.02) translateX(-2px)';
+      });
+      
+      notificationDiv.addEventListener('mouseleave', () => {
+        notificationDiv.style.transform = 'scale(1) translateX(0)';
+      });
+      
+      document.body.appendChild(notificationDiv);
+      
+      const removeTimeout = setTimeout(() => {
+        if (notificationDiv.parentElement) {
+          notificationDiv.style.animation = 'slideOutRight 0.3s ease';
+          setTimeout(() => notificationDiv.remove(), 300);
+        }
+      }, duration);
+      
+      notificationDiv.addEventListener('click', () => {
+        clearTimeout(removeTimeout);
+        notificationDiv.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notificationDiv.remove(), 300);
+      });
+
+      return notificationDiv;
     }
 
-    function toggleTopStrip() {
-      const topStrip = document.getElementById('topStrip');
-      const mainContent = document.getElementById('mainContent');
-      
-      if (bottomStripExpanded) {
-        toggleBottomStrip();
-      }
-      
-      topStripExpanded = !topStripExpanded;
-      
-      if (topStripExpanded) {
-        topStrip.classList.add('expanded');
-        mainContent.style.marginTop = '60vh';
-        showOverlay();
-        loadHistoryData();
-        updateCurrentChampDisplay();
-      } else {
-        topStrip.classList.remove('expanded');
-        mainContent.style.marginTop = '110px';
-        hideOverlay();
-      }
-      
-      console.log('📊 Top strip toggled:', topStripExpanded ? 'expanded' : 'collapsed');
+    function showError(message, details = '') {
+      console.error('Error:', message, details);
+      createNotification('error', 'Error', message, 8000);
+    }
+
+    function showSuccess(message) {
+      createNotification('success', 'Success', message, 3000);
+    }
+
+    function showWarning(message) {
+      createNotification('warning', 'Warning', message, 4000);
+    }
+
+    function showInfo(message) {
+      createNotification('info', 'Info', message, 3000);
     }
 
     function toggleBottomStrip() {
-      const bottomStrip = document.getElementById('bottomStrip');
-      const mainContent = document.getElementById('mainContent');
+      const strip = document.getElementById('bottomStrip');
+      const isExpanded = strip.classList.contains('expanded');
       
-      if (topStripExpanded) {
-        toggleTopStrip();
-      }
-      
-      bottomStripExpanded = !bottomStripExpanded;
-      
-      if (bottomStripExpanded) {
-        bottomStrip.classList.add('expanded');
-        mainContent.style.marginBottom = '70vh';
-        showOverlay();
-        loadChatMessages();
+      if (isExpanded) {
+        strip.classList.remove('expanded');
+        document.body.style.overflow = '';
+        console.log('💬 Bottom strip collapsed');
       } else {
-        bottomStrip.classList.remove('expanded');
-        mainContent.style.marginBottom = '70px';
-        hideOverlay();
-      }
-      
-      console.log('💬 Bottom strip toggled:', bottomStripExpanded ? 'expanded' : 'collapsed');
-    }
-
-    let touchStartY = 0;
-    let touchStartX = 0;
-
-    function initializeSwipeGestures() {
-      const topStrip = document.getElementById('topStrip');
-      const bottomStrip = document.getElementById('bottomStrip');
-      const topIndicator = document.getElementById('topSwipeIndicator');
-      const bottomIndicator = document.getElementById('bottomSwipeIndicator');
-      const overlay = document.getElementById('overlay');
-
-      function handleTopStripTouch(e) {
-        const touchY = e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY;
-        const touchX = e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX;
+        strip.classList.add('expanded');
+        document.body.style.overflow = 'hidden';
+        console.log('💬 Bottom strip expanded');
         
-        if (e.type === 'touchstart' || e.type === 'mousedown') {
-          touchStartY = touchY;
-          touchStartX = touchX;
-        } else if (e.type === 'touchend' || e.type === 'mouseup') {
-          const deltaY = touchY - touchStartY;
-          const deltaX = Math.abs(touchX - touchStartX);
-          
-          if (deltaX < 50) {
-            if (deltaY > 30) {
-              if (!topStripExpanded) toggleTopStrip();
-            } else if (deltaY < -30) {
-              if (topStripExpanded) toggleTopStrip();
-            }
-          }
-        }
-      }
-
-      function handleBottomStripTouch(e) {
-        const touchY = e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY;
-        const touchX = e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX;
-        
-        if (e.type === 'touchstart' || e.type === 'mousedown') {
-          touchStartY = touchY;
-          touchStartX = touchX;
-        } else if (e.type === 'touchend' || e.type === 'mouseup') {
-          const deltaY = touchY - touchStartY;
-          const deltaX = Math.abs(touchX - touchStartX);
-          
-          if (deltaX < 50) {
-            if (deltaY < -30) {
-              if (!bottomStripExpanded) toggleBottomStrip();
-            } else if (deltaY > 30) {
-              if (bottomStripExpanded) toggleBottomStrip();
-            }
-          }
-        }
-      }
-
-      topStrip.addEventListener('touchstart', handleTopStripTouch, { passive: false });
-      topStrip.addEventListener('touchend', handleTopStripTouch, { passive: false });
-      topStrip.addEventListener('mousedown', handleTopStripTouch);
-      topStrip.addEventListener('mouseup', handleTopStripTouch);
-      
-      bottomStrip.addEventListener('touchstart', handleBottomStripTouch, { passive: false });
-      bottomStrip.addEventListener('touchend', handleBottomStripTouch, { passive: false });
-      bottomStrip.addEventListener('mousedown', handleBottomStripTouch);
-      bottomStrip.addEventListener('mouseup', handleBottomStripTouch);
-
-      topIndicator.addEventListener('click', toggleTopStrip);
-      bottomIndicator.addEventListener('click', toggleBottomStrip);
-
-      overlay.addEventListener('click', () => {
-        if (topStripExpanded) toggleTopStrip();
-        if (bottomStripExpanded) toggleBottomStrip();
-      });
-
-      console.log('👆 Enhanced swipe gestures with overlay support initialized');
-    }
-
-    function initializePullToRefresh() {
-      const mainContent = document.getElementById('mainContent');
-      const refreshIndicator = document.getElementById('refreshIndicator');
-
-      function handlePullStart(e) {
-        if (mainContent.scrollTop === 0) {
-          pullStartY = e.touches ? e.touches[0].clientY : e.clientY;
-          isPulling = true;
-        }
-      }
-
-      function handlePullMove(e) {
-        if (!isPulling || mainContent.scrollTop > 0) return;
-        
-        const currentY = e.touches ? e.touches[0].clientY : e.clientY;
-        const pullDistance = currentY - pullStartY;
-        
-        if (pullDistance > 10) {
-          e.preventDefault();
-          const opacity = Math.min(pullDistance / 100, 1);
-          refreshIndicator.style.opacity = opacity;
-          refreshIndicator.style.transform = `translateY(${Math.min(pullDistance - 20, 0)}px)`;
-          
-          if (pullDistance > 80) {
-            refreshIndicator.classList.add('visible');
-          }
-        }
-      }
-
-      function handlePullEnd(e) {
-        if (!isPulling) return;
-        
-        const currentY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        const pullDistance = currentY - pullStartY;
-        
-        if (pullDistance > 80) {
-          refreshIndicator.textContent = '🔄 Refreshing...';
+        if (window.chatSystem && window.chatSystem.markAsRead) {
           setTimeout(() => {
-            window.location.reload();
-          }, 500);
-        } else {
-          refreshIndicator.classList.remove('visible');
-          refreshIndicator.style.opacity = 0;
-          refreshIndicator.style.transform = 'translateY(-20px)';
+            window.chatSystem.markAsRead();
+            console.log('💬 Marked messages as read');
+          }, 100);
+        }
+      }
+    }
+
+    const modalManager = {
+      openModals: new Set(),
+      
+      open(modalId, data = {}) {
+        const modal = document.getElementById(modalId);
+        if (!modal) {
+          console.error(`Modal ${modalId} not found`);
+          return false;
         }
         
-        isPulling = false;
-      }
-
-      mainContent.addEventListener('touchstart', handlePullStart, { passive: false });
-      mainContent.addEventListener('touchmove', handlePullMove, { passive: false });
-      mainContent.addEventListener('touchend', handlePullEnd, { passive: false });
-
-      console.log('📱 Pull-to-refresh initialized');
-    }
-
-    function updateCurrentChampDisplay() {
-      const champName = document.getElementById('currentChampName');
-      const champStreak = document.getElementById('currentChampStreak');
-      
-      if (window.scoreboard && window.scoreboard.getCurrentChampion) {
-        const champ = window.scoreboard.getCurrentChampion();
-        if (champ) {
-          const emoji = champ.name === 'Adam' ? ' 🌵' : ' 💩';
-          champName.textContent = champ.name + emoji;
-          champStreak.textContent = `${champ.streak} day${champ.streak !== 1 ? 's' : ''} streak`;
-        }
-      }
-    }
-
-    window.enhancedUpdateScoreboard = function(acb, jbb, tie, remaining) {
-      document.getElementById("acbCount").textContent = acb;
-      document.getElementById("jbbCount").textContent = jbb;
-      document.getElementById("tieCount").textContent = tie;
-      document.getElementById("remainingCount").textContent = remaining;
-
-      const acbEl = document.getElementById("acbCount");
-      const jbbEl = document.getElementById("jbbCount");
-      const acbCrown = document.getElementById("acbCrown");
-      const jbbCrown = document.getElementById("jbbCrown");
-
-      acbCrown.style.display = "none";
-      jbbCrown.style.display = "none";
-
-      const canAcbWin = acb + remaining > jbb;
-      const canJbbWin = jbb + remaining > acb;
-
-      if (acb > jbb && !canJbbWin) {
-        acbEl.style.color = "#10b981";
-        jbbEl.style.color = "#ef4444";
-        acbCrown.style.display = "block";
-      } else if (jbb > acb && !canAcbWin) {
-        jbbEl.style.color = "#10b981";
-        acbEl.style.color = "#ef4444";
-        jbbCrown.style.display = "block";
-      } else if (acb > jbb) {
-        acbEl.style.color = "#10b981";
-        jbbEl.style.color = "#ef4444";
-      } else if (jbb > acb) {
-        jbbEl.style.color = "#10b981";
-        acbEl.style.color = "#ef4444";
-      } else {
-        acbEl.style.color = "#f59e0b";
-        jbbEl.style.color = "#f59e0b";
-      }
-
-      updateCurrentChampDisplay();
-    };
-
-    function updateUIVisibility() {
-      const userSelect = document.getElementById('userSelect');
-      const currentUser = userSelect.value;
-      const unreadBadge = document.getElementById('unreadBadge');
-      
-      const actionButtons = document.querySelectorAll('.btn-edit, .btn-submit');
-      actionButtons.forEach(btn => {
-        if (currentUser) {
-          btn.classList.remove('hidden');
-        } else {
-          btn.classList.add('hidden');
-        }
-      });
-
-      if (!currentUser) {
-        unreadBadge.style.display = 'none';
-      }
-
-      console.log('👤 UI visibility updated for user:', currentUser || 'none');
-    }
-
-    function initializeDatePicker() {
-      const datePicker = document.getElementById('datePicker');
-      const prevBtn = document.getElementById('prevDateBtn');
-      const nextBtn = document.getElementById('nextDateBtn');
-      const todayBtn = document.getElementById('todayBtn');
-
-      datePicker.addEventListener('change', (e) => {
-        const selectedDate = e.target.value;
-        updatePuzzleDateDisplay(selectedDate);
-        loadPuzzleDataForDate(selectedDate);
-      });
-
-      prevBtn.addEventListener('click', () => {
-        const currentDate = new Date(currentPuzzleDate);
-        currentDate.setDate(currentDate.getDate() - 1);
-        const newDate = currentDate.toISOString().slice(0, 10);
-        updatePuzzleDateDisplay(newDate);
-        loadPuzzleDataForDate(newDate);
-      });
-
-      nextBtn.addEventListener('click', () => {
-        const currentDate = new Date(currentPuzzleDate);
-        currentDate.setDate(currentDate.getDate() + 1);
-        const newDate = currentDate.toISOString().slice(0, 10);
-        updatePuzzleDateDisplay(newDate);
-        loadPuzzleDataForDate(newDate);
-      });
-
-      todayBtn.addEventListener('click', () => {
-        const today = getCurrentDate();
-        updatePuzzleDateDisplay(today);
-        loadPuzzleDataForDate(today);
-      });
-    }
-
-    function loadHistoryData() {
-      const historyTableBody = document.getElementById('historyTableBody');
-      
-      historyTableBody.innerHTML = `
-        <tr><td colspan="3" style="text-align: center; padding: 2em;">Loading history data...</td></tr>
-      `;
-
-      if (window.historyModal && window.historyModal.loadHistoryData) {
-        window.historyModal.loadHistoryData().then(() => {
-          updateHistoryTable();
-        });
-      } else {
-        setTimeout(() => {
-          updateHistoryTable();
-        }, 500);
-      }
-    }
-
-    function updateHistoryTable() {
-      const historyTableBody = document.getElementById('historyTableBody');
-      const puzzles = [
-        'Connections', 'Strands', 'On the Record', 'Keyword', 'NYT Mini',
-        'Apple Mini', 'Globle', 'Flagle', 'Wordle', 'Tightrope'
-      ];
-
-      historyTableBody.innerHTML = '';
-      
-      puzzles.forEach(puzzle => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td style="font-weight: 600;">${puzzle}</td>
-          <td class="streak-current">--</td>
-          <td class="streak-record">--</td>
-        `;
-        historyTableBody.appendChild(row);
-      });
-    }
-
-    function loadChatMessages() {
-      const chatMessages = document.getElementById('chatMessages');
-      const chatStatus = document.getElementById('chatStatus');
-      
-      if (window.chatSystem && window.chatSystem.loadMessages) {
-        window.chatSystem.loadMessages();
-        chatStatus.textContent = 'Trash Talk Central 🔥';
-      } else {
-        chatMessages.innerHTML = `
-          <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
-            Chat system loading... 💬
-          </div>
-        `;
-      }
-    }
-
-    function initializeChatSystem() {
-      const chatInput = document.getElementById('chatInput');
-      const chatSendBtn = document.getElementById('chatSendBtn');
-      const userSelect = document.getElementById('userSelect');
-
-      userSelect.addEventListener('change', (e) => {
-        const hasUser = !!e.target.value;
-        chatInput.disabled = !hasUser;
-        chatSendBtn.disabled = !hasUser;
+        modal.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+        this.openModals.add(modalId);
+        modal._modalData = data;
         
-        if (hasUser) {
-          document.getElementById('chatStatus').textContent = 'Ready to trash talk! 🔥';
-        } else {
-          document.getElementById('chatStatus').textContent = 'Select user to enable chat';
-        }
-
-        updateUIVisibility();
-      });
-
-      let isProcessing = false;
+        console.log(`📱 Opened modal: ${modalId}`);
+        return true;
+      },
       
-      chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && !isProcessing) {
-          e.preventDefault();
-          sendChatMessage();
-        }
-      });
-
-      chatSendBtn.addEventListener('click', (e) => {
-        if (!isProcessing) {
-          sendChatMessage();
-        }
-      });
-
-      chatInput.addEventListener('input', () => {
-        const hasText = chatInput.value.trim().length > 0;
-        const hasUser = !!userSelect.value;
-        chatSendBtn.disabled = !hasText || !hasUser || isProcessing;
-      });
-
-      async function sendChatMessage() {
-        if (isProcessing) return;
+      close(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return false;
         
-        const message = chatInput.value.trim();
-        if (!message) return;
-
-        isProcessing = true;
-        chatSendBtn.disabled = true;
-
-        try {
-          if (window.chatSystem && window.chatSystem.sendMessage) {
-            await window.chatSystem.sendMessage();
-          } else {
-            console.log('💬 Mock send:', message);
-            chatInput.value = '';
-          }
-        } finally {
-          isProcessing = false;
-          const hasText = chatInput.value.trim().length > 0;
-          const hasUser = !!userSelect.value;
-          chatSendBtn.disabled = !hasText || !hasUser;
+        modal.classList.remove('visible');
+        this.openModals.delete(modalId);
+        
+        if (this.openModals.size === 0) {
+          document.body.style.overflow = '';
         }
-      }
-    }
-
-    function loadPuzzleDataForDate(date) {
-      console.log('📊 Loading puzzle data for:', date);
+        
+        if (modal._modalData) delete modal._modalData;
+        console.log(`📱 Closed modal: ${modalId}`);
+        return true;
+      },
       
-      if (window.appInstance && window.appInstance.loadDataForDate) {
-        window.appInstance.loadDataForDate(date);
+      closeAll() {
+        this.openModals.forEach(modalId => this.close(modalId));
+      },
+      
+      isOpen(modalId) {
+        return this.openModals.has(modalId);
       }
-    }
-
-    window.createDNFCell = function() {
-      const div = document.createElement('div');
-      div.className = 'dnf-cell';
-      div.textContent = 'DNF';
-      return div;
     };
 
-    window.DEADLINE_CONFIG = {
-      'Connections': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
-      'Strands': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
-      'On the Record': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15, weekendExtended: true },
-      'Keyword': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
-      'NYT Mini': { resetTime: '22:00', timezone: 'ET', gracePeriod: 15, weekendTime: '18:00' },
-      'Apple Mini': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
-      'Globle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
-      'Flagle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
-      'Wordle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
-      'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
+    window.openResultModal = (puzzle, user) => {
+      currentPuzzle = puzzle;
+      currentUser = user;
+      
+      const title = document.getElementById('resultModalTitle');
+      if (title) title.textContent = `${puzzle} - ${user}`;
+      
+      modalManager.open('resultModal', { puzzle, user });
+      console.log(`🎯 Opening result modal for ${puzzle} - ${user}`);
     };
 
-    function initialize() {
-      updatePuzzleDateDisplay();
-      initializeSwipeGestures();
-      initializePullToRefresh();
-      initializeDatePicker();
-      initializeChatSystem();
-      updateUIVisibility();
-      
-      console.log('✅ Claude-style interface initialized with ALL 11 FIXES');
-    }
+    window.closeResultModal = () => {
+      modalManager.close('resultModal');
+      currentPuzzle = '';
+      currentUser = '';
+    };
 
-    initialize();
-    
-    import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
-      console.log('✅ Supabase module loaded');
-      
-      const supabaseClient = supabaseModule.default;
-      window.supabase = supabaseClient.getClient();
-      window.supabaseClient = supabaseClient;
-      
-      const isHealthy = await supabaseClient.testConnection();
-      if (!isHealthy) {
-        console.error('❌ Database connection failed');
-        document.getElementById('loadingOverlay').style.display = 'none';
+    window.selectResult = async (result) => {
+      if (!currentPuzzle || !currentUser) {
+        showWarning('No puzzle or user selected');
         return;
       }
       
-      const { default: app } = await import('./modules/app/main.js');
+      showLoading(`Updating ${currentPuzzle}...`);
       
-      app.updatePuzzleDateDisplay = updatePuzzleDateDisplay;
-      app.enhancedUpdateScoreboard = window.enhancedUpdateScoreboard;
-      app.createDNFCell = window.createDNFCell;
-      app.DEADLINE_CONFIG = window.DEADLINE_CONFIG;
-      
-      app.startNewDay = function() {
-        console.log('🆕 Starting new puzzle day...');
-        const newDate = getCurrentDate();
-        updatePuzzleDateDisplay(newDate);
+      try {
+        if (result === 'delete') {
+          await puzzleTable.deleteResult(currentPuzzle, currentUser);
+          showSuccess(`Deleted ${currentPuzzle} result for ${currentUser}`);
+        } else {
+          await puzzleTable.updateResult(currentPuzzle, currentUser, result);
+          showSuccess(`Updated ${currentPuzzle} to ${result} for ${currentUser}`);
+        }
         
-        if (app.resetForNewDay) {
-          app.resetForNewDay();
+        await Promise.all([
+          scoreboard.updateScores(),
+          puzzleTable.loadData()
+        ]);
+        
+        closeResultModal();
+        
+      } catch (error) {
+        showError('Failed to update result', error.message);
+        console.error('Error updating result:', error);
+      } finally {
+        hideLoading();
+      }
+    };
+
+    window.openHistoryModal = async () => {
+      showLoading('Loading history...');
+      
+      try {
+        modalManager.open('historyModal');
+        
+        if (window.historyModal && window.historyModal.loadHistory) {
+          await window.historyModal.loadHistory();
+        }
+        
+        showSuccess('History loaded');
+        
+      } catch (error) {
+        showError('Failed to load history', error.message);
+        console.error('Error loading history:', error);
+        modalManager.close('historyModal');
+      } finally {
+        hideLoading();
+      }
+    };
+
+    window.closeHistoryModal = () => {
+      modalManager.close('historyModal');
+    };
+
+    window.openChatModal = () => {
+      modalManager.open('chatModal');
+      const input = document.getElementById('chatModalInput');
+      if (input) setTimeout(() => input.focus(), 100);
+    };
+
+    window.closeChatModal = () => {
+      modalManager.close('chatModal');
+    };
+
+    window.navigateDate = async (direction) => {
+      showLoading('Loading date...');
+      
+      try {
+        const currentDate = dateHelpers.getCurrentDisplayDate();
+        const newDate = direction === 'prev' 
+          ? dateHelpers.getPreviousDay(currentDate)
+          : dateHelpers.getNextDay(currentDate);
+        
+        const today = new Date();
+        const maxDate = new Date(today.getTime() + (7 * 24 * 60 * 60 * 1000));
+        
+        if (newDate > maxDate) {
+          showWarning('Cannot navigate too far into the future');
+          return;
+        }
+        
+        dateHelpers.setCurrentDate(newDate);
+        
+        const dateHeader = document.getElementById('dateHeader');
+        if (dateHeader) {
+          dateHeader.textContent = dateHelpers.formatDateHeader(newDate);
+        }
+        
+        await Promise.all([
+          puzzleTable.loadData(),
+          scoreboard.updateScores(),
+          chatSystem.loadMessages()
+        ]);
+        
+        showSuccess(`Loaded ${dateHelpers.formatDateHeader(newDate)}`);
+        
+      } catch (error) {
+        showError('Failed to navigate date', error.message);
+        console.error('Error navigating date:', error);
+      } finally {
+        hideLoading();
+      }
+    };
+
+    function setupPullToRefresh() {
+      const pullRefresh = document.getElementById('pullRefresh');
+      if (!pullRefresh) return;
+
+      document.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0 && !modalManager.openModals.size && !pullRefreshActive) {
+          startY = e.touches[0].clientY;
+          pulling = true;
+        }
+      }, { passive: true });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!pulling || modalManager.openModals.size) return;
+        
+        currentY = e.touches[0].clientY;
+        const pullDistance = currentY - startY;
+        
+        if (pullDistance > 0) {
+          e.preventDefault();
+          
+          const threshold = 100;
+          const maxDistance = 150;
+          const normalizedDistance = Math.min(pullDistance, maxDistance);
+          
+          if (pullDistance > threshold) {
+            pullRefresh.classList.add('visible');
+            pullRefresh.textContent = '↑ Release to refresh ↑';
+            pullRefresh.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+          } else {
+            pullRefresh.classList.add('visible');
+            pullRefresh.textContent = '↓ Pull to refresh ↓';
+            pullRefresh.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+          }
+          
+          const opacity = Math.min(normalizedDistance / 100, 1);
+          pullRefresh.style.opacity = opacity;
+        }
+      }, { passive: false });
+
+      document.addEventListener('touchend', async (e) => {
+        if (!pulling) return;
+        
+        const pullDistance = currentY - startY;
+        const threshold = 100;
+        
+        if (pullDistance > threshold && !pullRefreshActive) {
+          pullRefreshActive = true;
+          pullRefresh.textContent = '🔄 Refreshing...';
+          pullRefresh.style.background = 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)';
+          
+          try {
+            await Promise.all([
+              puzzleTable.loadData(),
+              scoreboard.updateScores(),
+              chatSystem.loadMessages()
+            ]);
+            
+            if (window.supabaseClient && window.supabaseClient.setupRealtimeSubscription) {
+              await setupRealtimeSubscription();
+            }
+            
+            showSuccess('Data refreshed successfully');
+            
+          } catch (error) {
+            showError('Failed to refresh data', error.message);
+            console.error('Refresh error:', error);
+          } finally {
+            setTimeout(() => {
+              pullRefresh.classList.remove('visible');
+              pullRefreshActive = false;
+            }, 1000);
+          }
+        } else {
+          pullRefresh.classList.remove('visible');
+        }
+        
+        pulling = false;
+        startY = 0;
+        currentY = 0;
+      }, { passive: true });
+    }
+
+    async function setupRealtimeSubscription() {
+      if (!window.supabaseClient) return;
+      
+      try {
+        if (realtimeSubscription) {
+          await window.supabaseClient.removeRealtimeSubscription(realtimeSubscription);
+          realtimeSubscription = null;
+        }
+        
+        realtimeSubscription = await window.supabaseClient.setupRealtimeSubscription((payload) => {
+          console.log('📡 Realtime update received:', payload);
+          
+          if (payload.table === 'puzzle_results') {
+            if (window.puzzleTable && window.puzzleTable.handleRealtimeUpdate) {
+              window.puzzleTable.handleRealtimeUpdate(payload);
+            }
+            if (window.scoreboard && window.scoreboard.handleRealtimeUpdate) {
+              window.scoreboard.handleRealtimeUpdate(payload);
+            }
+          } else if (payload.table === 'chat_messages') {
+            if (window.chatSystem && window.chatSystem.handleRealtimeUpdate) {
+              window.chatSystem.handleRealtimeUpdate(payload);
+            }
+          }
+          
+          if (payload.eventType === 'INSERT' && payload.table === 'puzzle_results') {
+            const data = payload.new;
+            if (data.player !== userManager.getCurrentUser()) {
+              showInfo(`${data.player} updated ${data.puzzle}`);
+            }
+          }
+        });
+        
+        if (realtimeSubscription) {
+          console.log('📡 Realtime subscription established');
+          connectionRetries = 0;
+        }
+        
+      } catch (error) {
+        console.error('Failed to setup realtime subscription:', error);
+        if (connectionRetries < maxRetries) {
+          connectionRetries++;
+          console.log(`🔄 Retrying realtime connection (${connectionRetries}/${maxRetries})`);
+          setTimeout(() => setupRealtimeSubscription(), retryDelay * connectionRetries);
+        } else {
+          showWarning('Live updates unavailable');
+        }
+      }
+    }
+
+    async function initializeApp() {
+      if (isInitialized) {
+        console.log('App already initialized');
+        return;
+      }
+      
+      console.log('🚀 I\'m Puzzled starting up v2025.05.31.1');
+      showLoading('Initializing app...');
+      
+      try {
+        console.log('📦 Initializing core modules...');
+        
+        await supabaseClient.init();
+        console.log('✅ Supabase client initialized');
+        
+        userManager.setupUserSelector();
+        console.log('✅ User manager initialized');
+        
+        userManager.onUserChanged = async (newUser, oldUser) => {
+          console.log(`👤 User changed: ${oldUser} → ${newUser}`);
+          showLoading(`Switching to ${newUser}...`);
+          
+          try {
+            await Promise.all([
+              puzzleTable.init(userManager, supabaseClient, dateHelpers),
+              scoreboard.init(userManager, supabaseClient, dateHelpers),
+              chatSystem.init(userManager, supabaseClient, dateHelpers),
+              historyModal.init(userManager, supabaseClient, dateHelpers)
+            ]);
+            
+            await Promise.all([
+              puzzleTable.loadData(),
+              scoreboard.updateScores(),
+              chatSystem.loadMessages()
+            ]);
+            
+            await setupRealtimeSubscription();
+            showSuccess(`Switched to ${newUser}`);
+            
+          } catch (error) {
+            showError('Failed to switch user', error.message);
+            console.error('User switch error:', error);
+          } finally {
+            hideLoading();
+          }
+        };
+        
+        console.log('🎨 Initializing UI modules...');
+        await Promise.all([
+          puzzleTable.init(userManager, supabaseClient, dateHelpers),
+          scoreboard.init(userManager, supabaseClient, dateHelpers),
+          chatSystem.init(userManager, supabaseClient, dateHelpers),
+          historyModal.init(userManager, supabaseClient, dateHelpers)
+        ]);
+        console.log('✅ UI modules initialized');
+        
+        console.log('📊 Loading initial data...');
+        const today = dateHelpers.getToday();
+        const dateHeader = document.getElementById('dateHeader');
+        if (dateHeader) {
+          dateHeader.textContent = dateHelpers.formatDateHeader(today);
+        }
+        
+        await Promise.all([
+          puzzleTable.loadData(),
+          scoreboard.updateScores(),
+          chatSystem.loadMessages()
+        ]);
+        console.log('✅ Initial data loaded');
+        
+        await setupRealtimeSubscription();
+        
+        window.userManager = userManager;
+        window.supabaseClient = supabaseClient;
+        window.dateHelpers = dateHelpers;
+        window.puzzleTable = puzzleTable;
+        window.scoreboard = scoreboard;
+        window.chatSystem = chatSystem;
+        window.historyModal = historyModal;
+        window.modalManager = modalManager;
+        
+        isInitialized = true;
+        console.log('🎯 I\'m Puzzled v2025.05.31.1 - Fully initialized and ready!');
+        showSuccess('App initialized successfully');
+        
+      } catch (error) {
+        console.error('💥 App initialization failed:', error);
+        showError('Failed to initialize app', error.message);
+      } finally {
+        hideLoading();
+      }
+    }
+
+    function setupEventListeners() {
+      console.log('🎧 Setting up event listeners...');
+      
+      const chatToggle = document.getElementById('chatToggle');
+      const chatCloseBtn = document.getElementById('chatCloseBtn');
+      
+      if (chatToggle) {
+        chatToggle.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleBottomStrip();
+        });
+      }
+      
+      if (chatCloseBtn) {
+        chatCloseBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          toggleBottomStrip();
+        });
+      }
+
+      const modals = ['resultModal', 'historyModal', 'chatModal'];
+      modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target.id === modalId) {
+              modalManager.close(modalId);
+            }
+          });
+        }
+      });
+
+      const closeButtons = [
+        { id: 'resultCloseBtn', action: () => closeResultModal() },
+        { id: 'historyCloseBtn', action: () => closeHistoryModal() },
+        { id: 'chatModalCloseBtn', action: () => closeChatModal() }
+      ];
+      
+      closeButtons.forEach(({ id, action }) => {
+        const btn = document.getElementById(id);
+        if (btn) btn.addEventListener('click', action);
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          modalManager.closeAll();
+          const bottomStrip = document.getElementById('bottomStrip');
+          if (bottomStrip && bottomStrip.classList.contains('expanded')) {
+            toggleBottomStrip();
+          }
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+          e.preventDefault();
+          location.reload();
+        }
+        
+        if ((e.ctrlKey || e.metaKey) && e.key === 'h') {
+          e.preventDefault();
+          openHistoryModal();
+        }
+      });
+
+      window.addEventListener('focus', async () => {
+        const timeSinceFocus = Date.now() - lastFocusTime;
+        
+        if (timeSinceFocus > 5 * 60 * 1000 && isInitialized) {
+          console.log('🔄 Refreshing data after long absence');
+          
+          try {
+            await Promise.all([
+              puzzleTable.loadData(),
+              scoreboard.updateScores(),
+              chatSystem.loadMessages()
+            ]);
+            
+            console.log('✅ Data refreshed after focus');
+            
+          } catch (error) {
+            console.error('Failed to refresh data on focus:', error);
+          }
+        }
+        
+        lastFocusTime = Date.now();
+      });
+
+      window.addEventListener('blur', () => {
+        lastFocusTime = Date.now();
+      });
+
+      window.addEventListener('online', async () => {
+        console.log('🌐 Connection restored');
+        showSuccess('Connection restored');
+        
+        if (isInitialized) {
+          try {
+            await setupRealtimeSubscription();
+            await Promise.all([
+              puzzleTable.loadData(),
+              scoreboard.updateScores(),
+              chatSystem.loadMessages()
+            ]);
+          } catch (error) {
+            console.error('Failed to refresh after reconnection:', error);
+          }
+        }
+      });
+
+      window.addEventListener('offline', () => {
+        console.log('📴 Connection lost');
+        showError('Connection lost - some features may not work');
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.tagName === 'SELECT') {
+          e.preventDefault();
+        }
+      });
+
+      document.addEventListener('input', (e) => {
+        if (e.target.tagName === 'TEXTAREA') {
+          e.target.style.height = 'auto';
+          e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+        }
+      });
+
+      console.log('🎧 Event listeners setup complete');
+    }
+
+    window.addEventListener('beforeunload', async () => {
+      try {
+        if (realtimeSubscription) {
+          await supabaseClient.removeRealtimeSubscription(realtimeSubscription);
+        }
+      } catch (error) {
+        console.error('Cleanup error:', error);
+      }
+    });
+
+    const performanceObserver = new PerformanceObserver((list) => {
+      for (const entry of list.getEntries()) {
+        if (entry.duration > 100) {
+          console.warn(`⚠️ Slow operation detected: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
+        }
+      }
+    });
+
+    try {
+      performanceObserver.observe({ entryTypes: ['measure', 'navigation'] });
+    } catch (error) {
+      console.log('Performance observer not supported');
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideInRight {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+      }
+      
+      @keyframes slideOutRight {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      
+      .loading-pulse {
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+      
+      .app-notification {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+    `;
+    document.head.appendChild(style);
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        setupEventListeners();
+        setupPullToRefresh();
+        initializeApp();
+      });
+    } else {
+      setupEventListeners();
+      setupPullToRefresh();
+      initializeApp();
+    }
+
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      window.debugPuzzled = {
+        userManager,
+        supabaseClient,
+        dateHelpers,
+        puzzleTable,
+        scoreboard,
+        chatSystem,
+        historyModal,
+        modalManager,
+        showLoading,
+        hideLoading,
+        showError,
+        showSuccess,
+        showWarning,
+        showInfo,
+        toggleBottomStrip,
+        setupRealtimeSubscription,
+        initializeApp,
+        realtimeSubscription,
+        isInitialized,
+        version: 'v2025.05.31.1',
+        async refreshAll() {
+          await Promise.all([
+            puzzleTable.loadData(),
+            scoreboard.updateScores(),
+            chatSystem.loadMessages()
+          ]);
+        },
+        async resetApp() {
+          isInitialized = false;
+          await initializeApp();
+        },
+        getStatus() {
+          return {
+            initialized: isInitialized,
+            currentUser: userManager.getCurrentUser(),
+            hasRealtimeSubscription: !!realtimeSubscription,
+            chatStatus: chatSystem.getChatStatus(),
+            openModals: Array.from(modalManager.openModals),
+            connectionRetries,
+            version: 'v2025.05.31.1'
+          };
+        },
+        async testNotifications() {
+          showSuccess('Test success notification');
+          setTimeout(() => showError('Test error notification'), 1000);
+          setTimeout(() => showWarning('Test warning notification'), 2000);
+          setTimeout(() => showInfo('Test info notification'), 3000);
         }
       };
-      
-      await app.init();
-      window.appInstance = app;
-      
-      console.log('🎉 v2025.05.30.6 Complete! ALL 11 ISSUES FIXED IN INDEX.HTML');
-      
-    }).catch(error => {
-      console.error('💥 Module loading failed:', error);
-      document.getElementById('loadingOverlay').style.display = 'none';
-      
-      document.body.innerHTML += `
-        <div style="text-align: center; padding: 2em; color: #666; background: #f5f5f5; border-radius: 8px; margin: 2em;">
-          <h2>⚠️ Module Loading Failed</h2>
-          <p>The modular framework could not load. Please ensure all module files are present.</p>
-        </div>
-      `;
+      console.log('🔧 Debug functions available at window.debugPuzzled');
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(registration => {
+            console.log('SW registered: ', registration);
+          })
+          .catch(registrationError => {
+            console.log('SW registration failed: ', registrationError);
+          });
+      });
+    }
+
+    window.addEventListener('error', (event) => {
+      console.error('Uncaught error:', event.error);
+      showError('An unexpected error occurred', event.error?.message || 'Unknown error');
     });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      showError('An unexpected error occurred', event.reason?.message || 'Promise rejection');
+      event.preventDefault();
+    });
+
+    console.log('🎯 I\'m Puzzled v2025.05.31.1 - All 5 polish issues fixed!');
+    console.log('✅ Issue 1: Unread badge disappearing fix');
+    console.log('✅ Issue 2: User dropdown display fix'); 
+    console.log('✅ Issue 3: Crown positioning fix');
+    console.log('✅ Issue 4: Keyboard behavior fix');
+    console.log('✅ Issue 5: Send button emoji size fix');
+    console.log('🚀 App ready for use!');
+
   </script>
+
 </body>
 </html>
