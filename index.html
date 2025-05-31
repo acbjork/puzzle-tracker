@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>🧠 I'm Puzzled ‼️</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
-    /* NEW: CSS Variables for Phase 3C color scheme */
     :root {
+      /* Phase 3C Color Palette */
       --primary-light: #f8fafc;
       --primary-medium: #e2e8f0;
       --purple-light: #ddd6fe;
@@ -18,361 +18,217 @@
       --swipe-indicator: #6b46c1;
     }
 
-    body { 
-      font-family: system-ui, sans-serif; 
-      margin: 1em; 
-      overflow-x: hidden; 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: var(--primary-light);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
     }
-    
-    h1, .subtitle { text-align: center; margin: 0; }
-    .subtitle { 
-      font-size: 0.95em; 
-      color: #555; 
-      margin-top: 0.2em; 
-      margin-bottom: 2em; 
+
+    /* CLAUDE-STYLE INTERFACE: Fixed Top Strip */
+    .top-strip {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: var(--strip-bg);
+      border-bottom: 1px solid var(--purple-medium);
+      z-index: 1000;
+      transition: height 0.3s ease;
+      height: 90px; /* Increased for better prominence */
+      box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
     }
-    
-    .user-select-area { margin-top: 1em; margin-bottom: 2em; }
-    
-    .puzzle-date { 
-      text-align: center; 
-      font-size: 0.9em; 
-      color: #888; 
-      margin: 1em 0 0.5em 0; 
-      font-weight: normal;
+
+    .top-strip.expanded {
+      height: 60vh;
     }
-    
-    /* ENHANCED: Better table styling with subtle borders */
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-      margin-top: 1em; 
+
+    /* CLAUDE-STYLE INTERFACE: Fixed Bottom Strip */
+    .bottom-strip {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--strip-bg);
+      border-top: 1px solid var(--purple-medium);
+      z-index: 1000;
+      transition: height 0.3s ease;
+      height: 70px;
+      box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
+    }
+
+    .bottom-strip.expanded {
+      height: 70vh;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex: 1;
+      margin-top: 90px;
+      margin-bottom: 70px;
+      overflow-y: auto;
+      padding: 1em;
+      -webkit-overflow-scrolling: touch;
+      position: relative;
+    }
+
+    /* Swipe Indicators */
+    .swipe-indicator {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 4px;
+      background: var(--swipe-indicator);
+      border-radius: 2px;
+      opacity: 0.6;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .top-strip .swipe-indicator {
+      bottom: 8px;
+    }
+
+    .bottom-strip .swipe-indicator {
+      top: 8px;
+    }
+
+    .swipe-indicator:hover {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.1);
+    }
+
+    /* ENHANCED SCOREBOARD (Top Strip Content) */
+    .scoreboard-container {
+      padding: 1em;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .scoreboard-mini {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      font-weight: 600;
+      font-size: 1.4em;
+      height: 60px;
+    }
+
+    .scoreboard-item {
+      text-align: center;
+      position: relative;
+      min-width: 70px;
+    }
+
+    .scoreboard-label {
+      font-size: 0.8em;
+      color: var(--accent-dark);
+      margin-bottom: 4px;
+      font-weight: 800;
+    }
+
+    .scoreboard-value {
+      font-size: 1.8em;
+      font-weight: 900;
+      color: var(--purple-dark);
+    }
+
+    .crown {
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2.5em;
+      animation: crownBounce 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes crownBounce {
+      0% { transform: translateX(-50%) translateY(0px); }
+      100% { transform: translateX(-50%) translateY(-3px); }
+    }
+
+    /* EXPANDED HISTORY & STATS (Top Strip Expanded) */
+    .history-expanded {
+      display: none;
+      padding: 2em 1em;
+      height: calc(100% - 60px);
+      overflow-y: auto;
+    }
+
+    .top-strip.expanded .history-expanded {
+      display: block;
+    }
+
+    .top-strip.expanded .scoreboard-mini {
+      height: 60px;
+      border-bottom: 1px solid var(--purple-medium);
+      margin-bottom: 1em;
+    }
+
+    .history-title {
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: var(--purple-dark);
+      margin-bottom: 1.5em;
+    }
+
+    /* DATE PICKER */
+    .date-picker-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1em;
+      margin-bottom: 1.5em;
+      padding: 1em;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .date-picker {
+      padding: 0.5em 1em;
+      border: 2px solid var(--purple-medium);
+      border-radius: 8px;
+      font-size: 1em;
+      background: white;
+    }
+
+    .date-nav-btn {
+      background: var(--purple-medium);
+      color: var(--purple-dark);
+      border: none;
+      padding: 0.5em 1em;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .date-nav-btn:hover {
+      background: var(--purple-dark);
+      color: white;
+    }
+
+    /* HISTORY TABLE */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
       background: white;
       border-radius: 8px;
       overflow: hidden;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
-    
-    th, td { 
-      border-right: 1px solid var(--primary-medium); /* NEW: Subtle vertical borders */
-      padding: 0.5em; 
-      vertical-align: top; 
-      text-align: center; 
-    }
-    
-    th {
-      background: var(--table-header); /* NEW: Light header background */
-      font-weight: 600;
-      color: var(--accent-dark);
-    }
-    
-    th:first-child, td:first-child { 
-      text-align: left; 
-      max-width: 90px; 
-    }
-    
-    th:last-child, td:last-child {
-      border-right: none;
-    }
-    
-    textarea { width: 95%; box-sizing: border-box; }
-    
-    /* FIXED: Transparent background for submitted results */
-    .submitted { 
-      white-space: pre-wrap; 
-      background: transparent !important; /* Remove green bubbles */
-      padding: 0.25em 0.5em; 
-      line-height: 1.2; 
-      border-radius: 4px; 
-    }
-    
-    .winner { background-color: #d6f5d6 !important; }
-    .tie { background-color: #fff9c4 !important; }
-    
-    .dnf-cell { 
-      background-color: #ffebee !important; 
-      color: #c62828; 
-      font-weight: bold; 
-      font-style: italic; 
-      padding: 0.5em;
-    }
-    
-    .version { text-align: right; font-size: 0.85em; color: #888; margin-top: 2em; }
-    .puzzle-name { cursor: pointer; color: var(--purple-dark); text-decoration: underline; }
-    .puzzle-name:hover { color: #553c9a; }
-    .puzzle-nowrap { white-space: nowrap; }
-    
-    /* ENHANCED: Much more prominent scoreboard */
-    #scoreboard { 
-      margin: 1em 0; 
-      display: flex; 
-      justify-content: space-around; 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      font-size: 1.4em; /* Increased from 1.5em */
-      position: relative; 
-      background: var(--strip-bg);
-      padding: 1.2em 0.5em; /* Increased padding */
-      border-radius: 12px;
-      border: 1px solid var(--purple-medium);
-    }
-    
-    .scoreboard-label { 
-      font-weight: 800; /* Extra bold for prominence */
-      text-align: center; 
-      position: relative; 
-      color: var(--accent-dark);
-    }
-    
-    .scoreboard-value { 
-      display: block; 
-      font-size: 1.8em; /* Much bigger numbers */
-      font-weight: 900; /* Maximum boldness */
-      margin-top: 0.2em;
-    }
-    
-    .crown { 
-      position: absolute; 
-      top: -45px; /* Adjusted for bigger crown */
-      left: 50%; 
-      transform: translateX(-50%); 
-      font-size: 2.5em; /* Bigger crown */
-      animation: crownBounce 1s ease-in-out infinite alternate; 
-    }
-    
-    @keyframes crownBounce { 
-      0% { transform: translateX(-50%) translateY(0px); } 
-      100% { transform: translateX(-50%) translateY(-5px); } 
-    }
 
-    #loadingOverlay { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: white; 
-      color: #444; 
-      font-size: 1.5em; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      z-index: 9999; 
-    }
-
-    .puzzle-me-container { 
-      text-align: center; 
-      margin: 2em 0; 
-      padding: 1em; 
-      background: linear-gradient(135deg, #ff6b35, #f7931e); 
-      border-radius: 12px; 
-      box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
-      display: none;
-    }
-    
-    .puzzle-me-btn { 
-      background: white; 
-      color: #ff6b35; 
-      border: none; 
-      padding: 1em 2em; 
-      border-radius: 25px; 
-      font-size: 1.2em; 
-      font-weight: bold; 
-      cursor: pointer; 
-      transition: all 0.3s; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .puzzle-me-btn:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
-    }
-    
-    .puzzle-me-text { 
-      color: white; 
-      margin-bottom: 1em; 
-      font-size: 1.1em; 
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
-    }
-
-    .button-container { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin: 1em 0; 
-      gap: 1em; 
-    }
-    
-    .button-container > div { flex: 1; }
-    .button-container > div:first-child { text-align: left; }
-    .button-container > div:last-child { text-align: right; }
-
-    .chat-toggle { 
-      position: relative; 
-      background: linear-gradient(135deg, #4a4a4a, var(--purple-medium)); 
-      color: white; 
-      border: none; 
-      padding: 0.75em 1.5em; 
-      border-radius: 25px; 
-      cursor: pointer; 
-      font-weight: bold; 
-      margin: 1em 0; 
-      transition: all 0.3s; 
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); 
-    }
-    
-    .chat-toggle:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4); 
-    }
-    
-    .history-toggle { 
-      position: relative; 
-      background: linear-gradient(135deg, var(--purple-medium), var(--purple-dark)); 
-      color: white; 
-      border: none; 
-      padding: 0.75em 1.5em; 
-      border-radius: 25px; 
-      cursor: pointer; 
-      font-weight: bold; 
-      margin: 1em 0; 
-      transition: all 0.3s; 
-      box-shadow: 0 4px 15px rgba(107, 70, 193, 0.3); 
-    }
-    
-    .history-toggle:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 6px 20px rgba(107, 70, 193, 0.4); 
-    }
-
-    /* NEW: Elegant 3-column history table design */
-    .history-modal { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0, 0, 0, 0.5); 
-      z-index: 1000; 
-      display: none; 
-      backdrop-filter: blur(4px); 
-    }
-    
-    .history-window { 
-      position: absolute; 
-      top: 50%; 
-      left: 50%; 
-      transform: translate(-50%, -50%); 
-      width: 90%; 
-      max-width: 500px; 
-      height: 80%; 
-      max-height: 600px; 
-      background: white; 
-      border-radius: 12px; 
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); 
-      display: flex; 
-      flex-direction: column; 
-      overflow: hidden; 
-    }
-    
-    .history-header { 
-      background: linear-gradient(135deg, var(--purple-medium), var(--purple-dark)); 
-      color: white; 
-      padding: 1em; 
-      font-weight: bold; 
-      font-size: 1.1em; 
-      text-align: center; 
-      text-shadow: 1px 1px 2px rgba(0,0,0,0.3); 
-      position: relative; 
-    }
-    
-    .history-close-btn { 
-      position: absolute; 
-      top: 50%; 
-      right: 1em; 
-      transform: translateY(-50%); 
-      background: none; 
-      border: none; 
-      color: white; 
-      font-size: 1.5em; 
-      cursor: pointer; 
-      width: 30px; 
-      height: 30px; 
-      border-radius: 50%; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      transition: background-color 0.2s; 
-    }
-    
-    .history-close-btn:hover { background: rgba(255, 255, 255, 0.2); }
-    
-    .history-content { 
-      flex: 1; 
-      overflow-y: auto; 
-      padding: 1.5em; 
-      background: #f9f9f9; 
-      -webkit-overflow-scrolling: touch; 
-    }
-
-    .overall-winner { 
-      background: linear-gradient(135deg, #ffd700, #ffed4e); 
-      padding: 1.5em; 
-      border-radius: 12px; 
-      margin-bottom: 1.5em; 
-      text-align: center; 
-      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3); 
-    }
-    
-    .overall-winner h3 { 
-      margin: 0 0 0.5em 0; 
-      font-size: 1.3em; 
-      color: #b8860b; 
-    }
-    
-    .overall-winner .winner-name { 
-      font-size: 1.8em; 
-      font-weight: bold; 
-      color: #8b4513; 
-      margin: 0.25em 0; 
-    }
-    
-    .overall-winner .streak { 
-      font-size: 1.2em; 
-      color: #8b4513; 
-      margin: 0.25em 0; 
-    }
-    
-    .overall-winner .longest-streak { 
-      font-size: 1em; 
-      color: #8b4513; 
-      margin: 0.5em 0; 
-      font-style: italic; 
-    }
-    
-    /* NEW: Replace puzzle cards with elegant table */
-    .puzzle-winners { 
-      background: white; 
-      border-radius: 8px; 
-      padding: 0; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .puzzle-winners h4 { 
-      margin: 0; 
-      color: #666; 
-      font-size: 1em; 
-      text-align: center; 
-      padding: 1em;
-      background: var(--table-header);
-      border-radius: 8px 8px 0 0;
-    }
-    
-    .history-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    
     .history-table th {
       background: var(--table-header);
       padding: 0.75em;
@@ -381,220 +237,576 @@
       color: var(--accent-dark);
       border-bottom: 2px solid var(--primary-medium);
     }
-    
+
     .history-table td {
       padding: 0.75em;
       border-bottom: 1px solid #f0f0f0;
       vertical-align: middle;
     }
-    
+
     .history-table tr:last-child td {
       border-bottom: none;
     }
-    
+
     .history-table tr:hover {
       background: #f8fafc;
     }
-    
-    .puzzle-name-history { 
-      font-weight: 600; 
-      color: #333; 
-    }
-    
-    .streak-current { 
-      font-weight: 600; 
-      color: var(--purple-dark); 
-    }
-    
-    .streak-record { 
-      font-weight: 500; 
-      color: #059669; 
+
+    .streak-current {
+      font-weight: 600;
+      color: var(--purple-dark);
     }
 
+    .streak-record {
+      font-weight: 500;
+      color: #059669;
+    }
+
+    /* CHAT SYSTEM (Bottom Strip) */
+    .chat-container {
+      padding: 1em;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .chat-mini {
+      display: flex;
+      align-items: center;
+      gap: 1em;
+      height: 40px;
+    }
+
+    .chat-indicator {
+      font-size: 1.5em;
+      color: var(--purple-dark);
+    }
+
+    .chat-status {
+      flex: 1;
+      font-weight: 600;
+      color: var(--accent-dark);
+      font-size: 1.1em;
+    }
+
+    .unread-badge {
+      background: #ef4444;
+      color: white;
+      border-radius: 50%;
+      min-width: 24px;
+      height: 24px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    /* EXPANDED CHAT (Bottom Strip Expanded) */
+    .chat-expanded {
+      display: none;
+      padding: 1em;
+      height: calc(100% - 40px);
+      flex-direction: column;
+    }
+
+    .bottom-strip.expanded .chat-expanded {
+      display: flex;
+    }
+
+    .bottom-strip.expanded .chat-mini {
+      height: 40px;
+      border-bottom: 1px solid var(--purple-medium);
+      margin-bottom: 1em;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1em;
+      background: white;
+      border-radius: 8px;
+      margin-bottom: 1em;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 0.5em;
+      padding: 1em;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 0.75em;
+      border: 2px solid var(--purple-medium);
+      border-radius: 6px;
+      font-size: 1em;
+      resize: none;
+    }
+
+    .chat-send-btn {
+      background: var(--purple-dark);
+      color: white;
+      border: none;
+      padding: 0.75em 1.5em;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .chat-send-btn:hover {
+      background: #553c9a;
+    }
+
+    .chat-send-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* MAIN CONTENT STYLING */
+    h1 {
+      text-align: center;
+      margin: 0 0 0.5em 0;
+      font-size: 2em;
+      color: var(--purple-dark);
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 0.95em;
+      color: #666;
+      margin: 0 0 1.5em 0;
+    }
+
+    .user-select-area {
+      text-align: center;
+      margin-bottom: 1.5em;
+    }
+
+    .user-select-area select {
+      padding: 0.5em 1em;
+      border: 2px solid var(--purple-medium);
+      border-radius: 8px;
+      background: white;
+      font-size: 1em;
+    }
+
+    .puzzle-date {
+      text-align: center;
+      font-size: 0.9em;
+      color: #888;
+      margin: 0.5em 0 1.5em 0;
+      font-weight: 500;
+    }
+
+    /* PUZZLE TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    th {
+      background: var(--table-header);
+      padding: 0.75em 0.5em;
+      text-align: center;
+      font-weight: 600;
+      color: var(--accent-dark);
+      border-right: 1px solid var(--primary-medium);
+    }
+
+    th:first-child {
+      text-align: left;
+      max-width: 90px;
+    }
+
+    th:last-child {
+      border-right: none;
+    }
+
+    td {
+      padding: 0.5em;
+      text-align: center;
+      vertical-align: top;
+      border-right: 1px solid var(--primary-medium);
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    td:first-child {
+      text-align: left;
+      max-width: 90px;
+      font-weight: 500;
+    }
+
+    td:last-child {
+      border-right: none;
+    }
+
+    /* PUZZLE RESULTS */
+    .submitted {
+      background: transparent !important;
+      white-space: pre-wrap;
+      padding: 0.25em 0.5em;
+      line-height: 1.2;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    .winner {
+      background-color: #d4ffd4 !important;
+    }
+
+    .tie {
+      background-color: #fff9c4 !important;
+    }
+
+    .dnf-cell {
+      background-color: #ffebee !important;
+      color: #c62828;
+      font-weight: bold;
+      font-style: italic;
+      padding: 0.5em;
+    }
+
+    /* ACTION BUTTONS */
+    .action-buttons {
+      display: flex;
+      gap: 0.5em;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 0.4em 0.8em;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8em;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .btn-edit {
+      background: var(--purple-medium);
+      color: var(--purple-dark);
+    }
+
+    .btn-submit {
+      background: #10b981;
+      color: white;
+    }
+
+    .btn-delete {
+      background: #ef4444;
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    /* PUZZLE LINKS */
+    .puzzle-name {
+      cursor: pointer;
+      color: var(--purple-dark);
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .puzzle-name:hover {
+      color: #553c9a;
+    }
+
+    .puzzle-nowrap {
+      white-space: nowrap;
+    }
+
+    /* TEXTAREA */
+    textarea {
+      width: 100%;
+      min-height: 60px;
+      padding: 0.5em;
+      border: 2px solid var(--purple-medium);
+      border-radius: 6px;
+      font-family: monospace;
+      resize: vertical;
+    }
+
+    /* LOADING OVERLAY */
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: white;
+      color: #444;
+      font-size: 1.5em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    /* MOBILE OPTIMIZATIONS */
     @media (max-width: 768px) {
-      body { margin: 0.5em; }
-      table { font-size: 0.8em; }
-      
-      /* ENHANCED: Better mobile scoreboard */
-      #scoreboard { 
-        font-size: 1.1em; 
-        flex-wrap: wrap; 
-        gap: 0.5em; 
-        padding: 1em 0.5em;
+      .main-content {
+        padding: 0.5em;
       }
-      
+
+      table {
+        font-size: 0.85em;
+      }
+
+      .scoreboard-mini {
+        font-size: 1.1em;
+        padding: 0.75em;
+      }
+
       .scoreboard-value {
-        font-size: 1.6em; /* Bigger on mobile too */
+        font-size: 1.6em;
       }
-      
-      .button-container { 
-        flex-direction: column; 
-        gap: 0.75em; 
+
+      .top-strip.expanded {
+        height: 65vh;
       }
-      
-      .button-container > div { text-align: center; }
-      .history-window { width: 98%; height: 95%; max-width: none; }
-      .history-content { padding: 0.75em; }
-      
-      /* FIX: Date overlap issue */
+
+      .bottom-strip.expanded {
+        height: 75vh;
+      }
+
       .puzzle-date {
         font-size: 0.8em;
-        margin: 0.25em 0;
+        margin: 0.25em 0 1em 0;
       }
+
+      .history-expanded {
+        padding: 1em 0.5em;
+      }
+
+      .chat-expanded {
+        padding: 0.5em;
+      }
+    }
+
+    /* PULL TO REFRESH */
+    .refresh-indicator {
+      text-align: center;
+      padding: 1em;
+      color: var(--purple-dark);
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(-20px);
+      transition: all 0.3s ease;
+    }
+
+    .refresh-indicator.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* VERSION */
+    .version {
+      text-align: right;
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 2em;
+      padding: 1em 0;
     }
   </style>
 </head>
 <body>
   <div id="loadingOverlay">Loading…</div>
-  <h1>🧠 I'm Puzzled ‼️</h1>
-  <div class="subtitle">If you ain't first, you're last</div>
 
-  <div class="user-select-area">
-    <label for="userSelect">Signed in as:
-      <select id="userSelect">
-        <option value="">(choose)</option>
-        <option value="Adam">Adam 🌵</option>
-        <option value="Jonathan">Jonathan 💩</option>
-      </select>
-    </label>
-  </div>
-
-  <div class="puzzle-date" id="puzzleDate">2025-05-30 (Fri)</div>
-
-  <!-- ENHANCED: More prominent scoreboard with better styling -->
-  <div id="scoreboard">
-    <div class="scoreboard-label">ACB
-      <span id="acbCrown" class="crown" style="display: none;">👑</span>
-      <span id="acbCount" class="scoreboard-value" style="color: #c9a700;">0</span>
-    </div>
-    <div class="scoreboard-label">JBB
-      <span id="jbbCrown" class="crown" style="display: none;">👑</span>
-      <span id="jbbCount" class="scoreboard-value" style="color: #c9a700;">0</span>
-    </div>
-    <div class="scoreboard-label">Tie<span id="tieCount" class="scoreboard-value">0</span></div>
-    <div class="scoreboard-label">Left<span id="remainingCount" class="scoreboard-value">10</span></div>
-  </div>
-
-  <div class="puzzle-me-container" id="puzzleMeContainer">
-    <div class="puzzle-me-text">Ready for a new day of puzzle competition?</div>
-    <button class="puzzle-me-btn" id="puzzleMeBtn">🧩 Puzzle Me! 🧩</button>
-  </div>
-
-  <div class="button-container">
-    <div>
-      <button id="chatToggle" class="chat-toggle" style="display: none;">💬 Trash Talk 🗑️</button>
-    </div>
-    <div>
-      <button id="historyToggle" class="history-toggle" style="display: none;">🧩 History 📊</button>
-    </div>
-  </div>
-
-  <div class="history-modal" id="historyModal">
-    <div class="history-window">
-      <div class="history-header">
-        🧩 History 📊
-        <button class="history-close-btn" id="historyCloseBtn">✕</button>
+  <!-- CLAUDE-STYLE TOP STRIP: Scoreboard + History & Stats -->
+  <div class="top-strip" id="topStrip">
+    <div class="swipe-indicator" id="topSwipeIndicator"></div>
+    
+    <div class="scoreboard-container">
+      <!-- Mini Scoreboard (Always Visible) -->
+      <div class="scoreboard-mini" id="scoreboardMini">
+        <div class="scoreboard-item">
+          <div class="scoreboard-label">ACB</div>
+          <div id="acbCrown" class="crown" style="display: none;">👑</div>
+          <div id="acbCount" class="scoreboard-value">0</div>
+        </div>
+        <div class="scoreboard-item">
+          <div class="scoreboard-label">JBB</div>
+          <div id="jbbCrown" class="crown" style="display: none;">👑</div>
+          <div id="jbbCount" class="scoreboard-value">0</div>
+        </div>
+        <div class="scoreboard-item">
+          <div class="scoreboard-label">Tie</div>
+          <div id="tieCount" class="scoreboard-value">0</div>
+        </div>
+        <div class="scoreboard-item">
+          <div class="scoreboard-label">Left</div>
+          <div id="remainingCount" class="scoreboard-value">10</div>
+        </div>
       </div>
-      <div class="history-content" id="historyContent">
-        <div class="overall-winner">
-          <h3>Most Recent Daily Winner</h3>
-          <div class="winner-name" id="lastOverallWinner">Loading...</div>
-          <div class="streak" id="overallStreak">Calculating streak...</div>
-          <div class="longest-streak" id="overallLongestStreak">Longest streak: Loading...</div>
+
+      <!-- Expanded History & Stats (Shown on Swipe Down) -->
+      <div class="history-expanded" id="historyExpanded">
+        <div class="history-title">📊 History & Stats</div>
+        
+        <!-- Date Picker -->
+        <div class="date-picker-container">
+          <button class="date-nav-btn" id="prevDateBtn">◀ Prev</button>
+          <input type="date" class="date-picker" id="datePicker" />
+          <button class="date-nav-btn" id="nextDateBtn">Next ▶</button>
+          <button class="date-nav-btn" id="todayBtn">Today</button>
         </div>
-        <div class="puzzle-winners">
-          <h4>Individual Puzzle Streaks</h4>
-          <!-- NEW: Replace cards with elegant 3-column table -->
-          <table class="history-table">
-            <thead>
-              <tr>
-                <th>Puzzle</th>
-                <th>Current Streak</th>
-                <th>Record Streak</th>
-              </tr>
-            </thead>
-            <tbody id="puzzleStreaks">
-              <tr>
-                <td class="puzzle-name-history">Connections</td>
-                <td class="streak-current">Adam (2 days)</td>
-                <td class="streak-record">Jonathan (8 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Strands</td>
-                <td class="streak-current">Jonathan (1 day)</td>
-                <td class="streak-record">Adam (5 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">On the Record</td>
-                <td class="streak-current">Adam (3 days)</td>
-                <td class="streak-record">Adam (7 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Keyword</td>
-                <td class="streak-current">--</td>
-                <td class="streak-record">Jonathan (4 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">NYT Mini</td>
-                <td class="streak-current">Jonathan (2 days)</td>
-                <td class="streak-record">Adam & Jonathan (6 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Apple Mini</td>
-                <td class="streak-current">Adam (1 day)</td>
-                <td class="streak-record">Adam (3 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Globle</td>
-                <td class="streak-current">--</td>
-                <td class="streak-record">Jonathan (9 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Flagle</td>
-                <td class="streak-current">Adam (4 days)</td>
-                <td class="streak-record">Adam (4 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Wordle</td>
-                <td class="streak-current">Jonathan (1 day)</td>
-                <td class="streak-record">Adam (11 days)</td>
-              </tr>
-              <tr>
-                <td class="puzzle-name-history">Tightrope</td>
-                <td class="streak-current">Adam (2 days)</td>
-                <td class="streak-record">Jonathan (5 days)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+
+        <!-- Streak Data Table -->
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Puzzle</th>
+              <th>Current Streak</th>
+              <th>Record Streak</th>
+            </tr>
+          </thead>
+          <tbody id="historyTableBody">
+            <tr>
+              <td>Loading...</td>
+              <td>--</td>
+              <td>--</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <table id="puzzleTable">
-    <thead>
-      <tr><th>Puzzle</th><th>Adam 🌵</th><th>Jonathan 💩</th></tr>
-    </thead>
-    <tbody id="puzzleRows">
-      <tr data-puzzle="Connections"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/connections">Connections</span></td><td data-cell="Connections-Adam"></td><td data-cell="Connections-Jonathan"></td></tr>
-      <tr data-puzzle="Strands"><td><span class="puzzle-name" data-url="https://www.nytimes.com/games/strands">Strands</span></td><td data-cell="Strands-Adam"></td><td data-cell="Strands-Jonathan"></td></tr>
-      <tr data-puzzle="On the Record"><td><span class="puzzle-name" data-url="https://www.washingtonpost.com/news-quiz/">On the Record</span></td><td data-cell="On the Record-Adam"></td><td data-cell="On the Record-Jonathan"></td></tr>
-      <tr data-puzzle="Keyword"><td><span class="puzzle-name" data-url="https://washingtonpost.com/games/keyword/">Keyword</span></td><td data-cell="Keyword-Adam"></td><td data-cell="Keyword-Jonathan"></td></tr>
-      <tr data-puzzle="NYT Mini"><td><span class="puzzle-name" data-url="https://nytimes.com/crosswords/game/mini/">NYT Mini</span></td><td data-cell="NYT Mini-Adam"></td><td data-cell="NYT Mini-Jonathan"></td></tr>
-      <tr data-puzzle="Apple Mini"><td><span class="puzzle-name" data-url="https://apple.news/puzzles">Apple Mini</span></td><td data-cell="Apple Mini-Adam"></td><td data-cell="Apple Mini-Jonathan"></td></tr>
-      <tr data-puzzle="Globle"><td><span class="puzzle-name" data-url="https://globle-game.com">Globle</span></td><td data-cell="Globle-Adam"></td><td data-cell="Globle-Jonathan"></td></tr>
-      <tr data-puzzle="Flagle"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.flagle.io">Flagle</span></td><td data-cell="Flagle-Adam"></td><td data-cell="Flagle-Jonathan"></td></tr>
-      <tr data-puzzle="Wordle"><td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/wordle/index.html">Wordle</span></td><td data-cell="Wordle-Adam"></td><td data-cell="Wordle-Jonathan"></td></tr>
-      <tr data-puzzle="Tightrope"><td><span class="puzzle-name" data-url="https://www.britannica.com/quiz/tightrope">Tightrope</span></td><td data-cell="Tightrope-Adam"></td><td data-cell="Tightrope-Jonathan"></td></tr>
-    </tbody>
-  </table>
+  <!-- MAIN CONTENT AREA: Scrollable Puzzle Table -->
+  <div class="main-content" id="mainContent">
+    <div class="refresh-indicator" id="refreshIndicator">
+      ↓ Release to refresh ↓
+    </div>
 
-  <div class="version">v2025.05.30.3 - Phase 3C: Stability + Color Refinements! 🏆📅</div>
-  
+    <h1>🧠 I'm Puzzled ‼️</h1>
+    <div class="subtitle">If you ain't first, you're last</div>
+
+    <div class="user-select-area">
+      <label for="userSelect">Signed in as:
+        <select id="userSelect">
+          <option value="">(choose)</option>
+          <option value="Adam">Adam 🌵</option>
+          <option value="Jonathan">Jonathan 💩</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="puzzle-date" id="puzzleDate">2025-05-30 (Fri)</div>
+
+    <table id="puzzleTable">
+      <thead>
+        <tr>
+          <th>Puzzle</th>
+          <th>Adam 🌵</th>
+          <th>Jonathan 💩</th>
+        </tr>
+      </thead>
+      <tbody id="puzzleRows">
+        <tr data-puzzle="Connections">
+          <td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/connections">Connections</span></td>
+          <td data-cell="Connections-Adam"></td>
+          <td data-cell="Connections-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Strands">
+          <td><span class="puzzle-name" data-url="https://www.nytimes.com/games/strands">Strands</span></td>
+          <td data-cell="Strands-Adam"></td>
+          <td data-cell="Strands-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="On the Record">
+          <td><span class="puzzle-name" data-url="https://www.washingtonpost.com/news-quiz/">On the Record</span></td>
+          <td data-cell="On the Record-Adam"></td>
+          <td data-cell="On the Record-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Keyword">
+          <td><span class="puzzle-name" data-url="https://washingtonpost.com/games/keyword/">Keyword</span></td>
+          <td data-cell="Keyword-Adam"></td>
+          <td data-cell="Keyword-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="NYT Mini">
+          <td><span class="puzzle-name" data-url="https://nytimes.com/crosswords/game/mini/">NYT Mini</span></td>
+          <td data-cell="NYT Mini-Adam"></td>
+          <td data-cell="NYT Mini-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Apple Mini">
+          <td><span class="puzzle-name" data-url="https://apple.news/puzzles">Apple Mini</span></td>
+          <td data-cell="Apple Mini-Adam"></td>
+          <td data-cell="Apple Mini-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Globle">
+          <td><span class="puzzle-name" data-url="https://globle-game.com">Globle</span></td>
+          <td data-cell="Globle-Adam"></td>
+          <td data-cell="Globle-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Flagle">
+          <td><span class="puzzle-name puzzle-nowrap" data-url="https://www.flagle.io">Flagle</span></td>
+          <td data-cell="Flagle-Adam"></td>
+          <td data-cell="Flagle-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Wordle">
+          <td><span class="puzzle-name puzzle-nowrap" data-url="https://www.nytimes.com/games/wordle/index.html">Wordle</span></td>
+          <td data-cell="Wordle-Adam"></td>
+          <td data-cell="Wordle-Jonathan"></td>
+        </tr>
+        <tr data-puzzle="Tightrope">
+          <td><span class="puzzle-name" data-url="https://www.britannica.com/quiz/tightrope">Tightrope</span></td>
+          <td data-cell="Tightrope-Adam"></td>
+          <td data-cell="Tightrope-Jonathan"></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="version">v2025.05.30.4 - Claude-Style Interface with Swipe Strips! 🎯</div>
+  </div>
+
+  <!-- CLAUDE-STYLE BOTTOM STRIP: Chat -->
+  <div class="bottom-strip" id="bottomStrip">
+    <div class="swipe-indicator" id="bottomSwipeIndicator"></div>
+    
+    <div class="chat-container">
+      <!-- Mini Chat Status (Always Visible) -->
+      <div class="chat-mini" id="chatMini">
+        <div class="chat-indicator">💬</div>
+        <div class="chat-status" id="chatStatus">Trash Talk Central</div>
+        <div class="unread-badge" id="unreadBadge">0</div>
+      </div>
+
+      <!-- Expanded Chat (Shown on Swipe Up) -->
+      <div class="chat-expanded" id="chatExpanded">
+        <div class="chat-messages" id="chatMessages">
+          <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
+            Select a user to start trash talking! 🔥
+          </div>
+        </div>
+        
+        <div class="chat-input-container">
+          <textarea class="chat-input" id="chatInput" placeholder="Type your trash talk..." rows="2" disabled></textarea>
+          <button class="chat-send-btn" id="chatSendBtn" disabled>Send 🚮</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module">
-    console.log('🧠 I\'m Puzzled v2025.05.30.3 - Enhanced with Phase 3C refinements');
+    console.log('🧠 I\'m Puzzled v2025.05.30.4 - Claude-Style Interface');
     
     let currentPuzzleDate = null;
+    let topStripExpanded = false;
+    let bottomStripExpanded = false;
 
     function getCurrentDate() {
       return new Date().toISOString().slice(0, 10);
@@ -611,36 +823,111 @@
       const displayDate = dateStr || getCurrentDate();
       currentPuzzleDate = displayDate;
       document.getElementById('puzzleDate').textContent = formatDateDisplay(displayDate);
-      updatePuzzleMeButtonVisibility();
-    }
-
-    function updatePuzzleMeButtonVisibility() {
-      const container = document.getElementById('puzzleMeContainer');
-      const currentDate = getCurrentDate();
       
-      if (currentPuzzleDate && currentPuzzleDate < currentDate) {
-        container.style.display = 'block';
-      } else {
-        container.style.display = 'none';
+      const datePicker = document.getElementById('datePicker');
+      if (datePicker) {
+        datePicker.value = displayDate;
       }
     }
 
-    function initializePuzzleMeButton() {
-      const button = document.getElementById('puzzleMeBtn');
+    function toggleTopStrip() {
+      const topStrip = document.getElementById('topStrip');
+      const mainContent = document.getElementById('mainContent');
       
-      button.addEventListener('click', () => {
-        const newDate = getCurrentDate();
-        updatePuzzleDateDisplay(newDate);
-        
-        if (window.appInstance && window.appInstance.startNewDay) {
-          window.appInstance.startNewDay();
-        }
-        
-        console.log('🧩 New puzzle day started!');
-      });
+      topStripExpanded = !topStripExpanded;
+      
+      if (topStripExpanded) {
+        topStrip.classList.add('expanded');
+        mainContent.style.marginTop = '60vh';
+        loadHistoryData();
+      } else {
+        topStrip.classList.remove('expanded');
+        mainContent.style.marginTop = '90px';
+      }
+      
+      console.log('📊 Top strip toggled:', topStripExpanded ? 'expanded' : 'collapsed');
     }
 
-    // ENHANCED: Updated scoreboard with better tie handling and prominence
+    function toggleBottomStrip() {
+      const bottomStrip = document.getElementById('bottomStrip');
+      const mainContent = document.getElementById('mainContent');
+      
+      bottomStripExpanded = !bottomStripExpanded;
+      
+      if (bottomStripExpanded) {
+        bottomStrip.classList.add('expanded');
+        mainContent.style.marginBottom = '70vh';
+        loadChatMessages();
+      } else {
+        bottomStrip.classList.remove('expanded');
+        mainContent.style.marginBottom = '70px';
+      }
+      
+      console.log('💬 Bottom strip toggled:', bottomStripExpanded ? 'expanded' : 'collapsed');
+    }
+
+    let touchStartY = 0;
+    let touchStartX = 0;
+
+    function initializeSwipeGestures() {
+      const topStrip = document.getElementById('topStrip');
+      const bottomStrip = document.getElementById('bottomStrip');
+      const topIndicator = document.getElementById('topSwipeIndicator');
+      const bottomIndicator = document.getElementById('bottomSwipeIndicator');
+
+      function handleTopStripTouch(e) {
+        const touchY = e.touches ? e.touches[0].clientY : e.clientY;
+        const touchX = e.touches ? e.touches[0].clientX : e.clientX;
+        
+        if (e.type === 'touchstart' || e.type === 'mousedown') {
+          touchStartY = touchY;
+          touchStartX = touchX;
+        } else if (e.type === 'touchend' || e.type === 'mouseup') {
+          const deltaY = touchY - touchStartY;
+          const deltaX = Math.abs(touchX - touchStartX);
+          
+          if (deltaX < 50) {
+            if (deltaY > 30) {
+              if (!topStripExpanded) toggleTopStrip();
+            } else if (deltaY < -30) {
+              if (topStripExpanded) toggleTopStrip();
+            }
+          }
+        }
+      }
+
+      function handleBottomStripTouch(e) {
+        const touchY = e.touches ? e.touches[0].clientY : e.clientY;
+        const touchX = e.touches ? e.touches[0].clientX : e.clientX;
+        
+        if (e.type === 'touchstart' || e.type === 'mousedown') {
+          touchStartY = touchY;
+          touchStartX = touchX;
+        } else if (e.type === 'touchend' || e.type === 'mouseup') {
+          const deltaY = touchY - touchStartY;
+          const deltaX = Math.abs(touchX - touchStartX);
+          
+          if (deltaX < 50) {
+            if (deltaY < -30) {
+              if (!bottomStripExpanded) toggleBottomStrip();
+            } else if (deltaY > 30) {
+              if (bottomStripExpanded) toggleBottomStrip();
+            }
+          }
+        }
+      }
+
+      topStrip.addEventListener('touchstart', handleTopStripTouch);
+      topStrip.addEventListener('touchend', handleTopStripTouch);
+      bottomStrip.addEventListener('touchstart', handleBottomStripTouch);
+      bottomStrip.addEventListener('touchend', handleBottomStripTouch);
+
+      topIndicator.addEventListener('click', toggleTopStrip);
+      bottomIndicator.addEventListener('click', toggleBottomStrip);
+
+      console.log('👆 Swipe gestures initialized');
+    }
+
     window.enhancedUpdateScoreboard = function(acb, jbb, tie, remaining) {
       document.getElementById("acbCount").textContent = acb;
       document.getElementById("jbbCount").textContent = jbb;
@@ -673,11 +960,154 @@
         jbbEl.style.color = "#10b981";
         acbEl.style.color = "#ef4444";
       } else {
-        // FIXED: All ties (including 0-0) show in yellow/gold
         acbEl.style.color = "#f59e0b";
         jbbEl.style.color = "#f59e0b";
       }
     };
+
+    function initializeDatePicker() {
+      const datePicker = document.getElementById('datePicker');
+      const prevBtn = document.getElementById('prevDateBtn');
+      const nextBtn = document.getElementById('nextDateBtn');
+      const todayBtn = document.getElementById('todayBtn');
+
+      datePicker.addEventListener('change', (e) => {
+        const selectedDate = e.target.value;
+        updatePuzzleDateDisplay(selectedDate);
+        loadPuzzleDataForDate(selectedDate);
+      });
+
+      prevBtn.addEventListener('click', () => {
+        const currentDate = new Date(currentPuzzleDate);
+        currentDate.setDate(currentDate.getDate() - 1);
+        const newDate = currentDate.toISOString().slice(0, 10);
+        updatePuzzleDateDisplay(newDate);
+        loadPuzzleDataForDate(newDate);
+      });
+
+      nextBtn.addEventListener('click', () => {
+        const currentDate = new Date(currentPuzzleDate);
+        currentDate.setDate(currentDate.getDate() + 1);
+        const newDate = currentDate.toISOString().slice(0, 10);
+        updatePuzzleDateDisplay(newDate);
+        loadPuzzleDataForDate(newDate);
+      });
+
+      todayBtn.addEventListener('click', () => {
+        const today = getCurrentDate();
+        updatePuzzleDateDisplay(today);
+        loadPuzzleDataForDate(today);
+      });
+    }
+
+    function loadHistoryData() {
+      const historyTableBody = document.getElementById('historyTableBody');
+      
+      historyTableBody.innerHTML = `
+        <tr><td colspan="3" style="text-align: center; padding: 2em;">Loading history data...</td></tr>
+      `;
+
+      if (window.historyModal && window.historyModal.loadHistoryData) {
+        window.historyModal.loadHistoryData().then(() => {
+          updateHistoryTable();
+        });
+      } else {
+        setTimeout(() => {
+          updateHistoryTable();
+        }, 500);
+      }
+    }
+
+    function updateHistoryTable() {
+      const historyTableBody = document.getElementById('historyTableBody');
+      const puzzles = [
+        'Connections', 'Strands', 'On the Record', 'Keyword', 'NYT Mini',
+        'Apple Mini', 'Globle', 'Flagle', 'Wordle', 'Tightrope'
+      ];
+
+      historyTableBody.innerHTML = '';
+      
+      puzzles.forEach(puzzle => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="font-weight: 600;">${puzzle}</td>
+          <td class="streak-current">--</td>
+          <td class="streak-record">--</td>
+        `;
+        historyTableBody.appendChild(row);
+      });
+    }
+
+    function loadChatMessages() {
+      const chatMessages = document.getElementById('chatMessages');
+      const chatStatus = document.getElementById('chatStatus');
+      
+      if (window.chatSystem && window.chatSystem.loadMessages) {
+        window.chatSystem.loadMessages();
+        chatStatus.textContent = 'Trash Talk Central 🔥';
+      } else {
+        chatMessages.innerHTML = `
+          <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
+            Chat system loading... 💬
+          </div>
+        `;
+      }
+    }
+
+    function initializeChatSystem() {
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
+      const userSelect = document.getElementById('userSelect');
+
+      userSelect.addEventListener('change', (e) => {
+        const hasUser = !!e.target.value;
+        chatInput.disabled = !hasUser;
+        chatSendBtn.disabled = !hasUser;
+        
+        if (hasUser) {
+          document.getElementById('chatStatus').textContent = 'Ready to trash talk! 💬';
+        } else {
+          document.getElementById('chatStatus').textContent = 'Select user to enable chat';
+        }
+      });
+
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendChatMessage();
+        }
+      });
+
+      chatSendBtn.addEventListener('click', sendChatMessage);
+
+      chatInput.addEventListener('input', () => {
+        const hasText = chatInput.value.trim().length > 0;
+        const hasUser = !!userSelect.value;
+        chatSendBtn.disabled = !hasText || !hasUser;
+      });
+    }
+
+    function sendChatMessage() {
+      const chatInput = document.getElementById('chatInput');
+      const message = chatInput.value.trim();
+      
+      if (!message) return;
+
+      if (window.chatSystem && window.chatSystem.sendMessage) {
+        window.chatSystem.sendMessage();
+      } else {
+        console.log('💬 Mock send:', message);
+        chatInput.value = '';
+      }
+    }
+
+    function loadPuzzleDataForDate(date) {
+      console.log('📊 Loading puzzle data for:', date);
+      
+      if (window.appInstance && window.appInstance.loadDataForDate) {
+        window.appInstance.loadDataForDate(date);
+      }
+    }
 
     window.createDNFCell = function() {
       const div = document.createElement('div');
@@ -699,59 +1129,16 @@
       'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
     };
 
-    window.updateHistoryModal = function(historyData) {
-      const streaks = calculateStreaks(historyData);
+    function initialize() {
+      updatePuzzleDateDisplay();
+      initializeSwipeGestures();
+      initializeDatePicker();
+      initializeChatSystem();
       
-      const lastWinnerEl = document.getElementById('lastOverallWinner');
-      const overallStreakEl = document.getElementById('overallStreak');
-      const overallLongestEl = document.getElementById('overallLongestStreak');
-      
-      if (streaks.overall.current.winner) {
-        lastWinnerEl.textContent = streaks.overall.current.winner;
-        overallStreakEl.textContent = `Current streak: ${streaks.overall.current.count} day${streaks.overall.current.count !== 1 ? 's' : ''}`;
-        
-        const longestRecord = streaks.overall.longest;
-        if (longestRecord.count > 0) {
-          const holderText = longestRecord.holders.length > 1 
-            ? longestRecord.holders.join(' & ') 
-            : longestRecord.holders[0];
-          overallLongestEl.textContent = `Longest streak: ${longestRecord.count} days (${holderText})`;
-        } else {
-          overallLongestEl.textContent = 'Longest streak: No records yet';
-        }
-      } else {
-        lastWinnerEl.textContent = 'No winner yet';
-        overallStreakEl.textContent = 'No current streak';
-        overallLongestEl.textContent = 'Longest streak: No records yet';
-      }
-    };
-
-    function calculateStreaks(historyData) {
-      return {
-        overall: {
-          current: { winner: 'Adam', count: 3 },
-          longest: { count: 5, holders: ['Adam'] }
-        },
-        puzzles: {
-          'Connections': {
-            current: { winner: 'Jonathan', count: 2 },
-            longest: { count: 4, holders: ['Jonathan'] }
-          }
-        }
-      };
+      console.log('✅ Claude-style interface initialized');
     }
 
-    updatePuzzleDateDisplay();
-    initializePuzzleMeButton();
-    
-    document.getElementById('historyToggle').addEventListener('click', () => {
-      document.getElementById('historyModal').style.display = 'block';
-      window.updateHistoryModal({});
-    });
-    
-    document.getElementById('historyCloseBtn').addEventListener('click', () => {
-      document.getElementById('historyModal').style.display = 'none';
-    });
+    initialize();
     
     import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
       console.log('✅ Supabase module loaded');
@@ -773,7 +1160,6 @@
       app.enhancedUpdateScoreboard = window.enhancedUpdateScoreboard;
       app.createDNFCell = window.createDNFCell;
       app.DEADLINE_CONFIG = window.DEADLINE_CONFIG;
-      app.updateHistoryModal = window.updateHistoryModal;
       
       app.startNewDay = function() {
         console.log('🆕 Starting new puzzle day...');
@@ -788,7 +1174,7 @@
       await app.init();
       window.appInstance = app;
       
-      console.log('🎉 v2025.05.30.3 Complete! Enhanced with Phase 3C refinements');
+      console.log('🎉 v2025.05.30.4 Complete! Claude-style interface with swipe strips');
       
     }).catch(error => {
       console.error('💥 Module loading failed:', error);
@@ -798,7 +1184,6 @@
         <div style="text-align: center; padding: 2em; color: #666; background: #f5f5f5; border-radius: 8px; margin: 2em;">
           <h2>⚠️ Module Loading Failed</h2>
           <p>The modular framework could not load. Please ensure all module files are present.</p>
-          <p><strong><a href="index-v0.6.1.html">Click here for the backup v0.6.1 version</a></strong></p>
         </div>
       `;
     });
