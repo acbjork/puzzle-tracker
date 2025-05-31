@@ -1,5 +1,5 @@
-// I'm Puzzled - Chat System Module v2025.05.30.3
-// Enhanced with Phase 3C improvements: Color compatibility, interface updates
+// I'm Puzzled - Chat System Module v1.0
+// Handles real-time chat functionality, unread badges, and message management
 
 class ChatSystem {
   constructor() {
@@ -9,7 +9,7 @@ class ChatSystem {
     this.lastReadMessageId = null;
     this.currentUser = null;
     
-    console.log('💬 Chat System initialized v2025.05.30.3');
+    console.log('💬 Chat System initialized');
   }
 
   // Initialize chat system
@@ -29,7 +29,7 @@ class ChatSystem {
     // Show/hide interface based on user
     this.updateInterfaceVisibility();
     
-    console.log('💬 Chat System ready v3C');
+    console.log('💬 Chat System ready');
   }
 
   // Load last read message status from database
@@ -71,25 +71,13 @@ class ChatSystem {
     }
   }
 
-  // ENHANCED: Render chat messages with Phase 3C styling
+  // Render chat messages in the UI
   renderMessages() {
     const container = document.getElementById('chatMessages');
     if (!container) return;
 
     if (this.messages.length === 0) {
-      container.innerHTML = `
-        <div class="chat-empty" style="
-          text-align: center; 
-          padding: 2em 1em; 
-          color: #6b46c1; 
-          font-style: italic;
-          background: #f8fafc;
-          border-radius: 8px;
-          margin: 1em;
-        ">
-          No trash talk yet... someone needs to start the smack down! 🔥
-        </div>
-      `;
+      container.innerHTML = '<div class="chat-empty">No trash talk yet... someone needs to start the smack down! 🔥</div>';
       return;
     }
 
@@ -106,62 +94,22 @@ class ChatSystem {
       const bubbleDiv = document.createElement('div');
       bubbleDiv.className = `message-bubble ${isCurrentUser ? 'current-user' : 'other-user'}`;
       
-      // ENHANCED: Phase 3C compatible styling
-      if (isCurrentUser) {
-        bubbleDiv.style.background = 'linear-gradient(135deg, #c4b5fd, #a78bfa)';
-        bubbleDiv.style.color = 'white';
-        bubbleDiv.style.marginLeft = '2em';
-        bubbleDiv.style.textAlign = 'right';
-      } else {
-        bubbleDiv.style.background = '#f1f5f9';
-        bubbleDiv.style.color = '#475569';
-        bubbleDiv.style.marginRight = '2em';
-        bubbleDiv.style.borderLeft = '3px solid #6b46c1';
-      }
-      
-      bubbleDiv.style.padding = '0.75em';
-      bubbleDiv.style.borderRadius = '12px';
-      bubbleDiv.style.margin = '0.5em';
-      bubbleDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-      bubbleDiv.style.transition = 'all 0.2s';
-      
       if (msg.message === '[deleted]') {
         bubbleDiv.classList.add('deleted');
-        bubbleDiv.style.opacity = '0.6';
-        bubbleDiv.style.fontStyle = 'italic';
         bubbleDiv.innerHTML = `
-          <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
-            ${msg.player} ${senderEmoji}
-          </div>
-          <div class="message-text" style="margin: 0.25em 0;">
-            This message was deleted
-          </div>
-          <div class="timestamp" style="font-size: 0.8em; opacity: 0.7; margin-top: 0.25em;">
-            ${timestamp}
-          </div>
+          <div class="sender">${msg.player} ${senderEmoji}</div>
+          <div class="message-text">This message was deleted</div>
+          <div class="timestamp">${timestamp}</div>
         `;
       } else {
         bubbleDiv.innerHTML = `
-          <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
-            ${msg.player} ${senderEmoji}
-          </div>
-          <div class="message-text" style="margin: 0.25em 0; word-wrap: break-word;">
-            ${this.escapeHtml(msg.message)}
-          </div>
-          <div class="timestamp" style="font-size: 0.8em; opacity: 0.7; margin-top: 0.25em;">
-            ${timestamp}
-          </div>
+          <div class="sender">${msg.player} ${senderEmoji}</div>
+          <div class="message-text">${this.escapeHtml(msg.message)}</div>
+          <div class="timestamp">${timestamp}</div>
         `;
         
         // Add delete functionality for current user's messages
         if (isCurrentUser) {
-          bubbleDiv.style.cursor = 'pointer';
-          bubbleDiv.addEventListener('mouseenter', () => {
-            bubbleDiv.style.transform = 'scale(1.02)';
-          });
-          bubbleDiv.addEventListener('mouseleave', () => {
-            bubbleDiv.style.transform = 'scale(1)';
-          });
           bubbleDiv.addEventListener('click', () => this.showDeleteConfirmation(bubbleDiv, msg.id));
         }
       }
@@ -174,40 +122,17 @@ class ChatSystem {
     container.scrollTop = container.scrollHeight;
   }
 
-  // ENHANCED: Show delete confirmation with Phase 3C styling
+  // Show delete confirmation dialog
   showDeleteConfirmation(bubbleElement, messageId) {
     // Remove any existing confirmations
     document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
     
     const confirmDiv = document.createElement('div');
     confirmDiv.className = 'delete-confirmation';
-    confirmDiv.style.cssText = `
-      position: absolute;
-      top: 100%;
-      right: 0;
-      background: white;
-      border: 2px solid #ef4444;
-      border-radius: 8px;
-      padding: 0.75em;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      z-index: 1000;
-      min-width: 200px;
-    `;
-    
     confirmDiv.innerHTML = `
-      <div style="margin-bottom: 0.5em; color: #374151; font-weight: 500;">
-        Delete this message?
-      </div>
-      <div style="display: flex; gap: 0.5em;">
-        <button onclick="window.chatSystem.deleteMessage('${messageId}')" 
-                style="background: #ef4444; color: white; border: none; padding: 0.4em 0.8em; border-radius: 6px; cursor: pointer; font-size: 0.8em; font-weight: 500;">
-          Yes
-        </button>
-        <button onclick="this.parentElement.parentElement.remove()" 
-                style="background: #6b7280; color: white; border: none; padding: 0.4em 0.8em; border-radius: 6px; cursor: pointer; font-size: 0.8em; font-weight: 500;">
-          No
-        </button>
-      </div>
+      Delete this message? 
+      <button onclick="window.chatSystem.deleteMessage('${messageId}')">Yes</button> 
+      <button onclick="this.parentElement.remove()">No</button>
     `;
     
     bubbleElement.style.position = 'relative';
@@ -266,7 +191,7 @@ class ChatSystem {
     }
   }
 
-  // ENHANCED: Update unread badge with Phase 3C styling
+  // Update unread message badge
   updateUnreadBadge() {
     const unreadBadge = document.getElementById('unreadBadge');
     if (!unreadBadge) return;
@@ -285,15 +210,6 @@ class ChatSystem {
     if (unreadMessages.length > 0) {
       unreadBadge.textContent = unreadMessages.length;
       unreadBadge.style.display = 'flex';
-      unreadBadge.style.background = '#ef4444';
-      unreadBadge.style.color = 'white';
-      unreadBadge.style.borderRadius = '50%';
-      unreadBadge.style.minWidth = '20px';
-      unreadBadge.style.height = '20px';
-      unreadBadge.style.fontSize = '0.7em';
-      unreadBadge.style.fontWeight = 'bold';
-      unreadBadge.style.alignItems = 'center';
-      unreadBadge.style.justifyContent = 'center';
       this.hasUnreadMessages = true;
     } else {
       unreadBadge.style.display = 'none';
@@ -420,8 +336,6 @@ class ChatSystem {
     if (!canUseChat) {
       this.hideChat();
     }
-    
-    console.log('💬 Chat interface visibility v3C:', canUseChat ? 'enabled' : 'disabled');
   }
 
   // Handle real-time message updates
@@ -464,17 +378,6 @@ class ChatSystem {
       if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
       return true;
     }).length;
-  }
-
-  // NEW: Get chat status for debugging
-  getChatStatus() {
-    return {
-      messageCount: this.messages.length,
-      unreadCount: this.getUnreadCount(),
-      isVisible: this.isVisible,
-      currentUser: this.currentUser,
-      version: 'v2025.05.30.3'
-    };
   }
 }
 

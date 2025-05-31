@@ -1,0 +1,134 @@
+} else if (jbb > acb && !canAcbWin) {
+        // JBB has mathematically won the day
+        jbbEl.style.color = "green";
+        acbEl.style.color = "red";
+        jbbCrown.style.display = "block";
+      } else if (acb > jbb) {
+        // ACB currently leading
+        acbEl.style.color = "green";
+        jbbEl.style.color = "red";
+      } else if (jbb > acb) {
+        // JBB currently leading
+        jbbEl.style.color = "green";
+        acbEl.style.color = "red";
+      } else {
+        // PHASE 3A FIX: Tied scores (including 0-0) show in yellow
+        acbEl.style.color = "#c9a700";
+        jbbEl.style.color = "#c9a700";
+      }
+    };
+
+    // PHASE 3A: Global functions for deadline management
+    window.createDNFCell = function() {
+      const div = document.createElement('div');
+      div.className = 'dnf-cell';
+      div.textContent = 'DNF';
+      return div;
+    };
+
+    // PHASE 3A: Enhanced deadline configuration from your requirements
+    window.DEADLINE_CONFIG = {
+      'Connections': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Strands': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'On the Record': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15, weekendExtended: true },
+      'Keyword': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
+      'NYT Mini': { resetTime: '22:00', timezone: 'ET', gracePeriod: 15, weekendTime: '18:00' },
+      'Apple Mini': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Globle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Flagle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Wordle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
+    };
+
+    // Initialize Phase 3A features immediately
+    updatePuzzleDateDisplay();
+    initializePuzzleMeButton();
+    
+    // Import and initialize the Supabase client first (preserving your modular framework)
+    import('./modules/core/supabase-client.js').then(async (supabaseModule) => {
+      console.log('✅ Supabase module loaded');
+      
+      // Make client globally available (maintaining compatibility)
+      const supabaseClient = supabaseModule.default;
+      window.supabase = supabaseClient.getClient(); // For backward compatibility
+      window.supabaseClient = supabaseClient; // New modular access
+      
+      // Test database connection
+      const isHealthy = await supabaseClient.testConnection();
+      if (!isHealthy) {
+        console.error('❌ Database connection failed');
+        document.getElementById('loadingOverlay').style.display = 'none';
+        return;
+      }
+      
+      // Now import and initialize the main app with Phase 3A enhancements
+      const { default: app } = await import('./modules/app/main.js');
+      
+      // PHASE 3A: Inject enhanced functionality into the app
+      app.updatePuzzleDateDisplay = updatePuzzleDateDisplay;
+      app.isPastDeadline = isPastDeadline;
+      app.isValidResult = isValidResult;
+      app.enhancedUpdateScoreboard = window.enhancedUpdateScoreboard;
+      app.createDNFCell = window.createDNFCell;
+      app.DEADLINE_CONFIG = window.DEADLINE_CONFIG;
+      
+      // PHASE 3A: Add new day functionality
+      app.startNewDay = function() {
+        console.log('🆕 Starting new puzzle day...');
+        const newDate = getCurrentDate();
+        updatePuzzleDateDisplay(newDate);
+        
+        // This will be handled by the existing modules to reset data
+        if (app.resetForNewDay) {
+          app.resetForNewDay();
+        }
+      };
+      
+      // Initialize the complete application with all Phase 3A enhancements
+      await app.init();
+      
+      // Store app instance globally for Puzzle Me button interaction
+      window.appInstance = app;
+      
+      console.log('🎉 Phase 3A Complete! Enhanced modular app successfully loaded with:');
+      console.log('✅ Deadline management & DNF functionality');
+      console.log('✅ Updated puzzle URLs from requirements table');
+      console.log('✅ Fixed scoreboard colors (yellow for ties including 0-0)');
+      console.log('✅ Puzzle date display with day-of-week');
+      console.log('✅ Puzzle Me button for smooth day transitions');
+      console.log('✅ Enhanced deadline configuration for all puzzles');
+      console.log('✅ DNF (Did Not Finish) cell styling and logic');
+      console.log('✅ Mathematical winner detection improved');
+      console.log('✅ All existing modular functionality preserved');
+      
+    }).catch(error => {
+      console.error('💥 Module loading failed:', error);
+      console.error('🔄 Check that all module files exist in the modules/ directory');
+      console.error('📁 Required modules: supabase-client.js, main.js, and supporting modules');
+      
+      // Remove loading overlay even on failure
+      document.getElementById('loadingOverlay').style.display = 'none';
+      
+      // Show helpful error message with fallback option
+      document.body.innerHTML += `
+        <div style="text-align: center; padding: 2em; color: #666; background: #f5f5f5; border-radius: 8px; margin: 2em;">
+          <h2>⚠️ Module Loading Failed</h2>
+          <p>The modular framework could not load. Please ensure all module files are present:</p>
+          <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+            <li>modules/core/supabase-client.js</li>
+            <li>modules/app/main.js</li>
+            <li>modules/ui/puzzle-table.js</li>
+            <li>modules/ui/scoreboard.js</li>
+            <li>modules/ui/chat-system.js</li>
+            <li>modules/ui/history-modal.js</li>
+            <li>modules/core/user-management.js</li>
+            <li>modules/utils/date-helpers.js</li>
+          </ul>
+          <p><strong><a href="index-v0.6.1.html">Click here for the backup v0.6.1 version</a></strong></p>
+          <p style="font-size: 0.9em; color: #888;">Phase 3A features are ready when modules are available</p>
+        </div>
+      `;
+    });
+  </script>
+</body>
+</html>

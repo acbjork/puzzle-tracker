@@ -1,5 +1,5 @@
-// I'm Puzzled - Puzzle Table Module v2025.05.30.3
-// Enhanced with Phase 3C improvements: Button styling, color compatibility
+// I'm Puzzled - Puzzle Table Module v1.0
+// Handles puzzle table rendering, winner determination, and edit functionality
 
 class PuzzleTable {
   constructor() {
@@ -12,20 +12,20 @@ class PuzzleTable {
     this.puzzleUrls = {
       "Connections": "https://www.nytimes.com/games/connections",
       "Strands": "https://www.nytimes.com/games/strands", 
-      "On the Record": "https://www.washingtonpost.com/news-quiz/",
-      "Keyword": "https://washingtonpost.com/games/keyword/",
-      "NYT Mini": "https://nytimes.com/crosswords/game/mini/",
-      "Apple Mini": "https://apple.news/puzzles",
+      "On the Record": "https://www.nytimes.com/column/on-the-record",
+      "Keyword": "https://keyword.lol",
+      "NYT Mini": "https://www.nytimes.com/crosswords/game/mini",
+      "Apple Mini": "https://crosswords.apple.com",
       "Globle": "https://globle-game.com",
-      "Flagle": "https://www.flagle.io",
-      "Wordle": "https://www.nytimes.com/games/wordle/index.html",
-      "Tightrope": "https://www.britannica.com/quiz/tightrope"
+      "Flagle": "https://flagle.io",
+      "Wordle": "https://www.nytimes.com/games/wordle",
+      "Tightrope": "https://tightrope.game"
     };
 
     this.results = {};
     this.cellMap = {};
     
-    console.log('🧩 Puzzle Table initialized v2025.05.30.3');
+    console.log('🧩 Puzzle Table initialized');
   }
 
   // Initialize results structure
@@ -53,7 +53,7 @@ class PuzzleTable {
       }
     }
 
-    console.log('📊 Results loaded v3C:', Object.keys(this.results).length, 'puzzles');
+    console.log('📊 Results loaded:', Object.keys(this.results).length, 'puzzles');
   }
 
   // Determine winner for a specific puzzle
@@ -351,34 +351,21 @@ class PuzzleTable {
           // Current user's cell - can edit
           if (result) {
             // Show existing result with edit button
-            const resultDiv = document.createElement("div");
-            resultDiv.className = "submitted";
-            resultDiv.textContent = result;
-            td.appendChild(resultDiv);
-            
-            // ENHANCED: Use Phase 3C button styling
-            const buttonContainer = document.createElement("div");
-            buttonContainer.className = "action-buttons";
-            
+            td.innerHTML = `<div class="submitted">${result}</div>`;
             const editBtn = document.createElement("button");
             editBtn.textContent = "Edit";
-            editBtn.className = "btn btn-edit"; // NEW: Phase 3C classes
             editBtn.onclick = () => this.enableEdit(td, puzzle, user, result, supabaseClient, today);
-            
-            buttonContainer.appendChild(editBtn);
-            td.appendChild(buttonContainer);
+            td.appendChild(editBtn);
           } else {
             // Show input for new result
             this.createInputCell(td, puzzle, user, supabaseClient, today);
           }
         } else {
           // Other user's cell - read only
-          if (result) {
-            const div = document.createElement("div");
-            div.className = "submitted";
-            div.textContent = result;
-            td.appendChild(div);
-          }
+          const div = document.createElement("div");
+          div.className = "submitted";
+          div.textContent = result;
+          td.appendChild(div);
         }
         
         tr.appendChild(td);
@@ -390,28 +377,23 @@ class PuzzleTable {
     // Apply winner highlighting
     this.highlightWinners();
     
-    console.log('🏆 Puzzle table rendered v3C');
+    console.log('🏆 Puzzle table rendered');
   }
 
-  // ENHANCED: Create input cell with Phase 3C button styling
+  // Create input cell for new results
   createInputCell(td, puzzle, user, supabaseClient, today) {
     const textarea = document.createElement("textarea");
     textarea.placeholder = "Enter result...";
     
-    const buttonContainer = document.createElement("div");
-    buttonContainer.className = "action-buttons";
-    
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "Submit";
-    submitBtn.className = "btn btn-submit"; // NEW: Phase 3C classes
     submitBtn.onclick = () => this.submitResult(textarea.value.trim(), puzzle, user, supabaseClient, today);
     
-    buttonContainer.appendChild(submitBtn);
     td.appendChild(textarea);
-    td.appendChild(buttonContainer);
+    td.appendChild(submitBtn);
   }
 
-  // ENHANCED: Enable editing with Phase 3C button styling
+  // Enable editing of existing result
   enableEdit(td, puzzle, user, oldValue, supabaseClient, today) {
     td.innerHTML = "";
     
@@ -419,16 +401,14 @@ class PuzzleTable {
     textarea.value = oldValue;
     textarea.placeholder = "Enter result...";
     
-    const buttonContainer = document.createElement("div");
-    buttonContainer.className = "action-buttons";
-    
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "Submit";
-    submitBtn.className = "btn btn-submit"; // NEW: Phase 3C classes
     
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
-    deleteBtn.className = "btn btn-delete"; // NEW: Phase 3C red delete button
+    deleteBtn.style.marginLeft = "5px";
+    deleteBtn.style.backgroundColor = "#ff6b6b";
+    deleteBtn.style.color = "white";
 
     submitBtn.onclick = async () => {
       const newValue = textarea.value.trim();
@@ -449,11 +429,10 @@ class PuzzleTable {
       }
     };
 
-    buttonContainer.appendChild(submitBtn);
-    buttonContainer.appendChild(deleteBtn);
-    
     td.appendChild(textarea);
-    td.appendChild(buttonContainer);
+    td.appendChild(document.createElement("br"));
+    td.appendChild(submitBtn);
+    td.appendChild(deleteBtn);
   }
 
   // Submit new or updated result
@@ -471,7 +450,7 @@ class PuzzleTable {
       const userManager = window.userManager; // Access global instance
       this.render(userManager, supabaseClient, today);
       
-      console.log(`✅ Result submitted v3C: ${puzzle} - ${user}`);
+      console.log(`✅ Result submitted: ${puzzle} - ${user}`);
     } catch (error) {
       console.error("Submission failed:", error.message);
       alert("Submission failed. Try again.");
@@ -491,7 +470,7 @@ class PuzzleTable {
       const userManager = window.userManager; // Access global instance
       this.render(userManager, supabaseClient, today);
       
-      console.log(`🗑️ Result deleted v3C: ${puzzle} - ${user}`);
+      console.log(`🗑️ Result deleted: ${puzzle} - ${user}`);
       return true;
     } catch (error) {
       console.error("Deletion failed:", error.message);
@@ -513,31 +492,6 @@ class PuzzleTable {
   // Get puzzle list
   getPuzzles() {
     return [...this.puzzles];
-  }
-
-  // NEW: Check if table has any results
-  hasResults() {
-    return Object.values(this.results).some(puzzle => 
-      puzzle.Adam || puzzle.Jonathan
-    );
-  }
-
-  // NEW: Get completion status
-  getCompletionStatus() {
-    let completed = 0;
-    let total = this.puzzles.length;
-    
-    this.puzzles.forEach(puzzle => {
-      if (this.results[puzzle].Adam && this.results[puzzle].Jonathan) {
-        completed++;
-      }
-    });
-    
-    return {
-      completed,
-      total,
-      percentage: Math.round((completed / total) * 100)
-    };
   }
 }
 
