@@ -253,96 +253,52 @@ class ChatSystem {
   }
 
   updateUnreadBadge() {
-  console.log('🚨 updateUnreadBadge called for user:', this.currentUser);
   const unreadBadge = document.getElementById('unreadBadge');
   if (!unreadBadge) return;
   
-  // FIXED: If no user is selected, always hide the badge
+  // If no user is selected, always hide the badge
   if (!this.currentUser || !this.userManager.canRenderTable()) {
     unreadBadge.style.display = 'none';
     this.hasUnreadMessages = false;
     return;
   }
   
-  // FIXED: If chat is visible, always hide the badge (messages are being read)
+  // If chat is visible, always hide the badge
   if (this.isVisible) {
     unreadBadge.style.display = 'none';
     this.hasUnreadMessages = false;
     return;
   }
   
-  // SIMPLE FIX: Count only messages from OTHER users that are AFTER our last read message
-  let unreadCount = 0;
+  // Count unread messages from other users
+  const unreadMessages = this.messages.filter(msg => {
+    if (msg.message === '[deleted]') return false;
+    if (msg.player === this.currentUser) return false;
+    if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
+    return true;
+  });
   
-  if (!this.lastReadMessageId) {
-    // If never read anything, count all other user messages
-    unreadCount = this.messages.filter(msg => 
-      msg.player !== this.currentUser && msg.message !== '[deleted]'
-    ).length;
+  if (unreadMessages.length > 0) {
+    unreadBadge.textContent = unreadMessages.length;
+    unreadBadge.style.display = 'flex';
+    unreadBadge.style.position = 'absolute';
+    unreadBadge.style.top = '-10px';
+    unreadBadge.style.right = '10px';
+    unreadBadge.style.background = '#ef4444';
+    unreadBadge.style.color = 'white';
+    unreadBadge.style.borderRadius = '50%';
+    unreadBadge.style.minWidth = '20px';
+    unreadBadge.style.height = '20px';
+    unreadBadge.style.fontSize = '0.7em';
+    unreadBadge.style.fontWeight = 'bold';
+    unreadBadge.style.alignItems = 'center';
+    unreadBadge.style.justifyContent = 'center';
+    unreadBadge.style.zIndex = '1001';
+    this.hasUnreadMessages = true;
   } else {
-    // Find the index of our last read message
-    const lastReadIndex = this.messages.findIndex(msg => msg.id === this.lastReadMessageId);
-    
-    if (lastReadIndex >= 0) {
-      // Count messages AFTER the last read message from other users
-      const messagesAfterLastRead = this.messages.slice(lastReadIndex + 1);
-      unreadCount = messagesAfterLastRead.filter(msg => 
-        msg.player !== this.currentUser && msg.message !== '[deleted]'
-      ).length;
-    } else {
-  // Last read message not found in current array, assume all current messages are read
-  unreadCount = 0;
-}
-    }
-  }  
-  if (unreadCount > 0) {
-  this.showBadge(unreadBadge, unreadCount);
-} else {
-  unreadBadge.style.display = 'none';
-  this.hasUnreadMessages = false;
-}
-
-showBadge(unreadBadge, count) {
-  unreadBadge.textContent = count;
-  unreadBadge.style.display = 'flex';
-  unreadBadge.style.position = 'absolute';
-  unreadBadge.style.top = '-10px';
-  unreadBadge.style.right = '10px';
-  unreadBadge.style.background = '#ef4444';
-  unreadBadge.style.color = 'white';
-  unreadBadge.style.borderRadius = '50%';
-  unreadBadge.style.minWidth = '20px';
-  unreadBadge.style.height = '20px';
-  unreadBadge.style.fontSize = '0.7em';
-  unreadBadge.style.fontWeight = 'bold';
-  unreadBadge.style.alignItems = 'center';
-  unreadBadge.style.justifyContent = 'center';
-  unreadBadge.style.zIndex = '1001';
-  this.hasUnreadMessages = true;
-}
-
-  async markAsRead() {
-  // FIXED: Only mark as read if user is selected
-  if (!this.currentUser || !this.userManager.canRenderTable()) {
-    return;
+    unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
   }
-  
-  if (this.messages.length > 0) {
-    // FIXED: Find the very latest message from ANY user (not just other users)
-    const allMessages = this.messages.filter(msg => msg.message !== '[deleted]');
-    
-    if (allMessages.length > 0) {
-      // Get the most recent message overall
-      const latestMessage = allMessages[allMessages.length - 1];
-      console.log('🔄 Marking as read up to message:', latestMessage.id, 'at', latestMessage.created_at);
-      
-      await this.saveLastReadStatus(latestMessage.id);
-      this.lastReadMessageId = latestMessage.id;
-    }
-  }
-  
-  this.hasUnreadMessages = false;
-  this.updateUnreadBadge();
 }
 
   showChat() {
