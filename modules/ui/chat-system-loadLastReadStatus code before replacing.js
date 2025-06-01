@@ -35,14 +35,12 @@ class ChatSystem {
   
   try {
     const data = await this.supabaseClient.loadUserSettings(this.currentUser);
-    console.log('🔍 Raw database data for', this.currentUser, ':', data);
-    
     if (data && data.last_read_chat_message_id) {
       this.lastReadMessageId = data.last_read_chat_message_id;
-      console.log('✅ Set lastReadMessageId to:', this.lastReadMessageId);
+      console.log('📖 Loaded last read message ID for', this.currentUser, ':', this.lastReadMessageId);
     } else {
       this.lastReadMessageId = null;
-      console.log('❌ No lastReadMessageId found, set to null');
+      console.log('📖 No last read message ID found for', this.currentUser);
     }
   } catch (error) {
     console.error("Failed to load read status:", error);
@@ -290,9 +288,6 @@ class ChatSystem {
       unreadCount = this.messages.filter(msg => 
         msg.player !== this.currentUser && msg.message !== '[deleted]'
       ).length;
-      console.log('🔍 DEBUG - Current messages:', this.messages.map(m => ({id: m.id, player: m.player, message: m.message.substring(0,20)})));
-console.log('🔍 DEBUG - lastReadMessageId:', this.lastReadMessageId);
-console.log('🔍 DEBUG - unreadCount:', unreadCount);
     }
   }
   
