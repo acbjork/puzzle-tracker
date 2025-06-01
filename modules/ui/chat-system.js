@@ -296,6 +296,9 @@ class ChatSystem {
       ).length;
       console.log('🔍 DEBUG - Current messages:', this.messages.map(m => ({id: m.id, player: m.player, message: m.message.substring(0,20)})));
 console.log('🔍 DEBUG - lastReadMessageId:', this.lastReadMessageId);
+console.log('🔍 DEBUG - Message IDs in array:', this.messages.map(m => m.id));
+console.log('🔍 DEBUG - Looking for lastReadMessageId:', this.lastReadMessageId);
+console.log('🔍 DEBUG - Found lastRead in array?', this.messages.findIndex(msg => msg.id === this.lastReadMessageId));
 console.log('🔍 DEBUG - unreadCount:', unreadCount);
     }
   }
