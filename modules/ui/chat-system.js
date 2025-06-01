@@ -252,42 +252,73 @@ class ChatSystem {
     }
   }
 
-  updateUnreadBadge() {
+  async updateUnreadBadge() {
   const unreadBadge = document.getElementById('unreadBadge');
   if (!unreadBadge) return;
   
-  if (this.isVisible) {
+  // If no user is selected, always hide the badge
+  if (!this.currentUser || !this.userManager.canRenderTable()) {
     unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
     return;
   }
   
-  const unreadMessages = this.messages.filter(msg => {
-    if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
-    if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
-    return true;
-  });
-  
-  if (unreadMessages.length > 0) {
-    unreadBadge.textContent = unreadMessages.length;
-    unreadBadge.style.display = 'flex';
-    unreadBadge.style.position = 'absolute';
-    unreadBadge.style.top = '-15px';
-    unreadBadge.style.right = '10px';
-    unreadBadge.style.background = '#ef4444';
-    unreadBadge.style.color = 'white';
-    unreadBadge.style.borderRadius = '50%';
-    unreadBadge.style.minWidth = '20px';
-    unreadBadge.style.height = '20px';
-    unreadBadge.style.fontSize = '0.7em';
-    unreadBadge.style.fontWeight = 'bold';
-    unreadBadge.style.alignItems = 'center';
-    unreadBadge.style.justifyContent = 'center';
-    unreadBadge.style.zIndex = '1001';
-    this.hasUnreadMessages = true;
-  } else {
+  // If chat is visible, always hide the badge
+  if (this.isVisible) {
     unreadBadge.style.display = 'none';
     this.hasUnreadMessages = false;
+    return;
   }
+  
+  try {
+    const today = this.dateHelpers.getToday();
+    const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
+    
+    console.log('🔍 Unread count for', this.currentUser, ':', unreadCount);
+    
+    if (unreadCount > 0) {
+      unreadBadge.textContent = unreadCount;
+      unreadBadge.style.display = 'flex';
+      unreadBadge.style.position = 'absolute';
+      unreadBadge.style.top = '-10px';
+      unreadBadge.style.right = '10px';
+      unreadBadge.style.background = '#ef4444';
+      unreadBadge.style.color = 'white';
+      unreadBadge.style.borderRadius = '50%';
+      unreadBadge.style.minWidth = '20px';
+      unreadBadge.style.height = '20px';
+      unreadBadge.style.fontSize = '0.7em';
+      unreadBadge.style.fontWeight = 'bold';
+      unreadBadge.style.alignItems = 'center';
+      unreadBadge.style.justifyContent = 'center';
+      unreadBadge.style.zIndex = '1001';
+      this.hasUnreadMessages = true;
+    } else {
+      unreadBadge.style.display = 'none';
+      this.hasUnreadMessages = false;
+    }
+  } catch (error) {
+    console.error("Failed to get unread count:", error);
+    unreadBadge.style.display = 'none';
+  }
+}
+
+async markAsRead() {
+  // Only mark as read if user is selected
+  if (!this.currentUser || !this.userManager.canRenderTable()) {
+    return;
+  }
+  
+  try {
+    const today = this.dateHelpers.getToday();
+    await this.supabaseClient.markChatMessagesAsRead(today, this.currentUser);
+    console.log('✅ Marked messages as read for', this.currentUser);
+  } catch (error) {
+    console.error("Failed to mark messages as read:", error);
+  }
+  
+  this.hasUnreadMessages = false;
+  this.updateUnreadBadge();
 }
 
   showChat() {
