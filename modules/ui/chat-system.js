@@ -270,15 +270,6 @@ class ChatSystem {
     if (unreadMessages.length > 0) {
       unreadBadge.textContent = unreadMessages.length;
       unreadBadge.style.display = 'flex';
-      unreadBadge.style.background = '#ef4444';
-      unreadBadge.style.color = 'white';
-      unreadBadge.style.borderRadius = '50%';
-      unreadBadge.style.minWidth = '20px';
-      unreadBadge.style.height = '20px';
-      unreadBadge.style.fontSize = '0.7em';
-      unreadBadge.style.fontWeight = 'bold';
-      unreadBadge.style.alignItems = 'center';
-      unreadBadge.style.justifyContent = 'center';
       this.hasUnreadMessages = true;
     } else {
       unreadBadge.style.display = 'none';
