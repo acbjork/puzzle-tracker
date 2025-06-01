@@ -330,29 +330,31 @@ class ChatSystem {
 }
 
   showChat() {
-  const bottomStrip = document.querySelector('.bottom-strip');
-  const chatInput = document.getElementById('chatInput');
-  
-  if (!bottomStrip) return;
-  
-  bottomStrip.classList.add('expanded');
-  this.isVisible = true;
-  
-  this.markAsRead();
-  
-  if (chatInput) chatInput.focus();
-}
+    const chatModal = document.getElementById('chatModal');
+    const chatInput = document.getElementById('chatInput');
+    
+    if (!chatModal) return;
+    
+    chatModal.style.display = 'block';
+    this.isVisible = true;
+    document.body.style.overflow = 'hidden';
+    
+    this.markAsRead();
+    
+    if (chatInput) chatInput.focus();
+  }
 
   hideChat() {
-  const bottomStrip = document.querySelector('.bottom-strip');
-  
-  if (!bottomStrip) return;
-  
-  bottomStrip.classList.remove('expanded');
-  this.isVisible = false;
-  
-  this.updateUnreadBadge();
-}
+    const chatModal = document.getElementById('chatModal');
+    
+    if (!chatModal) return;
+    
+    chatModal.style.display = 'none';
+    this.isVisible = false;
+    document.body.style.overflow = '';
+    
+    this.updateUnreadBadge();
+  }
 
   // FIXED: Don't setup duplicate event listeners
   setupEventListeners() {
