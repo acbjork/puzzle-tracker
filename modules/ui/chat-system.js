@@ -256,24 +256,13 @@ class ChatSystem {
   const unreadBadge = document.getElementById('unreadBadge');
   if (!unreadBadge) return;
   
-  // If no user is selected, always hide the badge
-  if (!this.currentUser || !this.userManager.canRenderTable()) {
-    unreadBadge.style.display = 'none';
-    this.hasUnreadMessages = false;
-    return;
-  }
-  
-  // If chat is visible, always hide the badge
   if (this.isVisible) {
     unreadBadge.style.display = 'none';
-    this.hasUnreadMessages = false;
     return;
   }
   
-  // Count unread messages from other users
   const unreadMessages = this.messages.filter(msg => {
-    if (msg.message === '[deleted]') return false;
-    if (msg.player === this.currentUser) return false;
+    if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
     if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
     return true;
   });
@@ -282,7 +271,7 @@ class ChatSystem {
     unreadBadge.textContent = unreadMessages.length;
     unreadBadge.style.display = 'flex';
     unreadBadge.style.position = 'absolute';
-    unreadBadge.style.top = '-10px';
+    unreadBadge.style.top = '-15px';
     unreadBadge.style.right = '10px';
     unreadBadge.style.background = '#ef4444';
     unreadBadge.style.color = 'white';
