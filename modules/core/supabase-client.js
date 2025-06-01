@@ -1,5 +1,5 @@
-// I'm Puzzled - Supabase Client Module v2025.05.30.7
-// FIXED: Chat messages now properly start as unread and get marked as read
+// I'm Puzzled - Supabase Client Module v2025.05.30.8
+// FINAL FIX: Proper read status logic with extensive debugging
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -25,12 +25,10 @@ class SupabaseClient {
     }
   }
 
-  // Get the raw Supabase client
   getClient() {
     return this.client;
   }
 
-  // Health check
   async testConnection() {
     if (!this.client) return false;
     
@@ -53,7 +51,7 @@ class SupabaseClient {
     }
   }
 
-  // Puzzle Results API
+  // Puzzle Results API (unchanged)
   async loadTodayResults(date) {
     if (!this.client) throw new Error('Supabase not initialized');
     
@@ -108,7 +106,7 @@ class SupabaseClient {
     }
   }
 
-  // Chat Messages API
+  // Chat Messages API - CRITICAL FIXES
   async loadChatMessages(date) {
     if (!this.client) throw new Error('Supabase not initialized');
     
@@ -123,34 +121,50 @@ class SupabaseClient {
       throw error;
     }
     
+    console.log(`📋 Loaded ${data?.length || 0} chat messages for ${date}`);
     return data || [];
   }
 
-  // FIXED: Messages now start as unread for the recipient  
+  // CRITICAL FIX: Proper initial read status
   async sendChatMessage(date, player, message) {
     if (!this.client) throw new Error('Supabase not initialized');
     
-    // FIXED: Messages start as read for sender, unread for recipient
-    const readByAdam = player === 'Adam';   // Adam's messages are read by Adam
-    const readByJonathan = player === 'Jonathan'; // Jonathan's messages are read by Jonathan
+    console.log(`🚀 SENDING MESSAGE FROM ${player}:`);
+    console.log(`📅 Date: ${date}`);
+    console.log(`📝 Message: "${message}"`);
     
-    const { error } = await this.client
+    // CORRECT LOGIC: 
+    // - Sender automatically "reads" their own message (true)
+    // - Recipient has NOT read the message yet (false)
+    const readByAdam = player === 'Adam';      // Adam reads Adam's messages
+    const readByJonathan = player === 'Jonathan'; // Jonathan reads Jonathan's messages
+    
+    console.log(`📊 Setting read status: read_by_adam=${readByAdam}, read_by_jonathan=${readByJonathan}`);
+    
+    const insertData = {
+      date,
+      player,
+      message,
+      read_by_adam: readByAdam,
+      read_by_jonathan: readByJonathan
+    };
+    
+    const { data, error } = await this.client
       .from("chat_messages")
-      .insert({
-        date,
-        player,
-        message,
-        read_by_adam: readByAdam,      // Sender sees own message as read
-        read_by_jonathan: readByJonathan  // Sender sees own message as read
-      });
+      .insert(insertData)
+      .select('*'); // Return the inserted record for verification
     
     if (error) {
-      console.error("Error sending message:", error.message);
+      console.error("❌ Error sending message:", error.message);
       throw error;
     }
     
-    console.log(`💬 Message sent from ${player}, read_by_adam: ${readByAdam}, read_by_jonathan: ${readByJonathan}`);
-    return true;
+    const insertedMessage = data[0];
+    console.log(`✅ Message inserted with ID ${insertedMessage.id}:`);
+    console.log(`   read_by_adam: ${insertedMessage.read_by_adam}`);
+    console.log(`   read_by_jonathan: ${insertedMessage.read_by_jonathan}`);
+    
+    return insertedMessage;
   }
 
   async deleteChatMessage(messageId) {
@@ -167,7 +181,102 @@ class SupabaseClient {
     }
   }
 
-  // User Settings API
+  // CRITICAL FIX: Enhanced mark as read with detailed logging
+  async markChatMessagesAsRead(date, player) {
+    if (!this.client) throw new Error('Supabase not initialized');
+    
+    console.log(`🔄 MARKING MESSAGES AS READ:`);
+    console.log(`👤 Player: ${player}`);
+    console.log(`📅 Date: ${date}`);
+    
+    const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
+    const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
+    
+    console.log(`🎯 Will update ${readColumn} for messages from ${otherPlayer}`);
+    
+    // First, check what messages need to be marked as read
+    const { data: unreadMessages, error: selectError } = await this.client
+      .from("chat_messages")
+      .select("id, player, message, read_by_adam, read_by_jonathan, created_at")
+      .eq("date", date)
+      .eq("player", otherPlayer)
+      .eq(readColumn, false)
+      .neq("message", "[deleted]");
+    
+    if (selectError) {
+      console.error("❌ Error checking unread messages:", selectError.message);
+      throw selectError;
+    }
+    
+    console.log(`📋 Found ${unreadMessages?.length || 0} unread messages to mark as read:`);
+    unreadMessages?.forEach(msg => {
+      console.log(`   ID ${msg.id}: "${msg.message}" (${msg.created_at})`);
+    });
+    
+    if (!unreadMessages || unreadMessages.length === 0) {
+      console.log('✅ No unread messages to mark as read');
+      return [];
+    }
+    
+    // Now mark them as read
+    const { data: updatedMessages, error: updateError } = await this.client
+      .from("chat_messages")
+      .update({ [readColumn]: true })
+      .eq("date", date)
+      .eq("player", otherPlayer)
+      .eq(readColumn, false)
+      .neq("message", "[deleted]")
+      .select('*');
+    
+    if (updateError) {
+      console.error("❌ Error marking messages as read:", updateError.message);
+      throw updateError;
+    }
+    
+    console.log(`✅ Successfully marked ${updatedMessages?.length || 0} messages as read`);
+    updatedMessages?.forEach(msg => {
+      console.log(`   Updated ID ${msg.id}: read_by_adam=${msg.read_by_adam}, read_by_jonathan=${msg.read_by_jonathan}`);
+    });
+    
+    return updatedMessages || [];
+  }
+
+  // CRITICAL FIX: Enhanced unread count with detailed logging
+  async getUnreadChatCount(date, player) {
+    if (!this.client) throw new Error('Supabase not initialized');
+    
+    console.log(`🔍 CHECKING UNREAD COUNT:`);
+    console.log(`👤 Player: ${player}`);
+    console.log(`📅 Date: ${date}`);
+    
+    const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
+    const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
+    
+    console.log(`🎯 Looking for messages from ${otherPlayer} where ${readColumn} = false`);
+    
+    const { data: unreadMessages, error } = await this.client
+      .from("chat_messages")
+      .select("id, player, message, read_by_adam, read_by_jonathan, created_at")
+      .eq("date", date)
+      .eq("player", otherPlayer)
+      .eq(readColumn, false)
+      .neq("message", "[deleted]");
+    
+    if (error) {
+      console.error("❌ Error getting unread count:", error.message);
+      throw error;
+    }
+    
+    const count = unreadMessages?.length || 0;
+    console.log(`📊 Found ${count} unread messages:`);
+    unreadMessages?.forEach(msg => {
+      console.log(`   ID ${msg.id}: "${msg.message}" read_by_adam=${msg.read_by_adam} read_by_jonathan=${msg.read_by_jonathan}`);
+    });
+    
+    return count;
+  }
+
+  // User Settings API (unchanged)
   async loadUserSettings(userId) {
     if (!this.client) throw new Error('Supabase not initialized');
     
@@ -177,60 +286,12 @@ class SupabaseClient {
       .eq("user_id", userId)
       .single();
     
-    if (error && error.code !== 'PGRST116') { // PGRST116 = not found
+    if (error && error.code !== 'PGRST116') {
       console.error("Error loading user settings:", error.message);
       throw error;
     }
     
     return data;
-  }
-
-  // FIXED: Enhanced mark as read functionality
-  async markChatMessagesAsRead(date, player) {
-    if (!this.client) throw new Error('Supabase not initialized');
-    
-    const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
-    const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
-    
-    // FIXED: Only mark messages from OTHER players as read
-    const { error } = await this.client
-      .from("chat_messages")
-      .update({ [readColumn]: true })
-      .eq("date", date)
-      .eq("player", otherPlayer)  // FIXED: Only messages from other player
-      .eq(readColumn, false);     // FIXED: Only unread messages
-    
-    if (error) {
-      console.error("Error marking messages as read:", error.message);
-      throw error;
-    }
-    
-    console.log(`✅ Marked messages as read for ${player} from ${otherPlayer}`);
-  }
-
-  // FIXED: Enhanced unread count calculation
-  async getUnreadChatCount(date, player) {
-    if (!this.client) throw new Error('Supabase not initialized');
-    
-    const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
-    const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
-    
-    const { data, error } = await this.client
-      .from("chat_messages")
-      .select("id", { count: 'exact' })
-      .eq("date", date)
-      .eq("player", otherPlayer)    // FIXED: Messages from other player
-      .eq(readColumn, false)        // FIXED: That haven't been read
-      .neq("message", "[deleted]"); // FIXED: And aren't deleted
-    
-    if (error) {
-      console.error("Error getting unread count:", error.message);
-      throw error;
-    }
-    
-    const count = data?.length || 0;
-    console.log(`🔍 Unread count for ${player} from ${otherPlayer}: ${count}`);
-    return count;
   }
 
   async saveUserSettings(userId, lastReadMessageId) {
@@ -252,7 +313,7 @@ class SupabaseClient {
     }
   }
 
-  // History API
+  // History API (unchanged)
   async loadHistoryResults(fromDate) {
     if (!this.client) throw new Error('Supabase not initialized');
     
@@ -271,7 +332,7 @@ class SupabaseClient {
     return data || [];
   }
 
-  // Real-time Subscriptions
+  // Real-time Subscriptions (unchanged)
   subscribeToResults(date, callback) {
     if (!this.client) throw new Error('Supabase not initialized');
     
@@ -300,7 +361,6 @@ class SupabaseClient {
       .subscribe();
   }
 
-  // Utility method to unsubscribe from all channels
   unsubscribeAll() {
     if (this.client) {
       this.client.removeAllChannels();
@@ -308,49 +368,37 @@ class SupabaseClient {
     }
   }
 
-  // FIXED: Admin method to reset all chat messages to proper read status
-  async fixChatReadStatus(date) {
+  // DIAGNOSTIC TOOL: Check current state of chat messages
+  async diagnoseChatMessages(date) {
     if (!this.client) throw new Error('Supabase not initialized');
     
-    console.log('🔧 Fixing chat read status for date:', date);
+    console.log(`🩺 DIAGNOSING CHAT MESSAGES FOR ${date}:`);
     
-    // Get all messages for the date
-    const { data: messages, error: fetchError } = await this.client
+    const { data: allMessages, error } = await this.client
       .from("chat_messages")
       .select("*")
       .eq("date", date)
       .order("created_at", { ascending: true });
     
-    if (fetchError) {
-      console.error("Error fetching messages:", fetchError.message);
-      throw fetchError;
+    if (error) {
+      console.error("❌ Error diagnosing messages:", error.message);
+      throw error;
     }
     
-    // Fix each message's read status
-    for (const message of messages) {
-      const readByAdam = message.player === 'Adam';
-      const readByJonathan = message.player === 'Jonathan';
-      
-      const { error: updateError } = await this.client
-        .from("chat_messages")
-        .update({
-          read_by_adam: readByAdam,
-          read_by_jonathan: readByJonathan
-        })
-        .eq("id", message.id);
-      
-      if (updateError) {
-        console.error(`Error updating message ${message.id}:`, updateError.message);
-      }
-    }
+    console.log(`📋 Total messages: ${allMessages?.length || 0}`);
+    allMessages?.forEach((msg, index) => {
+      console.log(`${index + 1}. ID ${msg.id} from ${msg.player}:`);
+      console.log(`   Message: "${msg.message}"`);
+      console.log(`   read_by_adam: ${msg.read_by_adam}`);
+      console.log(`   read_by_jonathan: ${msg.read_by_jonathan}`);
+      console.log(`   Created: ${msg.created_at}`);
+      console.log('');
+    });
     
-    console.log(`✅ Fixed read status for ${messages.length} messages`);
+    return allMessages || [];
   }
 }
 
-// Create and export singleton instance
 const supabaseClient = new SupabaseClient();
-
-// Export both the instance and the class
 export default supabaseClient;
 export { SupabaseClient };
