@@ -252,190 +252,132 @@ class ChatSystem {
     }
   }
 
-  updateUnreadBadge() {
-    const unreadBadge = document.getElementById('unreadBadge');
-    if (!unreadBadge) return;
+  // COMPLETE REPLACEMENT: updateUnreadBadge function
+updateUnreadBadge() {
+  const unreadBadge = document.getElementById('unreadBadge');
+  if (!unreadBadge) return;
+  
+  // FIXED: Don't hide badge just because chat is visible - only hide when marking as read
+  
+  const unreadMessages = this.messages.filter(msg => {
+    // Skip messages from current user and deleted messages
+    if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
     
-    if (this.isVisible) {
-      unreadBadge.style.display = 'none';
-      return;
-    }
+    // FIXED: If no lastReadMessageId, all other player messages are unread
+    if (!this.lastReadMessageId) return true;
     
-    const unreadMessages = this.messages.filter(msg => {
-      if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
-      if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
-      return true;
-    });
-    
-    if (unreadMessages.length > 0) {
-      unreadBadge.textContent = unreadMessages.length;
-      unreadBadge.style.display = 'flex';
-      unreadBadge.style.background = '#ef4444';
-      unreadBadge.style.color = 'white';
-      unreadBadge.style.borderRadius = '50%';
-      unreadBadge.style.minWidth = '20px';
-      unreadBadge.style.height = '20px';
-      unreadBadge.style.fontSize = '0.7em';
-      unreadBadge.style.fontWeight = 'bold';
-      unreadBadge.style.alignItems = 'center';
-      unreadBadge.style.justifyContent = 'center';
-      this.hasUnreadMessages = true;
-    } else {
-      unreadBadge.style.display = 'none';
-      this.hasUnreadMessages = false;
-    }
-  }
-
-  // ISSUE 1 FIX: Enhanced markAsRead with forced badge update
-  async markAsRead() {
-    if (this.messages.length > 0) {
-      const otherPlayerMessages = this.messages.filter(msg => 
-        msg.player !== this.currentUser && msg.message !== '[deleted]'
-      );
-      
-      if (otherPlayerMessages.length > 0) {
-        const latestMessage = otherPlayerMessages[otherPlayerMessages.length - 1];
-        await this.saveLastReadStatus(latestMessage.id);
-      }
-    }
-    
+    // FIXED: Messages with ID greater than lastReadMessageId are unread
+    return msg.id > this.lastReadMessageId;
+  });
+  
+  console.log(`🔔 Unread check for ${this.currentUser}: ${unreadMessages.length} unread messages`);
+  
+  if (unreadMessages.length > 0) {
+    unreadBadge.textContent = unreadMessages.length;
+    unreadBadge.style.display = 'flex';
+    unreadBadge.style.background = '#ef4444';
+    unreadBadge.style.color = 'white';
+    unreadBadge.style.borderRadius = '50%';
+    unreadBadge.style.minWidth = '20px';
+    unreadBadge.style.height = '20px';
+    unreadBadge.style.fontSize = '0.7em';
+    unreadBadge.style.fontWeight = 'bold';
+    unreadBadge.style.alignItems = 'center';
+    unreadBadge.style.justifyContent = 'center';
+    this.hasUnreadMessages = true;
+  } else {
+    unreadBadge.style.display = 'none';
     this.hasUnreadMessages = false;
-    // FIXED: Force badge update with timeout to ensure DOM is ready
+  }
+}
+
+// COMPLETE REPLACEMENT: markAsRead function  
+async markAsRead() {
+  if (!this.currentUser) return;
+  
+  // FIXED: Find the latest message from the OTHER player (not current user)
+  const otherPlayerMessages = this.messages.filter(msg => 
+    msg.player !== this.currentUser && msg.message !== '[deleted]'
+  );
+  
+  if (otherPlayerMessages.length > 0) {
+    // Get the latest message from other player
+    const latestMessage = otherPlayerMessages[otherPlayerMessages.length - 1];
+    
+    console.log(`📖 Marking as read for ${this.currentUser}: message ID ${latestMessage.id}`);
+    
+    // Save the read status
+    await this.saveLastReadStatus(latestMessage.id);
+  }
+  
+  // FIXED: Force clear the unread state
+  this.hasUnreadMessages = false;
+  
+  // FIXED: Force update badge immediately
+  setTimeout(() => {
+    this.updateUnreadBadge();
+  }, 50);
+}
+
+// COMPLETE REPLACEMENT: showChat function
+showChat() {
+  const chatModal = document.getElementById('chatModal');
+  const chatInput = document.getElementById('chatInput');
+  
+  if (!chatModal) return;
+  
+  chatModal.style.display = 'block';
+  this.isVisible = true;
+  document.body.style.overflow = 'hidden';
+  
+  // FIXED: Mark as read when opening chat
+  this.markAsRead();
+  
+  if (chatInput) chatInput.focus();
+}
+
+// COMPLETE REPLACEMENT: hideChat function
+hideChat() {
+  const chatModal = document.getElementById('chatModal');
+  
+  if (!chatModal) return;
+  
+  chatModal.style.display = 'none';
+  this.isVisible = false;
+  document.body.style.overflow = '';
+  
+  // FIXED: Update badge when closing chat
+  setTimeout(() => {
+    this.updateUnreadBadge();
+  }, 100);
+}
+
+// COMPLETE REPLACEMENT: handleRealtimeUpdate function
+handleRealtimeUpdate(payload) {
+  if (payload.eventType === "INSERT") {
+    this.messages.push(payload.new);
+    this.renderMessages();
+    
+    // FIXED: Only show unread badge if message is from other player and chat is not visible
+    if (payload.new.player !== this.currentUser && !this.isVisible) {
+      this.hasUnreadMessages = true;
+      console.log(`🔔 New message from ${payload.new.player}, showing unread badge for ${this.currentUser}`);
+    }
+    
+    // FIXED: Always update badge after new message
     setTimeout(() => {
       this.updateUnreadBadge();
     }, 100);
-  }
-
-  showChat() {
-    const chatModal = document.getElementById('chatModal');
-    const chatInput = document.getElementById('chatInput');
     
-    if (!chatModal) return;
-    
-    chatModal.style.display = 'block';
-    this.isVisible = true;
-    document.body.style.overflow = 'hidden';
-    
-    this.markAsRead();
-    
-    if (chatInput) chatInput.focus();
-  }
-
-  hideChat() {
-    const chatModal = document.getElementById('chatModal');
-    
-    if (!chatModal) return;
-    
-    chatModal.style.display = 'none';
-    this.isVisible = false;
-    document.body.style.overflow = '';
-    
-    this.updateUnreadBadge();
-  }
-
-  // FIXED: Don't setup duplicate event listeners
-  setupEventListeners() {
-    // Only setup if not already done
-    if (this.listenersSetup) return;
-    
-    const chatToggle = document.getElementById('chatToggle');
-    const chatModal = document.getElementById('chatModal');
-    const chatCloseBtn = document.getElementById('chatCloseBtn');
-    const chatInput = document.getElementById('chatInput');
-    const chatSendBtn = document.getElementById('chatSendBtn');
-
-    if (chatToggle) {
-      chatToggle.addEventListener('click', () => this.showChat());
-    }
-
-    if (chatCloseBtn) {
-      chatCloseBtn.addEventListener('click', () => this.hideChat());
-    }
-
-    if (chatModal) {
-      chatModal.addEventListener('click', (e) => {
-        if (e.target === chatModal) this.hideChat();
-      });
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && this.isVisible) {
-        this.hideChat();
-      }
-    });
-
-    if (chatSendBtn) {
-      chatSendBtn.addEventListener('click', () => this.sendMessage());
-    }
-
-    if (chatInput) {
-      // ISSUE 4 FIX: Changed keyboard behavior - only send on Enter without modifiers
-      chatInput.addEventListener('keydown', (e) => {
-        // FIXED: Only send on Enter WITHOUT modifier keys
-        if (e.key === 'Enter' && !e.shiftKey && !e.altKey && !e.metaKey && !e.ctrlKey) {
-          e.preventDefault();
-          this.sendMessage();
-        }
-        // Allow Shift+Enter, Option+Enter, etc. for new lines
-      });
-
-      chatInput.addEventListener('input', () => {
-        const hasText = chatInput.value.trim().length > 0;
-        if (chatSendBtn) {
-          chatSendBtn.disabled = !hasText || !this.currentUser || this.isProcessing;
-        }
-      });
-    }
-    
-    this.listenersSetup = true;
-    console.log('🎧 Chat event listeners setup complete v2025.05.31.1');
-  }
-
-  updateInterfaceVisibility() {
-    const chatToggle = document.getElementById('chatToggle');
-    const chatInput = document.getElementById('chatInput');
-    const chatSendBtn = document.getElementById('chatSendBtn');
-    
-    const canUseChat = this.userManager.canSendChatMessage();
-    
-    if (chatToggle) {
-      chatToggle.style.display = canUseChat ? 'block' : 'none';
-    }
-    
-    if (chatInput) {
-      chatInput.disabled = !canUseChat;
-    }
-    
-    if (chatSendBtn) {
-      chatSendBtn.disabled = !canUseChat;
-    }
-    
-    if (!canUseChat) {
-      this.hideChat();
-    }
-    
-    console.log('💬 Chat interface visibility v2025.05.31.1:', canUseChat ? 'enabled' : 'disabled');
-  }
-
-  handleRealtimeUpdate(payload) {
-    if (payload.eventType === "INSERT") {
-      this.messages.push(payload.new);
+  } else if (payload.eventType === "UPDATE") {
+    const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
+    if (msgIndex !== -1) {
+      this.messages[msgIndex] = payload.new;
       this.renderMessages();
-      
-      if (payload.new.player !== this.currentUser && !this.isVisible) {
-        this.hasUnreadMessages = true;
-      }
-      
       this.updateUnreadBadge();
-    } else if (payload.eventType === "UPDATE") {
-      const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
-      if (msgIndex !== -1) {
-        this.messages[msgIndex] = payload.new;
-        this.renderMessages();
-        this.updateUnreadBadge();
-      }
     }
   }
+}
 
   escapeHtml(text) {
     const div = document.createElement('div');
