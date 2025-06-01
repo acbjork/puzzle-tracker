@@ -253,29 +253,42 @@ class ChatSystem {
   }
 
   updateUnreadBadge() {
-    const unreadBadge = document.getElementById('unreadBadge');
-    if (!unreadBadge) return;
-    
-    if (this.isVisible) {
-      unreadBadge.style.display = 'none';
-      return;
-    }
-    
-    const unreadMessages = this.messages.filter(msg => {
-      if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
-      if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
-      return true;
-    });
-    
-    if (unreadMessages.length > 0) {
-      unreadBadge.textContent = unreadMessages.length;
-      unreadBadge.style.display = 'flex';
-      this.hasUnreadMessages = true;
-    } else {
-      unreadBadge.style.display = 'none';
-      this.hasUnreadMessages = false;
-    }
+  const unreadBadge = document.getElementById('unreadBadge');
+  if (!unreadBadge) return;
+  
+  if (this.isVisible) {
+    unreadBadge.style.display = 'none';
+    return;
   }
+  
+  const unreadMessages = this.messages.filter(msg => {
+    if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
+    if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
+    return true;
+  });
+  
+  if (unreadMessages.length > 0) {
+    unreadBadge.textContent = unreadMessages.length;
+    unreadBadge.style.display = 'flex';
+    unreadBadge.style.position = 'absolute';
+    unreadBadge.style.top = '-8px';
+    unreadBadge.style.right = '10px';
+    unreadBadge.style.background = '#ef4444';
+    unreadBadge.style.color = 'white';
+    unreadBadge.style.borderRadius = '50%';
+    unreadBadge.style.minWidth = '20px';
+    unreadBadge.style.height = '20px';
+    unreadBadge.style.fontSize = '0.7em';
+    unreadBadge.style.fontWeight = 'bold';
+    unreadBadge.style.alignItems = 'center';
+    unreadBadge.style.justifyContent = 'center';
+    unreadBadge.style.zIndex = '1001';
+    this.hasUnreadMessages = true;
+  } else {
+    unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
+  }
+}
 
   async markAsRead() {
     if (this.messages.length > 0) {
