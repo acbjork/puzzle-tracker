@@ -33,37 +33,45 @@ class UserManager {
   }
 
   // ISSUE 2 FIX: Enhanced setCurrentUser with immediate dropdown update
-  setCurrentUser(user) {
-    if (!this.isValidUser(user)) {
-      throw new Error(`Invalid user: ${user}`);
-    }
-
-    const oldUser = this.currentUser;
-    this.currentUser = user;
-    
-    sessionStorage.setItem('selectedUser', user);
-    
-    const url = new URL(window.location);
-    url.searchParams.set('user', user);
-    window.history.replaceState({}, '', url);
-    
-    // FIXED: Update dropdown display immediately
-    const userSelect = document.querySelector("#userSelect");
-    if (userSelect) {
-      userSelect.value = user;
-    }
-    
-    console.log(`👤 User switched from ${oldUser || 'none'} to: ${user}`);
-    
-    // FIXED: Trigger callback if user actually changed
-    if (oldUser !== user && this.onUserChanged) {
-      setTimeout(() => {
-        this.onUserChanged(user, oldUser);
-      }, 50);
-    }
-    
-    return true;
+  // ISSUE 2 FIX: Enhanced setCurrentUser with immediate dropdown update and iOS fix
+setCurrentUser(user) {
+  if (!this.isValidUser(user)) {
+    throw new Error(`Invalid user: ${user}`);
   }
+
+  const oldUser = this.currentUser;
+  this.currentUser = user;
+  
+  sessionStorage.setItem('selectedUser', user);
+  
+  const url = new URL(window.location);
+  url.searchParams.set('user', user);
+  window.history.replaceState({}, '', url);
+  
+  // FIXED: Update dropdown display immediately with iOS Safari fix
+  const userSelect = document.querySelector("#userSelect");
+  if (userSelect) {
+    userSelect.value = user;
+    
+    // iOS Safari fix: Force visual refresh
+    userSelect.style.display = 'none';
+    setTimeout(() => {
+      userSelect.style.display = '';
+      userSelect.value = user; // Set again after showing
+    }, 1);
+  }
+  
+  console.log(`👤 User switched from ${oldUser || 'none'} to: ${user}`);
+  
+  // FIXED: Trigger callback if user actually changed
+  if (oldUser !== user && this.onUserChanged) {
+    setTimeout(() => {
+      this.onUserChanged(user, oldUser);
+    }, 50);
+  }
+  
+  return true;
+}
 
   isValidUser(user) {
     return this.validUsers.includes(user);
@@ -82,46 +90,71 @@ class UserManager {
     return emoji ? `${user} ${emoji}` : user;
   }
 
-  // FIXED: Enhanced setupUserSelector with better event handling
-  setupUserSelector() {
-    const userSelect = document.querySelector("#userSelect");
-    if (!userSelect) {
-      console.warn('⚠️ User selector not found in DOM');
-      return;
-    }
-
-    userSelect.value = this.currentUser;
-
-    // Remove existing listeners to prevent duplicates
-    const newSelect = userSelect.cloneNode(true);
-    userSelect.parentNode.replaceChild(newSelect, userSelect);
-
-    newSelect.addEventListener("change", (e) => {
-      const newUser = e.target.value;
-      
-      if (newUser && this.isValidUser(newUser)) {
-        this.setCurrentUser(newUser);
-        
-        // FIXED: Update UI immediately without full page reload
-        this.updateUIForUserChange();
-        
-        // Reload page only if necessary for complete state reset
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
-      } else if (!newUser) {
-        // User deselected - clear current user
-        this.resetUser();
-        this.updateUIForUserChange();
-        
-        setTimeout(() => {
-          window.location.reload();
-        }, 100);
-      }
-    });
-
-    console.log('🔧 User selector initialized v2025.05.31.1');
+  // FIXED: Enhanced setupUserSelector with iOS Safari compatibility
+setupUserSelector() {
+  const userSelect = document.querySelector("#userSelect");
+  if (!userSelect) {
+    console.warn('⚠️ User selector not found in DOM');
+    return;
   }
+
+  // CRITICAL iOS FIX: Force the dropdown to show the correct value
+  const forceUpdateDropdown = () => {
+    if (this.currentUser) {
+      userSelect.value = this.currentUser;
+      // Force a visual refresh on iOS
+      userSelect.style.display = 'none';
+      setTimeout(() => {
+        userSelect.style.display = '';
+      }, 1);
+    }
+  };
+
+  // Set initial value
+  userSelect.value = this.currentUser;
+  
+  // iOS Safari fix: Force update after a small delay
+  setTimeout(forceUpdateDropdown, 100);
+
+  // Remove existing listeners to prevent duplicates
+  const newSelect = userSelect.cloneNode(true);
+  userSelect.parentNode.replaceChild(newSelect, userSelect);
+
+  // Set the value again after cloning
+  newSelect.value = this.currentUser;
+
+  newSelect.addEventListener("change", (e) => {
+    const newUser = e.target.value;
+    
+    if (newUser && this.isValidUser(newUser)) {
+      this.setCurrentUser(newUser);
+      
+      // FIXED: Update UI immediately without full page reload
+      this.updateUIForUserChange();
+      
+      // Reload page only if necessary for complete state reset
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } else if (!newUser) {
+      // User deselected - clear current user
+      this.resetUser();
+      this.updateUIForUserChange();
+      
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    }
+  });
+
+  // iOS Safari fix: Force update again after event listener is attached
+  setTimeout(() => {
+    newSelect.value = this.currentUser;
+    forceUpdateDropdown();
+  }, 200);
+
+  console.log('🔧 User selector initialized v2025.05.31.1 with iOS fix');
+}
 
   // FIXED: Immediate UI update for user changes
   updateUIForUserChange() {
