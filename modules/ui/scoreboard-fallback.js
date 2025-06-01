@@ -1,5 +1,5 @@
-// I'm Puzzled - Scoreboard Module v2025.05.30.3
-// Enhanced with Phase 3C improvements: Better tie handling, improved colors
+// I'm Puzzled - Scoreboard Module v2025.05.30.6
+// FIXED: Real-time updates, current champion tracking
 
 class Scoreboard {
   constructor() {
@@ -10,10 +10,13 @@ class Scoreboard {
       remaining: 10
     };
     
-    console.log('🏆 Scoreboard initialized v2025.05.30.3');
+    this.currentChampion = null;
+    this.currentStreak = 0;
+    this.dailyWins = []; // Track daily wins for streak calculation
+    
+    console.log('🏆 Scoreboard initialized v2025.05.30.6 - FIXED');
   }
 
-  // Calculate scores from puzzle table results
   calculateScores(puzzleTable) {
     let acb = 0, jbb = 0, tie = 0, remaining = 0;
     
@@ -47,10 +50,14 @@ class Scoreboard {
     });
 
     this.scores = { acb, jbb, tie, remaining };
+    
+    // FIXED: Update current champion tracking
+    this.updateCurrentChampion();
+    
     return this.scores;
   }
 
-  // ENHANCED: Updated visual scoreboard with Phase 3C improvements
+  // FIXED: Real-time display updates
   updateDisplay() {
     // Update score values
     document.getElementById("acbCount").textContent = this.scores.acb;
@@ -58,7 +65,6 @@ class Scoreboard {
     document.getElementById("tieCount").textContent = this.scores.tie;
     document.getElementById("remainingCount").textContent = this.scores.remaining;
 
-    // Get DOM elements for styling
     const acbEl = document.getElementById("acbCount");
     const jbbEl = document.getElementById("jbbCount");
     const acbCrown = document.getElementById("acbCrown");
@@ -70,51 +76,93 @@ class Scoreboard {
     acbCrown.style.display = "none";
     jbbCrown.style.display = "none";
 
-    // Calculate win conditions
     const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
     const canJbbWin = this.scores.jbb + this.scores.remaining > this.scores.acb;
 
-    // ENHANCED: Apply Phase 3C color scheme and tie handling
     if (this.scores.acb > this.scores.jbb && !canJbbWin) {
-      // ACB has definitively won
-      acbEl.style.color = "#10b981"; // Modern green
-      jbbEl.style.color = "#ef4444"; // Modern red
+      acbEl.style.color = "#10b981";
+      jbbEl.style.color = "#ef4444";
       acbCrown.style.display = "block";
     } else if (this.scores.jbb > this.scores.acb && !canAcbWin) {
-      // JBB has definitively won
-      jbbEl.style.color = "#10b981"; // Modern green
-      acbEl.style.color = "#ef4444"; // Modern red
+      jbbEl.style.color = "#10b981";
+      acbEl.style.color = "#ef4444";
       jbbCrown.style.display = "block";
     } else if (this.scores.acb > this.scores.jbb) {
-      // ACB is ahead but JBB can still win
-      acbEl.style.color = "#10b981"; // Modern green
-      jbbEl.style.color = "#ef4444"; // Modern red
+      acbEl.style.color = "#10b981";
+      jbbEl.style.color = "#ef4444";
     } else if (this.scores.jbb > this.scores.acb) {
-      // JBB is ahead but ACB can still win
-      jbbEl.style.color = "#10b981"; // Modern green
-      acbEl.style.color = "#ef4444"; // Modern red
+      jbbEl.style.color = "#10b981";
+      acbEl.style.color = "#ef4444";
     } else {
-      // FIXED: ALL ties (including 0-0) show in yellow/gold
-      acbEl.style.color = "#f59e0b"; // Modern gold/yellow
-      jbbEl.style.color = "#f59e0b"; // Modern gold/yellow
+      acbEl.style.color = "#f59e0b";
+      jbbEl.style.color = "#f59e0b";
     }
 
-    console.log(`🏆 Scoreboard updated v3C: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
+    // FIXED: Trigger enhanced scoreboard update for real-time sync
+    if (window.enhancedUpdateScoreboard) {
+      window.enhancedUpdateScoreboard(this.scores.acb, this.scores.jbb, this.scores.tie, this.scores.remaining);
+    }
+
+    console.log(`🏆 Scoreboard updated v2025.05.30.6: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
   }
 
-  // Get current scores
+  // FIXED: Current champion tracking
+  updateCurrentChampion() {
+    const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
+    const canJbbWin = this.scores.jbb + this.scores.remaining > this.scores.acb;
+    
+    let newChampion = null;
+    
+    // Determine current champion based on mathematical certainty
+    if (this.scores.acb > this.scores.jbb && !canJbbWin) {
+      newChampion = 'Adam';
+    } else if (this.scores.jbb > this.scores.acb && !canAcbWin) {
+      newChampion = 'Jonathan';
+    } else if (this.scores.remaining === 0) {
+      // All puzzles complete
+      if (this.scores.acb > this.scores.jbb) {
+        newChampion = 'Adam';
+      } else if (this.scores.jbb > this.scores.acb) {
+        newChampion = 'Jonathan';
+      }
+      // If tied, no champion
+    }
+    
+    if (newChampion !== this.currentChampion) {
+      this.currentChampion = newChampion;
+      if (newChampion) {
+        // For now, set streak to 1 (would be calculated from historical data in production)
+        this.currentStreak = 1;
+        console.log(`👑 New champion: ${newChampion} (${this.currentStreak} day streak)`);
+      } else {
+        this.currentStreak = 0;
+      }
+    }
+  }
+
+  // FIXED: Get current champion info for display
+  getCurrentChampion() {
+    if (!this.currentChampion) {
+      return null;
+    }
+    
+    return {
+      name: this.currentChampion,
+      streak: this.currentStreak,
+      score: this.currentChampion === 'Adam' ? this.scores.acb : this.scores.jbb
+    };
+  }
+
   getScores() {
     return { ...this.scores };
   }
 
-  // Get current leader
   getLeader() {
     if (this.scores.acb > this.scores.jbb) return 'Adam';
     if (this.scores.jbb > this.scores.acb) return 'Jonathan';
     return 'Tie';
   }
 
-  // Check if someone has definitely won
   hasDefinitiveWinner() {
     const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
     const canJbbWin = this.scores.jbb + this.scores.remaining > this.scores.acb;
@@ -125,7 +173,6 @@ class Scoreboard {
     return null;
   }
 
-  // Get win probability (simple heuristic)
   getWinProbability() {
     const total = this.scores.acb + this.scores.jbb + this.scores.tie + this.scores.remaining;
     if (total === 0) return { Adam: 50, Jonathan: 50 };
@@ -133,7 +180,6 @@ class Scoreboard {
     const adamWinRate = this.scores.acb / (this.scores.acb + this.scores.jbb) || 0.5;
     const jonathanWinRate = this.scores.jbb / (this.scores.acb + this.scores.jbb) || 0.5;
     
-    // Simple Monte Carlo simulation for remaining games
     let adamWins = 0;
     const simulations = 1000;
     
@@ -158,7 +204,6 @@ class Scoreboard {
     return { Adam: adamProbability, Jonathan: jonathanProbability };
   }
 
-  // Get current status message
   getStatusMessage() {
     const winner = this.hasDefinitiveWinner();
     if (winner) {
@@ -185,24 +230,20 @@ class Scoreboard {
     return `🏃‍♂️ ${leader} leads ${Math.max(this.scores.acb, this.scores.jbb)}-${Math.min(this.scores.acb, this.scores.jbb)}, ${this.scores.remaining} puzzles remaining`;
   }
 
-  // Get score as string
   getScoreString() {
     return `${this.scores.acb}-${this.scores.jbb}`;
   }
 
-  // Check if all puzzles are complete
   isComplete() {
     return this.scores.remaining === 0;
   }
 
-  // Get completion percentage
   getCompletionPercentage() {
     const totalPuzzles = this.scores.acb + this.scores.jbb + this.scores.tie + this.scores.remaining;
     const completed = totalPuzzles - this.scores.remaining;
     return Math.round((completed / totalPuzzles) * 100);
   }
 
-  // Reset scores (for testing or new day)
   reset() {
     this.scores = {
       acb: 0,
@@ -210,35 +251,61 @@ class Scoreboard {
       tie: 0,
       remaining: 10
     };
+    this.currentChampion = null;
+    this.currentStreak = 0;
     this.updateDisplay();
-    console.log('🔄 Scoreboard reset v3C');
+    console.log('🔄 Scoreboard reset v2025.05.30.6');
   }
 
-  // Update scoreboard from puzzle table
+  // FIXED: Enhanced update for real-time sync
   update(puzzleTable) {
     this.calculateScores(puzzleTable);
     this.updateDisplay();
+    
+    // FIXED: Force immediate real-time update
+    setTimeout(() => {
+      this.triggerRealtimeUpdate();
+    }, 50);
   }
 
-  // NEW: Enhanced scoreboard update for compatibility with Phase 3C
+  // FIXED: Force real-time update across all displays
+  triggerRealtimeUpdate() {
+    if (window.enhancedUpdateScoreboard) {
+      window.enhancedUpdateScoreboard(this.scores.acb, this.scores.jbb, this.scores.tie, this.scores.remaining);
+    }
+    
+    // Update current champ display if expanded
+    if (window.updateCurrentChampDisplay) {
+      window.updateCurrentChampDisplay();
+    }
+  }
+
   updateEnhanced(acb, jbb, tie, remaining) {
     this.scores = { acb, jbb, tie, remaining };
     this.updateDisplay();
   }
 
-  // NEW: Get current tie handling status
   getTieStatus() {
     return {
       isTied: this.scores.acb === this.scores.jbb,
-      showAsYellow: true, // Phase 3C always shows ties in yellow
+      showAsYellow: true,
       count: this.scores.acb
     };
   }
+
+  // FIXED: Set champion streak (would come from historical data)
+  setChampionStreak(streak) {
+    this.currentStreak = streak;
+  }
+
+  // FIXED: Add daily win to streak tracking
+  addDailyWin(date, winner) {
+    this.dailyWins.push({ date, winner });
+    // In production, this would calculate streaks from historical data
+  }
 }
 
-// Create and export singleton instance
 const scoreboard = new Scoreboard();
 
-// Export both the instance and the class
 export default scoreboard;
 export { Scoreboard };

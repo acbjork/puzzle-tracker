@@ -478,6 +478,25 @@
       color: #666;
       margin: 0 0 1.5em 0;
     }
+    
+    /* Add this CSS to fix iOS dropdown display */
+.user-select {
+  -webkit-appearance: menulist;
+  -moz-appearance: menulist;
+  appearance: menulist;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+  min-width: 120px;
+}
+
+/* Force iOS to respect the selected option */
+.user-select option {
+  background-color: white;
+  color: black;
+}
 
     .user-select-area {
       text-align: center;
@@ -817,11 +836,12 @@
 
     <div class="user-select-area">
       <label for="userSelect">Signed in as:
-        <select id="userSelect">
-          <option value="">(choose)</option>
-          <option value="Adam">Adam 🌵</option>
-          <option value="Jonathan">Jonathan 💩</option>
-        </select>
+        <!-- Find this section in your index.html and replace it -->
+<select id="userSelect" class="user-select">
+  <option value="">(choose)</option>
+  <option value="Adam">Adam 🌵</option>
+  <option value="Jonathan">Jonathan 💩</option>
+</select>
       </label>
     </div>
 
