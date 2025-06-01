@@ -1,5 +1,5 @@
-// I'm Puzzled - Supabase Client Module v1.0
-// Handles all database connections and configuration
+// I'm Puzzled - Supabase Client Module v2025.05.30.7
+// FIXED: Chat messages now properly start as unread and get marked as read
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
@@ -126,21 +126,31 @@ class SupabaseClient {
     return data || [];
   }
 
+  // FIXED: Messages now start as unread for the recipient  
   async sendChatMessage(date, player, message) {
     if (!this.client) throw new Error('Supabase not initialized');
+    
+    // FIXED: Messages start as read for sender, unread for recipient
+    const readByAdam = player === 'Adam';   // Adam's messages are read by Adam
+    const readByJonathan = player === 'Jonathan'; // Jonathan's messages are read by Jonathan
     
     const { error } = await this.client
       .from("chat_messages")
       .insert({
         date,
         player,
-        message
+        message,
+        read_by_adam: readByAdam,      // Sender sees own message as read
+        read_by_jonathan: readByJonathan  // Sender sees own message as read
       });
     
     if (error) {
       console.error("Error sending message:", error.message);
       throw error;
     }
+    
+    console.log(`💬 Message sent from ${player}, read_by_adam: ${readByAdam}, read_by_jonathan: ${readByJonathan}`);
+    return true;
   }
 
   async deleteChatMessage(messageId) {
@@ -174,85 +184,54 @@ class SupabaseClient {
     
     return data;
   }
-// Add these methods to your SupabaseClient class:
 
-async markChatMessagesAsRead(date, player) {
-  if (!this.client) throw new Error('Supabase not initialized');
-  
-  const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
-  
-  const { error } = await this.client
-    .from("chat_messages")
-    .update({ [readColumn]: true })
-    .eq("date", date)
-    .eq(readColumn, false); // Only update unread messages
-  
-  if (error) {
-    console.error("Error marking messages as read:", error.message);
-    throw error;
+  // FIXED: Enhanced mark as read functionality
+  async markChatMessagesAsRead(date, player) {
+    if (!this.client) throw new Error('Supabase not initialized');
+    
+    const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
+    const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
+    
+    // FIXED: Only mark messages from OTHER players as read
+    const { error } = await this.client
+      .from("chat_messages")
+      .update({ [readColumn]: true })
+      .eq("date", date)
+      .eq("player", otherPlayer)  // FIXED: Only messages from other player
+      .eq(readColumn, false);     // FIXED: Only unread messages
+    
+    if (error) {
+      console.error("Error marking messages as read:", error.message);
+      throw error;
+    }
+    
+    console.log(`✅ Marked messages as read for ${player} from ${otherPlayer}`);
   }
-}
 
-async getUnreadChatCount(date, player) {
-  if (!this.client) throw new Error('Supabase not initialized');
-  
-  const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
-  const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
-  
-  const { data, error } = await this.client
-    .from("chat_messages")
-    .select("id", { count: 'exact' })
-    .eq("date", date)
-    .eq("player", otherPlayer) // Messages from other player
-    .eq(readColumn, false) // That haven't been read
-    .neq("message", "[deleted]"); // And aren't deleted
-  
-  if (error) {
-    console.error("Error getting unread count:", error.message);
-    throw error;
+  // FIXED: Enhanced unread count calculation
+  async getUnreadChatCount(date, player) {
+    if (!this.client) throw new Error('Supabase not initialized');
+    
+    const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
+    const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
+    
+    const { data, error } = await this.client
+      .from("chat_messages")
+      .select("id", { count: 'exact' })
+      .eq("date", date)
+      .eq("player", otherPlayer)    // FIXED: Messages from other player
+      .eq(readColumn, false)        // FIXED: That haven't been read
+      .neq("message", "[deleted]"); // FIXED: And aren't deleted
+    
+    if (error) {
+      console.error("Error getting unread count:", error.message);
+      throw error;
+    }
+    
+    const count = data?.length || 0;
+    console.log(`🔍 Unread count for ${player} from ${otherPlayer}: ${count}`);
+    return count;
   }
-  
-  return data?.length || 0;
-}
-
-async markChatMessagesAsRead(date, player) {
-  if (!this.client) throw new Error('Supabase not initialized');
-  
-  const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
-  
-  const { error } = await this.client
-    .from("chat_messages")
-    .update({ [readColumn]: true })
-    .eq("date", date)
-    .eq(readColumn, false); // Only update unread messages
-  
-  if (error) {
-    console.error("Error marking messages as read:", error.message);
-    throw error;
-  }
-}
-
-async getUnreadChatCount(date, player) {
-  if (!this.client) throw new Error('Supabase not initialized');
-  
-  const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
-  const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
-  
-  const { data, error } = await this.client
-    .from("chat_messages")
-    .select("id", { count: 'exact' })
-    .eq("date", date)
-    .eq("player", otherPlayer) // Messages from other player
-    .eq(readColumn, false) // That haven't been read
-    .neq("message", "[deleted]"); // And aren't deleted
-  
-  if (error) {
-    console.error("Error getting unread count:", error.message);
-    throw error;
-  }
-  
-  return data?.length || 0;
-}
 
   async saveUserSettings(userId, lastReadMessageId) {
     if (!this.client) throw new Error('Supabase not initialized');
@@ -327,6 +306,45 @@ async getUnreadChatCount(date, player) {
       this.client.removeAllChannels();
       console.log('🔇 All Supabase subscriptions removed');
     }
+  }
+
+  // FIXED: Admin method to reset all chat messages to proper read status
+  async fixChatReadStatus(date) {
+    if (!this.client) throw new Error('Supabase not initialized');
+    
+    console.log('🔧 Fixing chat read status for date:', date);
+    
+    // Get all messages for the date
+    const { data: messages, error: fetchError } = await this.client
+      .from("chat_messages")
+      .select("*")
+      .eq("date", date)
+      .order("created_at", { ascending: true });
+    
+    if (fetchError) {
+      console.error("Error fetching messages:", fetchError.message);
+      throw fetchError;
+    }
+    
+    // Fix each message's read status
+    for (const message of messages) {
+      const readByAdam = message.player === 'Adam';
+      const readByJonathan = message.player === 'Jonathan';
+      
+      const { error: updateError } = await this.client
+        .from("chat_messages")
+        .update({
+          read_by_adam: readByAdam,
+          read_by_jonathan: readByJonathan
+        })
+        .eq("id", message.id);
+      
+      if (updateError) {
+        console.error(`Error updating message ${message.id}:`, updateError.message);
+      }
+    }
+    
+    console.log(`✅ Fixed read status for ${messages.length} messages`);
   }
 }
 
