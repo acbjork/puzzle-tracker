@@ -256,17 +256,36 @@ class ChatSystem {
   const unreadBadge = document.getElementById('unreadBadge');
   if (!unreadBadge) return;
   
-  if (this.isVisible) {
+  // FIXED: If no user is selected, always hide the badge
+  if (!this.currentUser || !this.userManager.canRenderTable()) {
     unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
     return;
   }
   
+  // FIXED: If chat is visible, always hide the badge (messages are being read)
+  if (this.isVisible) {
+    unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
+    return;
+  }
+  
+  // FIXED: Only count messages from OTHER users that are unread
   const unreadMessages = this.messages.filter(msg => {
-    if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
+    // Skip deleted messages
+    if (msg.message === '[deleted]') return false;
+    
+    // Skip messages from current user (you don't get notifications for your own messages)
+    if (msg.player === this.currentUser) return false;
+    
+    // FIXED: If we have a lastReadMessageId, only count messages after it
     if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
+    
+    // This is an unread message from another user
     return true;
   });
   
+  // FIXED: Show badge only if there are actual unread messages
   if (unreadMessages.length > 0) {
     unreadBadge.textContent = unreadMessages.length;
     unreadBadge.style.display = 'flex';
@@ -291,20 +310,24 @@ class ChatSystem {
 }
 
   async markAsRead() {
-    if (this.messages.length > 0) {
-      const otherPlayerMessages = this.messages.filter(msg => 
-        msg.player !== this.currentUser && msg.message !== '[deleted]'
-      );
-      
-      if (otherPlayerMessages.length > 0) {
-        const latestMessage = otherPlayerMessages[otherPlayerMessages.length - 1];
-        await this.saveLastReadStatus(latestMessage.id);
-      }
-    }
-    
-    this.hasUnreadMessages = false;
-    this.updateUnreadBadge();
+  // FIXED: Only mark as read if user is selected
+  if (!this.currentUser || !this.userManager.canRenderTable()) {
+    return;
   }
+  
+  if (this.messages.length > 0) {
+    // FIXED: Find the latest message from ANY user (not just other players)
+    const allMessages = this.messages.filter(msg => msg.message !== '[deleted]');
+    
+    if (allMessages.length > 0) {
+      const latestMessage = allMessages[allMessages.length - 1];
+      await this.saveLastReadStatus(latestMessage.id);
+    }
+  }
+  
+  this.hasUnreadMessages = false;
+  this.updateUnreadBadge();
+}
 
   showChat() {
     const chatModal = document.getElementById('chatModal');
