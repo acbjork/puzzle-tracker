@@ -297,8 +297,7 @@ class ChatSystem {
     ).length;
 }
     }
-  }
-  
+  }  
   console.log('🔍 Unread count for', this.currentUser, ':', unreadCount, 'lastReadId:', this.lastReadMessageId);  
   if (unreadCount > 0) {
     this.showBadge(unreadBadge, unreadCount);
