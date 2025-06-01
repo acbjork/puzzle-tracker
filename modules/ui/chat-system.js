@@ -296,11 +296,10 @@ class ChatSystem {
     }
   }  
   if (unreadCount > 0) {
-    this.showBadge(unreadBadge, unreadCount);
-  } else {
-    unreadBadge.style.display = 'none';
-    this.hasUnreadMessages = false;
-  }
+  this.showBadge(unreadBadge, unreadCount);
+} else {
+  unreadBadge.style.display = 'none';
+  this.hasUnreadMessages = false;
 }
 
 showBadge(unreadBadge, count) {
