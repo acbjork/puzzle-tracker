@@ -31,28 +31,22 @@ class ChatSystem {
   }
 
   async loadLastReadStatus() {
-    if (!this.currentUser) return;
-    
-    try {
-      const data = await this.supabaseClient.loadUserSettings(this.currentUser);
-      if (data) {
-        this.lastReadMessageId = data.last_read_chat_message_id;
-      }
-    } catch (error) {
-      console.error("Failed to load read status:", error);
+  if (!this.currentUser) return;
+  
+  try {
+    const data = await this.supabaseClient.loadUserSettings(this.currentUser);
+    if (data && data.last_read_chat_message_id) {
+      this.lastReadMessageId = data.last_read_chat_message_id;
+      console.log('📖 Loaded last read message ID for', this.currentUser, ':', this.lastReadMessageId);
+    } else {
+      this.lastReadMessageId = null;
+      console.log('📖 No last read message ID found for', this.currentUser);
     }
+  } catch (error) {
+    console.error("Failed to load read status:", error);
+    this.lastReadMessageId = null;
   }
-
-  async saveLastReadStatus(messageId) {
-    if (!this.currentUser || !messageId) return;
-    
-    try {
-      await this.supabaseClient.saveUserSettings(this.currentUser, messageId);
-      this.lastReadMessageId = messageId;
-    } catch (error) {
-      console.error("Failed to save read status:", error);
-    }
-  }
+}
 
   async loadMessages() {
     try {
@@ -330,18 +324,16 @@ showBadge(unreadBadge, count) {
   }
   
   if (this.messages.length > 0) {
-    // FIXED: Find the very latest message from the OTHER user (not current user)
-    const otherUserMessages = this.messages.filter(msg => 
-      msg.player !== this.currentUser && msg.message !== '[deleted]'
-    );
+    // FIXED: Find the very latest message from ANY user (not just other users)
+    const allMessages = this.messages.filter(msg => msg.message !== '[deleted]');
     
-    if (otherUserMessages.length > 0) {
-      // Get the most recent message from other users
-      const latestOtherMessage = otherUserMessages[otherUserMessages.length - 1];
-      console.log('🔄 Marking as read up to message:', latestOtherMessage.id, 'from', latestOtherMessage.player);
+    if (allMessages.length > 0) {
+      // Get the most recent message overall
+      const latestMessage = allMessages[allMessages.length - 1];
+      console.log('🔄 Marking as read up to message:', latestMessage.id, 'at', latestMessage.created_at);
       
-      await this.saveLastReadStatus(latestOtherMessage.id);
-      this.lastReadMessageId = latestOtherMessage.id;
+      await this.saveLastReadStatus(latestMessage.id);
+      this.lastReadMessageId = latestMessage.id;
     }
   }
   
