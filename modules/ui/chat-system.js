@@ -390,163 +390,184 @@ class ChatSystem {
 
   // CRITICAL FIX: Enhanced showChat with comprehensive debugging
   async showChat() {
-    console.log('💬 SHOW CHAT CALLED v2025.06.01.2');
-    console.log(`👤 Current user: ${this.currentUser}`);
-    console.log(`🔍 Can render table: ${this.userManager?.canRenderTable()}`);
-    
-    const bottomStrip = document.querySelector('.bottom-strip');
-    const chatInput = document.getElementById('chatInput');
-    
-    if (!bottomStrip) {
-      console.error('❌ Bottom strip not found');
-      return;
-    }
-    
-    console.log('💬 Setting chat as visible...');
-    bottomStrip.classList.add('expanded');
-    this.isVisible = true;
-    
-    console.log('💬 Chat opened - marking messages as read');
-    
-    // CRITICAL FIX: Mark as read immediately when chat opens with proper async handling
-    if (this.currentUser && this.userManager.canRenderTable()) {
-      console.log('🚀 Calling markAsRead() from showChat...');
-      try {
-        await this.markAsRead();
-        console.log('✅ markAsRead() completed from showChat');
-      } catch (error) {
-        console.error('❌ markAsRead() failed from showChat:', error);
-      }
-    } else {
-      console.log('🚫 Skipping markAsRead - user conditions not met');
-    }
-    
-    if (chatInput) {
-      chatInput.focus();
-      console.log('💬 Chat input focused');
-    }
-    
-    // CRITICAL FIX: Force badge update after opening
-    setTimeout(async () => {
-      await this.updateUnreadBadge();
-    }, 200);
-    
-    console.log('💬 showChat completed');
+  console.log('💬 SHOW CHAT CALLED - working with existing HTML structure');
+  console.log(`👤 Current user: ${this.currentUser}`);
+  
+  // UPDATED: Work with your existing bottom strip expansion
+  const bottomStrip = document.querySelector('.bottom-strip');
+  const chatInput = document.getElementById('chatInput');
+  
+  if (!bottomStrip) {
+    console.error('❌ Bottom strip not found');
+    return;
   }
+  
+  console.log('💬 Setting chat as visible...');
+  this.isVisible = true;
+  
+  // UPDATED: If bottom strip isn't expanded yet, expand it
+  if (!window.bottomStripExpanded && window.toggleBottomStrip) {
+    console.log('🎧 Bottom strip not expanded, expanding now...');
+    // Don't call toggleBottomStrip to avoid recursion - just set the state
+    window.bottomStripExpanded = true;
+    bottomStrip.classList.add('expanded');
+    const mainContent = document.getElementById('mainContent');
+    if (mainContent) {
+      mainContent.style.marginBottom = '70vh';
+    }
+    window.showOverlay && window.showOverlay();
+  }
+  
+  console.log('💬 Chat opened - marking messages as read');
+  
+  // Mark as read immediately when chat opens
+  if (this.currentUser && this.userManager.canRenderTable()) {
+    console.log('🚀 Calling markAsRead() from showChat...');
+    try {
+      await this.markAsRead();
+      console.log('✅ markAsRead() completed from showChat');
+    } catch (error) {
+      console.error('❌ markAsRead() failed from showChat:', error);
+    }
+  } else {
+    console.log('🚫 Skipping markAsRead - user conditions not met');
+  }
+  
+  if (chatInput) {
+    chatInput.focus();
+    console.log('💬 Chat input focused');
+  }
+  
+  // Force badge update after opening
+  setTimeout(async () => {
+    await this.updateUnreadBadge();
+  }, 200);
+  
+  console.log('💬 showChat completed');
+}
 
   // CRITICAL FIX: Enhanced hideChat with comprehensive debugging
   async hideChat() {
-    console.log('💬 HIDE CHAT CALLED v2025.06.01.2');
-    
-    const bottomStrip = document.querySelector('.bottom-strip');
-    
-    if (!bottomStrip) {
-      console.error('❌ Bottom strip not found');
-      return;
-    }
-    
-    console.log('💬 Chat closing - final read check');
-    
-    // CRITICAL FIX: Mark as read one more time when closing chat
-    if (this.currentUser && this.userManager.canRenderTable()) {
-      console.log('🚀 Calling markAsRead() from hideChat...');
-      try {
-        await this.markAsRead();
-        console.log('✅ markAsRead() completed from hideChat');
-      } catch (error) {
-        console.error('❌ markAsRead() failed from hideChat:', error);
-      }
-    }
-    
-    console.log('💬 Setting chat as hidden...');
-    bottomStrip.classList.remove('expanded');
-    this.isVisible = false;
-    
-    // CRITICAL FIX: Update badge after closing with longer delay
-    console.log('🔄 Updating badge after closing chat...');
-    setTimeout(async () => {
-      console.log('🔄 Badge update timeout triggered...');
-      await this.updateUnreadBadge();
-    }, 300); // Longer delay to ensure all state changes are complete
-    
-    console.log('💬 hideChat completed');
+  console.log('💬 HIDE CHAT CALLED - working with existing HTML structure');
+  
+  const bottomStrip = document.querySelector('.bottom-strip');
+  
+  if (!bottomStrip) {
+    console.error('❌ Bottom strip not found');
+    return;
   }
+  
+  console.log('💬 Chat closing - final read check');
+  
+  // Mark as read one more time when closing chat
+  if (this.currentUser && this.userManager.canRenderTable()) {
+    console.log('🚀 Calling markAsRead() from hideChat...');
+    try {
+      await this.markAsRead();
+      console.log('✅ markAsRead() completed from hideChat');
+    } catch (error) {
+      console.error('❌ markAsRead() failed from hideChat:', error);
+    }
+  }
+  
+  console.log('💬 Setting chat as hidden...');
+  this.isVisible = false;
+  
+  // Update badge after closing with longer delay
+  console.log('🔄 Updating badge after closing chat...');
+  setTimeout(async () => {
+    console.log('🔄 Badge update timeout triggered...');
+    await this.updateUnreadBadge();
+  }, 300);
+  
+  console.log('💬 hideChat completed');
+}
 
   setupEventListeners() {
-    if (this.listenersSetup) {
-      console.log('🎧 Event listeners already setup, skipping...');
-      return;
+  if (this.listenersSetup) {
+    console.log('🎧 Event listeners already setup, skipping...');
+    return;
+  }
+  
+  // UPDATED: Use your existing HTML structure
+  const chatStatus = document.getElementById('chatStatus'); // Your existing chat trigger
+  const bottomStrip = document.getElementById('bottomStrip'); // Your existing bottom strip
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+
+  console.log('🎧 Setting up event listeners for existing HTML structure...');
+  console.log(`   chatStatus: ${chatStatus ? 'found' : 'NOT FOUND'}`);
+  console.log(`   bottomStrip: ${bottomStrip ? 'found' : 'NOT FOUND'}`);
+
+  // UPDATED: Make chatStatus clickable to open chat
+  if (chatStatus) {
+    chatStatus.addEventListener('click', async () => {
+      console.log('🖱️ Chat status clicked - opening chat');
+      await this.showChat();
+    });
+    // Make it look clickable
+    chatStatus.style.cursor = 'pointer';
+    console.log('✅ Chat status click listener added');
+  }
+
+  // UPDATED: Listen for your existing swipe gesture that expands bottom strip
+  // We'll hook into the existing bottomStripExpanded state
+  const originalToggleBottomStrip = window.toggleBottomStrip;
+  if (originalToggleBottomStrip) {
+    window.toggleBottomStrip = async function() {
+      // Call original function
+      originalToggleBottomStrip();
+      
+      // Then handle chat system state
+      if (window.bottomStripExpanded) {
+        console.log('🎧 Bottom strip expanded - calling chat showChat');
+        await window.chatSystem.showChat();
+      } else {
+        console.log('🎧 Bottom strip collapsed - calling chat hideChat');
+        await window.chatSystem.hideChat();
+      }
+    };
+    console.log('✅ Hooked into existing toggleBottomStrip function');
+  }
+
+  // UPDATED: Add escape key handler
+  document.addEventListener('keydown', async (e) => {
+    if (e.key === 'Escape' && this.isVisible) {
+      console.log('⌨️ Escape key pressed, closing chat');
+      // Close via the existing bottomStrip toggle
+      if (window.bottomStripExpanded && originalToggleBottomStrip) {
+        originalToggleBottomStrip();
+      }
+      await this.hideChat();
     }
-    
-    const chatToggle = document.getElementById('chatToggle');
-    const chatModal = document.getElementById('chatModal');
-    const chatCloseBtn = document.getElementById('chatCloseBtn');
-    const chatInput = document.getElementById('chatInput');
-    const chatSendBtn = document.getElementById('chatSendBtn');
+  });
 
-    console.log('🎧 Setting up event listeners...');
-    console.log(`   chatToggle: ${chatToggle ? 'found' : 'NOT FOUND'}`);
-    console.log(`   chatModal: ${chatModal ? 'found' : 'NOT FOUND'}`);
-    console.log(`   chatCloseBtn: ${chatCloseBtn ? 'found' : 'NOT FOUND'}`);
+  // Keep existing chat input/send functionality
+  if (chatSendBtn) {
+    chatSendBtn.addEventListener('click', () => this.sendMessage());
+    console.log('✅ Chat send button listener added');
+  }
 
-    if (chatToggle) {
-      chatToggle.addEventListener('click', async () => {
-        console.log('🖱️ Chat toggle clicked');
-        await this.showChat();
-      });
-      console.log('✅ Chat toggle listener added');
-    }
-
-    if (chatCloseBtn) {
-      chatCloseBtn.addEventListener('click', async () => {
-        console.log('🖱️ Chat close button clicked');
-        await this.hideChat();
-      });
-      console.log('✅ Chat close listener added');
-    }
-
-    if (chatModal) {
-      chatModal.addEventListener('click', async (e) => {
-        if (e.target === chatModal) {
-          console.log('🖱️ Chat modal background clicked');
-          await this.hideChat();
-        }
-      });
-      console.log('✅ Chat modal listener added');
-    }
-
-    document.addEventListener('keydown', async (e) => {
-      if (e.key === 'Escape' && this.isVisible) {
-        console.log('⌨️ Escape key pressed, closing chat');
-        await this.hideChat();
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        this.sendMessage();
       }
     });
 
-    if (chatSendBtn) {
-      chatSendBtn.addEventListener('click', () => this.sendMessage());
-      console.log('✅ Chat send button listener added');
-    }
-
-    if (chatInput) {
-      chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          this.sendMessage();
-        }
-      });
-
-      chatInput.addEventListener('input', () => {
-        const hasText = chatInput.value.trim().length > 0;
-        if (chatSendBtn) {
-          chatSendBtn.disabled = !hasText || !this.currentUser || this.isProcessing;
-        }
-      });
-      console.log('✅ Chat input listeners added');
-    }
-    
-    this.listenersSetup = true;
-    console.log('🎧 Chat event listeners setup complete v2025.06.01.2');
+    chatInput.addEventListener('input', () => {
+      const hasText = chatInput.value.trim().length > 0;
+      if (chatSendBtn) {
+        chatSendBtn.disabled = !hasText || !this.currentUser || this.isProcessing;
+      }
+    });
+    console.log('✅ Chat input listeners added');
   }
+  
+  this.listenersSetup = true;
+  console.log('🎧 Chat event listeners setup complete - ADAPTED FOR EXISTING HTML');
+}
 
   updateInterfaceVisibility() {
     const chatToggle = document.getElementById('chatToggle');
