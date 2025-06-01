@@ -1,9 +1,9 @@
-// I'm Puzzled - Chat System Module v2025.06.01.1
-// COMPLETE VERSION: Enhanced debugging to track markAsRead calls
+// I'm Puzzled - Chat System Module v2025.06.01.2
+// CRITICAL FIX: Enhanced UI integration to properly call markAsRead()
 
 class ChatSystem {
   constructor() {
-    console.log('🚨 ChatSystem constructor called!');
+    console.log('🚨 ChatSystem constructor called! v2025.06.01.2');
     this.messages = [];
     this.isVisible = false;
     this.hasUnreadMessages = false;
@@ -12,8 +12,9 @@ class ChatSystem {
     this.currentUser = null;
     this.isProcessing = false;
     this.debugMode = true; // Enhanced debugging
+    this.markAsReadInProgress = false; // Prevent duplicate calls
     
-    console.log('💬 Chat System initialized v2025.06.01.1 - ENHANCED DEBUGGING');
+    console.log('💬 Chat System initialized v2025.06.01.2 - CRITICAL FIX');
   }
 
   async init(userManager, supabaseClient, dateHelpers) {
@@ -29,7 +30,10 @@ class ChatSystem {
     this.setupEventListeners();
     this.updateInterfaceVisibility();
     
-    console.log('💬 Chat System ready v2025.06.01.1');
+    // CRITICAL FIX: Ensure we're properly exposed to global scope
+    window.chatSystem = this;
+    
+    console.log('💬 Chat System ready v2025.06.01.2 - ENHANCED UI INTEGRATION');
   }
 
   async loadLastReadStatus() {
@@ -61,7 +65,7 @@ class ChatSystem {
       const data = await this.supabaseClient.loadChatMessages(today);
       this.messages = data || [];
       this.renderMessages();
-      this.updateUnreadBadge();
+      await this.updateUnreadBadge();
       
       if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages`);
     } catch (error) {
@@ -251,17 +255,22 @@ class ChatSystem {
 
   async updateUnreadBadge() {
     const unreadBadge = document.getElementById('unreadBadge');
-    if (!unreadBadge) return;
+    if (!unreadBadge) {
+      if (this.debugMode) console.log('❌ unreadBadge element not found');
+      return;
+    }
     
     if (!this.currentUser || !this.userManager.canRenderTable()) {
       unreadBadge.style.display = 'none';
       this.hasUnreadMessages = false;
+      if (this.debugMode) console.log('🚫 No user or cannot render table - hiding badge');
       return;
     }
     
     if (this.isVisible) {
       unreadBadge.style.display = 'none';
       this.hasUnreadMessages = false;
+      if (this.debugMode) console.log('💬 Chat is visible - hiding badge');
       return;
     }
     
@@ -270,7 +279,9 @@ class ChatSystem {
       const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
       
       if (this.debugMode) {
-        console.log(`🔍 Unread count for ${this.currentUser}: ${unreadCount}`);
+        console.log(`🔍 UNREAD BADGE UPDATE for ${this.currentUser}: ${unreadCount}`);
+        console.log(`   isVisible: ${this.isVisible}`);
+        console.log(`   current time: ${new Date().toISOString()}`);
       }
       
       if (unreadCount > 0) {
@@ -290,9 +301,13 @@ class ChatSystem {
         unreadBadge.style.justifyContent = 'center';
         unreadBadge.style.zIndex = '1001';
         this.hasUnreadMessages = true;
+        
+        if (this.debugMode) console.log(`✅ Badge shown with count: ${unreadCount}`);
       } else {
         unreadBadge.style.display = 'none';
         this.hasUnreadMessages = false;
+        
+        if (this.debugMode) console.log('✅ Badge hidden - no unread messages');
       }
     } catch (error) {
       console.error("Failed to get unread count:", error);
@@ -300,19 +315,37 @@ class ChatSystem {
     }
   }
 
-  // ENHANCED: markAsRead with detailed debugging
+  // CRITICAL FIX: Enhanced markAsRead with detailed debugging and proper database calls
   async markAsRead() {
+    if (this.markAsReadInProgress) {
+      console.log('🔄 markAsRead already in progress, skipping...');
+      return;
+    }
+
     if (!this.currentUser || !this.userManager.canRenderTable()) {
-      console.log('🚫 Cannot mark as read - no user selected');
+      console.log('🚫 Cannot mark as read - no user selected or cannot render table');
       return;
     }
     
+    this.markAsReadInProgress = true;
+    
     console.log(`🔄 MARK AS READ CALLED for ${this.currentUser}`);
     console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+    console.log(`💬 Chat visible: ${this.isVisible}`);
     
     try {
       const today = this.dateHelpers.getToday();
       console.log(`📅 Marking messages as read for ${this.currentUser} on ${today}`);
+      
+      // CRITICAL FIX: Pre-check unread count
+      const preCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
+      console.log(`📊 PRE-MARK unread count: ${preCount}`);
+      
+      if (preCount === 0) {
+        console.log('✅ No messages to mark as read');
+        this.markAsReadInProgress = false;
+        return;
+      }
       
       // CRITICAL: Actually call the database update with full error handling
       console.log('🚀 Calling supabaseClient.markChatMessagesAsRead...');
@@ -322,12 +355,24 @@ class ChatSystem {
       console.log(`✅ markChatMessagesAsRead returned:`, result);
       console.log(`📊 Updated ${result?.length || 0} messages in database`);
       
+      // CRITICAL FIX: Verify the update worked
+      const postCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
+      console.log(`📊 POST-MARK unread count: ${postCount}`);
+      
+      if (postCount === 0) {
+        console.log('✅ Database update VERIFIED - count is now 0');
+      } else {
+        console.log(`⚠️ Database update INCOMPLETE - count is still ${postCount}`);
+      }
+      
       // Update local state
       this.hasUnreadMessages = false;
       
-      // Force immediate badge update
+      // CRITICAL FIX: Force immediate badge update with delay to ensure database propagation
       console.log('🔄 Updating unread badge...');
-      await this.updateUnreadBadge();
+      setTimeout(async () => {
+        await this.updateUnreadBadge();
+      }, 100); // Small delay to ensure database changes propagate
       
       console.log('✅ markAsRead completed successfully');
       
@@ -338,12 +383,16 @@ class ChatSystem {
         message: error.message,
         stack: error.stack
       });
+    } finally {
+      this.markAsReadInProgress = false;
     }
   }
 
-  // ENHANCED: showChat with detailed debugging
+  // CRITICAL FIX: Enhanced showChat with comprehensive debugging
   async showChat() {
-    console.log('💬 SHOW CHAT CALLED');
+    console.log('💬 SHOW CHAT CALLED v2025.06.01.2');
+    console.log(`👤 Current user: ${this.currentUser}`);
+    console.log(`🔍 Can render table: ${this.userManager?.canRenderTable()}`);
     
     const bottomStrip = document.querySelector('.bottom-strip');
     const chatInput = document.getElementById('chatInput');
@@ -353,23 +402,41 @@ class ChatSystem {
       return;
     }
     
+    console.log('💬 Setting chat as visible...');
     bottomStrip.classList.add('expanded');
     this.isVisible = true;
     
     console.log('💬 Chat opened - marking messages as read');
-    console.log(`👤 Current user: ${this.currentUser}`);
     
-    // CRITICAL: Mark as read immediately when chat opens
-    await this.markAsRead();
+    // CRITICAL FIX: Mark as read immediately when chat opens with proper async handling
+    if (this.currentUser && this.userManager.canRenderTable()) {
+      console.log('🚀 Calling markAsRead() from showChat...');
+      try {
+        await this.markAsRead();
+        console.log('✅ markAsRead() completed from showChat');
+      } catch (error) {
+        console.error('❌ markAsRead() failed from showChat:', error);
+      }
+    } else {
+      console.log('🚫 Skipping markAsRead - user conditions not met');
+    }
     
-    if (chatInput) chatInput.focus();
+    if (chatInput) {
+      chatInput.focus();
+      console.log('💬 Chat input focused');
+    }
     
-    console.log('💬 Chat opened and messages marked as read');
+    // CRITICAL FIX: Force badge update after opening
+    setTimeout(async () => {
+      await this.updateUnreadBadge();
+    }, 200);
+    
+    console.log('💬 showChat completed');
   }
 
-  // ENHANCED: hideChat with detailed debugging
+  // CRITICAL FIX: Enhanced hideChat with comprehensive debugging
   async hideChat() {
-    console.log('💬 HIDE CHAT CALLED');
+    console.log('💬 HIDE CHAT CALLED v2025.06.01.2');
     
     const bottomStrip = document.querySelector('.bottom-strip');
     
@@ -380,23 +447,36 @@ class ChatSystem {
     
     console.log('💬 Chat closing - final read check');
     
-    // CRITICAL: Mark as read one more time when closing chat
-    await this.markAsRead();
+    // CRITICAL FIX: Mark as read one more time when closing chat
+    if (this.currentUser && this.userManager.canRenderTable()) {
+      console.log('🚀 Calling markAsRead() from hideChat...');
+      try {
+        await this.markAsRead();
+        console.log('✅ markAsRead() completed from hideChat');
+      } catch (error) {
+        console.error('❌ markAsRead() failed from hideChat:', error);
+      }
+    }
     
+    console.log('💬 Setting chat as hidden...');
     bottomStrip.classList.remove('expanded');
     this.isVisible = false;
     
-    // Update badge after closing
+    // CRITICAL FIX: Update badge after closing with longer delay
     console.log('🔄 Updating badge after closing chat...');
     setTimeout(async () => {
+      console.log('🔄 Badge update timeout triggered...');
       await this.updateUnreadBadge();
-    }, 100);
+    }, 300); // Longer delay to ensure all state changes are complete
     
-    console.log('💬 Chat closed and final read status updated');
+    console.log('💬 hideChat completed');
   }
 
   setupEventListeners() {
-    if (this.listenersSetup) return;
+    if (this.listenersSetup) {
+      console.log('🎧 Event listeners already setup, skipping...');
+      return;
+    }
     
     const chatToggle = document.getElementById('chatToggle');
     const chatModal = document.getElementById('chatModal');
@@ -404,28 +484,47 @@ class ChatSystem {
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
 
+    console.log('🎧 Setting up event listeners...');
+    console.log(`   chatToggle: ${chatToggle ? 'found' : 'NOT FOUND'}`);
+    console.log(`   chatModal: ${chatModal ? 'found' : 'NOT FOUND'}`);
+    console.log(`   chatCloseBtn: ${chatCloseBtn ? 'found' : 'NOT FOUND'}`);
+
     if (chatToggle) {
-      chatToggle.addEventListener('click', () => this.showChat());
+      chatToggle.addEventListener('click', async () => {
+        console.log('🖱️ Chat toggle clicked');
+        await this.showChat();
+      });
+      console.log('✅ Chat toggle listener added');
     }
 
     if (chatCloseBtn) {
-      chatCloseBtn.addEventListener('click', () => this.hideChat());
+      chatCloseBtn.addEventListener('click', async () => {
+        console.log('🖱️ Chat close button clicked');
+        await this.hideChat();
+      });
+      console.log('✅ Chat close listener added');
     }
 
     if (chatModal) {
-      chatModal.addEventListener('click', (e) => {
-        if (e.target === chatModal) this.hideChat();
+      chatModal.addEventListener('click', async (e) => {
+        if (e.target === chatModal) {
+          console.log('🖱️ Chat modal background clicked');
+          await this.hideChat();
+        }
       });
+      console.log('✅ Chat modal listener added');
     }
 
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', async (e) => {
       if (e.key === 'Escape' && this.isVisible) {
-        this.hideChat();
+        console.log('⌨️ Escape key pressed, closing chat');
+        await this.hideChat();
       }
     });
 
     if (chatSendBtn) {
       chatSendBtn.addEventListener('click', () => this.sendMessage());
+      console.log('✅ Chat send button listener added');
     }
 
     if (chatInput) {
@@ -442,10 +541,11 @@ class ChatSystem {
           chatSendBtn.disabled = !hasText || !this.currentUser || this.isProcessing;
         }
       });
+      console.log('✅ Chat input listeners added');
     }
     
     this.listenersSetup = true;
-    console.log('🎧 Chat event listeners setup complete');
+    console.log('🎧 Chat event listeners setup complete v2025.06.01.2');
   }
 
   updateInterfaceVisibility() {
@@ -454,6 +554,8 @@ class ChatSystem {
     const chatSendBtn = document.getElementById('chatSendBtn');
     
     const canUseChat = this.userManager.canSendChatMessage();
+    
+    console.log(`💬 updateInterfaceVisibility - canUseChat: ${canUseChat}`);
     
     if (chatToggle) {
       chatToggle.style.display = canUseChat ? 'block' : 'none';
@@ -471,13 +573,14 @@ class ChatSystem {
       this.hideChat();
     }
     
-    console.log('💬 Chat interface visibility v2025.06.01.1:', canUseChat ? 'enabled' : 'disabled');
+    console.log('💬 Chat interface visibility v2025.06.01.2:', canUseChat ? 'enabled' : 'disabled');
   }
 
-  // ENHANCED: Real-time update handling with debugging
+  // CRITICAL FIX: Enhanced real-time update handling with proper markAsRead integration
   async handleRealtimeUpdate(payload) {
     if (this.debugMode) {
       console.log('🔄 Real-time chat update:', payload.eventType);
+      console.log('🔄 Payload details:', payload);
     }
     
     if (payload.eventType === "INSERT") {
@@ -486,11 +589,17 @@ class ChatSystem {
       
       // Only show as unread if from other user AND chat is not visible
       if (payload.new.player !== this.currentUser && !this.isVisible) {
+        console.log('💬 New message from other user - will show as unread');
         this.hasUnreadMessages = true;
-        console.log('💬 New message from other user - marking as unread');
+      } else if (payload.new.player !== this.currentUser && this.isVisible) {
+        console.log('💬 New message from other user but chat is visible - marking as read');
+        // If chat is visible when new message arrives, mark it as read immediately
+        setTimeout(async () => {
+          await this.markAsRead();
+        }, 100);
       }
       
-      this.updateUnreadBadge();
+      await this.updateUnreadBadge();
     } else if (payload.eventType === "UPDATE") {
       const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
       if (msgIndex !== -1) {
@@ -501,7 +610,7 @@ class ChatSystem {
         if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
             payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
           console.log('💬 Read status updated in real-time');
-          this.updateUnreadBadge();
+          await this.updateUnreadBadge();
         }
       }
     }
@@ -534,7 +643,9 @@ class ChatSystem {
       isProcessing: this.isProcessing,
       hasUnreadMessages: this.hasUnreadMessages,
       debugMode: this.debugMode,
-      version: 'v2025.06.01.1'
+      markAsReadInProgress: this.markAsReadInProgress,
+      listenersSetup: this.listenersSetup,
+      version: 'v2025.06.01.2 - CRITICAL FIX'
     };
   }
 
@@ -548,8 +659,17 @@ class ChatSystem {
   debugState() {
     console.log('🔍 DEBUG: Current chat system state:', this.getChatStatus());
   }
+
+  // CRITICAL FIX: Force refresh method for testing
+  async forceRefresh() {
+    console.log('🔄 FORCE REFRESH called');
+    await this.loadMessages();
+    await this.updateUnreadBadge();
+    console.log('✅ Force refresh completed');
+  }
 }
 
+// CRITICAL FIX: Ensure global exposure
 const chatSystem = new ChatSystem();
 window.chatSystem = chatSystem;
 
