@@ -290,7 +290,7 @@ class ChatSystem {
     unreadBadge.textContent = unreadMessages.length;
     unreadBadge.style.display = 'flex';
     unreadBadge.style.position = 'absolute';
-    unreadBadge.style.top = '-13px';
+    unreadBadge.style.top = '-10px';
     unreadBadge.style.right = '10px';
     unreadBadge.style.background = '#ef4444';
     unreadBadge.style.color = 'white';
