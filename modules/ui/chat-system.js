@@ -1,5 +1,5 @@
-// I'm Puzzled - Chat System Module v2025.05.30.7
-// FIXED: Persistent read status - messages stay marked as read in database
+// I'm Puzzled - Chat System Module v2025.06.01.1
+// COMPLETE VERSION: Enhanced debugging to track markAsRead calls
 
 class ChatSystem {
   constructor() {
@@ -11,8 +11,9 @@ class ChatSystem {
     this.lastReadTimestamp = 0;
     this.currentUser = null;
     this.isProcessing = false;
+    this.debugMode = true; // Enhanced debugging
     
-    console.log('💬 Chat System initialized v2025.05.30.7 - FIXED Read Persistence');
+    console.log('💬 Chat System initialized v2025.06.01.1 - ENHANCED DEBUGGING');
   }
 
   async init(userManager, supabaseClient, dateHelpers) {
@@ -28,7 +29,7 @@ class ChatSystem {
     this.setupEventListeners();
     this.updateInterfaceVisibility();
     
-    console.log('💬 Chat System ready v2025.05.30.7');
+    console.log('💬 Chat System ready v2025.06.01.1');
   }
 
   async loadLastReadStatus() {
@@ -53,12 +54,16 @@ class ChatSystem {
   }
 
   async loadMessages() {
+    if (this.debugMode) console.log('📋 Loading chat messages...');
+    
     try {
       const today = this.dateHelpers.getToday();
       const data = await this.supabaseClient.loadChatMessages(today);
       this.messages = data || [];
       this.renderMessages();
       this.updateUnreadBadge();
+      
+      if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages`);
     } catch (error) {
       console.error("Failed to load chat messages:", error);
     }
@@ -264,7 +269,9 @@ class ChatSystem {
       const today = this.dateHelpers.getToday();
       const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
       
-      console.log('🔍 Unread count for', this.currentUser, ':', unreadCount);
+      if (this.debugMode) {
+        console.log(`🔍 Unread count for ${this.currentUser}: ${unreadCount}`);
+      }
       
       if (unreadCount > 0) {
         unreadBadge.textContent = unreadCount;
@@ -293,49 +300,66 @@ class ChatSystem {
     }
   }
 
-  // FIXED: Enhanced markAsRead with proper database persistence
+  // ENHANCED: markAsRead with detailed debugging
   async markAsRead() {
     if (!this.currentUser || !this.userManager.canRenderTable()) {
       console.log('🚫 Cannot mark as read - no user selected');
       return;
     }
     
+    console.log(`🔄 MARK AS READ CALLED for ${this.currentUser}`);
+    console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
+    
     try {
       const today = this.dateHelpers.getToday();
+      console.log(`📅 Marking messages as read for ${this.currentUser} on ${today}`);
       
-      console.log(`🔄 Marking messages as read for ${this.currentUser} on ${today}`);
+      // CRITICAL: Actually call the database update with full error handling
+      console.log('🚀 Calling supabaseClient.markChatMessagesAsRead...');
       
-      // FIXED: Actually call the database update
-      await this.supabaseClient.markChatMessagesAsRead(today, this.currentUser);
+      const result = await this.supabaseClient.markChatMessagesAsRead(today, this.currentUser);
       
-      console.log('✅ Messages marked as read in database');
+      console.log(`✅ markChatMessagesAsRead returned:`, result);
+      console.log(`📊 Updated ${result?.length || 0} messages in database`);
       
-      // FIXED: Update local state
+      // Update local state
       this.hasUnreadMessages = false;
       
-      // FIXED: Force immediate badge update
-      this.updateUnreadBadge();
+      // Force immediate badge update
+      console.log('🔄 Updating unread badge...');
+      await this.updateUnreadBadge();
       
-      console.log('✅ Local state updated - read status persisted');
+      console.log('✅ markAsRead completed successfully');
       
     } catch (error) {
-      console.error("Failed to mark messages as read:", error);
+      console.error("❌ markAsRead FAILED:", error);
+      console.error("❌ Error details:", {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      });
     }
   }
 
-  // FIXED: Enhanced showChat with immediate read marking
+  // ENHANCED: showChat with detailed debugging
   async showChat() {
+    console.log('💬 SHOW CHAT CALLED');
+    
     const bottomStrip = document.querySelector('.bottom-strip');
     const chatInput = document.getElementById('chatInput');
     
-    if (!bottomStrip) return;
+    if (!bottomStrip) {
+      console.error('❌ Bottom strip not found');
+      return;
+    }
     
     bottomStrip.classList.add('expanded');
     this.isVisible = true;
     
     console.log('💬 Chat opened - marking messages as read');
+    console.log(`👤 Current user: ${this.currentUser}`);
     
-    // FIXED: Mark as read immediately when chat opens
+    // CRITICAL: Mark as read immediately when chat opens
     await this.markAsRead();
     
     if (chatInput) chatInput.focus();
@@ -343,23 +367,29 @@ class ChatSystem {
     console.log('💬 Chat opened and messages marked as read');
   }
 
-  // FIXED: Enhanced hideChat with final read check
+  // ENHANCED: hideChat with detailed debugging
   async hideChat() {
+    console.log('💬 HIDE CHAT CALLED');
+    
     const bottomStrip = document.querySelector('.bottom-strip');
     
-    if (!bottomStrip) return;
+    if (!bottomStrip) {
+      console.error('❌ Bottom strip not found');
+      return;
+    }
     
     console.log('💬 Chat closing - final read check');
     
-    // FIXED: Mark as read one more time when closing chat
+    // CRITICAL: Mark as read one more time when closing chat
     await this.markAsRead();
     
     bottomStrip.classList.remove('expanded');
     this.isVisible = false;
     
-    // FIXED: Update badge after closing
-    setTimeout(() => {
-      this.updateUnreadBadge();
+    // Update badge after closing
+    console.log('🔄 Updating badge after closing chat...');
+    setTimeout(async () => {
+      await this.updateUnreadBadge();
     }, 100);
     
     console.log('💬 Chat closed and final read status updated');
@@ -441,18 +471,20 @@ class ChatSystem {
       this.hideChat();
     }
     
-    console.log('💬 Chat interface visibility v2025.05.30.7:', canUseChat ? 'enabled' : 'disabled');
+    console.log('💬 Chat interface visibility v2025.06.01.1:', canUseChat ? 'enabled' : 'disabled');
   }
 
-  // FIXED: Enhanced real-time update handling with read status check
+  // ENHANCED: Real-time update handling with debugging
   async handleRealtimeUpdate(payload) {
-    console.log('🔄 Real-time chat update:', payload.eventType);
+    if (this.debugMode) {
+      console.log('🔄 Real-time chat update:', payload.eventType);
+    }
     
     if (payload.eventType === "INSERT") {
       this.messages.push(payload.new);
       this.renderMessages();
       
-      // FIXED: Only show as unread if from other user AND chat is not visible
+      // Only show as unread if from other user AND chat is not visible
       if (payload.new.player !== this.currentUser && !this.isVisible) {
         this.hasUnreadMessages = true;
         console.log('💬 New message from other user - marking as unread');
@@ -465,7 +497,7 @@ class ChatSystem {
         this.messages[msgIndex] = payload.new;
         this.renderMessages();
         
-        // FIXED: Check if this update affects read status
+        // Check if this update affects read status
         if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
             payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
           console.log('💬 Read status updated in real-time');
@@ -501,8 +533,20 @@ class ChatSystem {
       currentUser: this.currentUser,
       isProcessing: this.isProcessing,
       hasUnreadMessages: this.hasUnreadMessages,
-      version: 'v2025.05.30.7'
+      debugMode: this.debugMode,
+      version: 'v2025.06.01.1'
     };
+  }
+
+  // DEBUG HELPER: Manual trigger for testing
+  async debugMarkAsRead() {
+    console.log('🛠️ DEBUG: Manual markAsRead trigger');
+    await this.markAsRead();
+  }
+
+  // DEBUG HELPER: Check current state
+  debugState() {
+    console.log('🔍 DEBUG: Current chat system state:', this.getChatStatus());
   }
 }
 
