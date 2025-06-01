@@ -31,6 +31,7 @@ class ChatSystem {
   }
 
   async loadLastReadStatus() {
+  console.log('🚨 loadLastReadStatus called for user:', this.currentUser);
   if (!this.currentUser) return;
   
   try {
@@ -250,6 +251,7 @@ class ChatSystem {
   }
 
   updateUnreadBadge() {
+  console.log('🚨 updateUnreadBadge called for user:', this.currentUser);
   const unreadBadge = document.getElementById('unreadBadge');
   if (!unreadBadge) return;
   
