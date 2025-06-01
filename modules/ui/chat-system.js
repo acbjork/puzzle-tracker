@@ -265,33 +265,36 @@ class ChatSystem {
     return;
   }
   
-  // FIXED: Find messages from OTHER users that are newer than our last read message
-  const unreadMessages = this.messages.filter(msg => {
-    // Skip deleted messages
-    if (msg.message === '[deleted]') return false;
-    
-    // Skip messages from current user
-    if (msg.player === this.currentUser) return false;
-    
-    // If we have no lastReadMessageId, all other messages are unread
-    if (!this.lastReadMessageId) return true;
-    
-    // Check if this message is newer than our last read message
-    // Find the last read message in our array
-    const lastReadMessage = this.messages.find(m => m.id === this.lastReadMessageId);
-    if (!lastReadMessage) return true; // If we can't find it, consider unread
-    
-    // Compare timestamps
-    const msgTime = new Date(msg.created_at).getTime();
-    const lastReadTime = new Date(lastReadMessage.created_at).getTime();
-    
-    return msgTime > lastReadTime;
-  });
+  // SIMPLE FIX: Count only messages from OTHER users that are AFTER our last read message
+  let unreadCount = 0;
   
-  console.log('🔍 Unread check for', this.currentUser, ':', unreadMessages.length, 'unread messages');
+  if (!this.lastReadMessageId) {
+    // If never read anything, count all other user messages
+    unreadCount = this.messages.filter(msg => 
+      msg.player !== this.currentUser && msg.message !== '[deleted]'
+    ).length;
+  } else {
+    // Find the index of our last read message
+    const lastReadIndex = this.messages.findIndex(msg => msg.id === this.lastReadMessageId);
+    
+    if (lastReadIndex >= 0) {
+      // Count messages AFTER the last read message from other users
+      const messagesAfterLastRead = this.messages.slice(lastReadIndex + 1);
+      unreadCount = messagesAfterLastRead.filter(msg => 
+        msg.player !== this.currentUser && msg.message !== '[deleted]'
+      ).length;
+    } else {
+      // Last read message not found, count all other user messages
+      unreadCount = this.messages.filter(msg => 
+        msg.player !== this.currentUser && msg.message !== '[deleted]'
+      ).length;
+    }
+  }
   
-  if (unreadMessages.length > 0) {
-    this.showBadge(unreadBadge, unreadMessages.length);
+  console.log('🔍 Unread count for', this.currentUser, ':', unreadCount, 'lastReadId:', this.lastReadMessageId);
+  
+  if (unreadCount > 0) {
+    this.showBadge(unreadBadge, unreadCount);
   } else {
     unreadBadge.style.display = 'none';
     this.hasUnreadMessages = false;
