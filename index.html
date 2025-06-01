@@ -337,26 +337,11 @@
       font-weight: 600;
       color: var(--accent-dark);
       font-size: 1.1em;
-      position; relative;
+      position: relative;
       text-align: center;
     }
 
-    #unreadBadge {
-      background: #ef4444;
-      color: white;
-      border-radius: 50%;
-      min-width: 24px;
-      height: 24px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.8em;
-      font-weight: bold;
-      position: absolute;
-      top: -8px;
-      right; -8px;
-    }
-
+    
     /* EXPANDED CHAT (Bottom Strip Expanded) */
     .chat-expanded {
       display: none;
@@ -919,7 +904,7 @@
       <div class="chat-mini" id="chatMini"> 
         <div class="chat-status" id="chatStatus">
         🗑️ Trash Talk Central 🔥
-      <div class="unread-badge" id="unreadBadge">0</div>
+      <div id="unreadBadge">0</div>
       </div>
 
       <!-- Expanded Chat (Shown on Swipe Up) -->
