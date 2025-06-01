@@ -3,7 +3,8 @@
 
 class ChatSystem {
   constructor() {
-    this.messages = [];
+  console.log('🚨 ChatSystem constructor called!');
+  this.messages = [];
     this.isVisible = false;
     this.hasUnreadMessages = false;
     this.lastReadMessageId = null;
@@ -15,7 +16,8 @@ class ChatSystem {
   }
 
   async init(userManager, supabaseClient, dateHelpers) {
-    this.userManager = userManager;
+  console.log('🚨 ChatSystem init called for user:', userManager.getCurrentUser());
+  this.userManager = userManager;
     this.supabaseClient = supabaseClient;
     this.dateHelpers = dateHelpers;
     this.currentUser = userManager.getCurrentUser();
