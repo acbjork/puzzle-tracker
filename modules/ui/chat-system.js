@@ -271,46 +271,56 @@ class ChatSystem {
     return;
   }
   
-  // FIXED: Only count messages from OTHER users that are unread
+  // FIXED: Find messages from OTHER users that are newer than our last read message
   const unreadMessages = this.messages.filter(msg => {
     // Skip deleted messages
     if (msg.message === '[deleted]') return false;
     
-    // Skip messages from current user (you don't get notifications for your own messages)
+    // Skip messages from current user
     if (msg.player === this.currentUser) return false;
     
-    // FIXED: If we have no lastReadMessageId, all other player messages are unread
+    // If we have no lastReadMessageId, all other messages are unread
     if (!this.lastReadMessageId) return true;
     
-    // FIXED: Compare message timestamps instead of IDs for better reliability
+    // Check if this message is newer than our last read message
+    // Find the last read message in our array
+    const lastReadMessage = this.messages.find(m => m.id === this.lastReadMessageId);
+    if (!lastReadMessage) return true; // If we can't find it, consider unread
+    
+    // Compare timestamps
     const msgTime = new Date(msg.created_at).getTime();
-    const lastReadTime = this.lastReadTimestamp || 0;
+    const lastReadTime = new Date(lastReadMessage.created_at).getTime();
     
     return msgTime > lastReadTime;
   });
   
-  // FIXED: Show badge only if there are actual unread messages
+  console.log('🔍 Unread check for', this.currentUser, ':', unreadMessages.length, 'unread messages');
+  
   if (unreadMessages.length > 0) {
-    unreadBadge.textContent = unreadMessages.length;
-    unreadBadge.style.display = 'flex';
-    unreadBadge.style.position = 'absolute';
-    unreadBadge.style.top = '-10px';
-    unreadBadge.style.right = '10px';
-    unreadBadge.style.background = '#ef4444';
-    unreadBadge.style.color = 'white';
-    unreadBadge.style.borderRadius = '50%';
-    unreadBadge.style.minWidth = '20px';
-    unreadBadge.style.height = '20px';
-    unreadBadge.style.fontSize = '0.7em';
-    unreadBadge.style.fontWeight = 'bold';
-    unreadBadge.style.alignItems = 'center';
-    unreadBadge.style.justifyContent = 'center';
-    unreadBadge.style.zIndex = '1001';
-    this.hasUnreadMessages = true;
+    this.showBadge(unreadBadge, unreadMessages.length);
   } else {
     unreadBadge.style.display = 'none';
     this.hasUnreadMessages = false;
   }
+}
+
+showBadge(unreadBadge, count) {
+  unreadBadge.textContent = count;
+  unreadBadge.style.display = 'flex';
+  unreadBadge.style.position = 'absolute';
+  unreadBadge.style.top = '-10px';
+  unreadBadge.style.right = '10px';
+  unreadBadge.style.background = '#ef4444';
+  unreadBadge.style.color = 'white';
+  unreadBadge.style.borderRadius = '50%';
+  unreadBadge.style.minWidth = '20px';
+  unreadBadge.style.height = '20px';
+  unreadBadge.style.fontSize = '0.7em';
+  unreadBadge.style.fontWeight = 'bold';
+  unreadBadge.style.alignItems = 'center';
+  unreadBadge.style.justifyContent = 'center';
+  unreadBadge.style.zIndex = '1001';
+  this.hasUnreadMessages = true;
 }
 
   async markAsRead() {
@@ -320,15 +330,18 @@ class ChatSystem {
   }
   
   if (this.messages.length > 0) {
-    // FIXED: Find the latest message timestamp and save it
-    const allMessages = this.messages.filter(msg => msg.message !== '[deleted]');
+    // FIXED: Find the very latest message from the OTHER user (not current user)
+    const otherUserMessages = this.messages.filter(msg => 
+      msg.player !== this.currentUser && msg.message !== '[deleted]'
+    );
     
-    if (allMessages.length > 0) {
-      const latestMessage = allMessages[allMessages.length - 1];
+    if (otherUserMessages.length > 0) {
+      // Get the most recent message from other users
+      const latestOtherMessage = otherUserMessages[otherUserMessages.length - 1];
+      console.log('🔄 Marking as read up to message:', latestOtherMessage.id, 'from', latestOtherMessage.player);
       
-      // Save both the message ID and timestamp for better tracking
-      await this.saveLastReadStatus(latestMessage.id);
-      this.lastReadTimestamp = new Date(latestMessage.created_at).getTime();
+      await this.saveLastReadStatus(latestOtherMessage.id);
+      this.lastReadMessageId = latestOtherMessage.id;
     }
   }
   
