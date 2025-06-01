@@ -290,15 +290,11 @@ class ChatSystem {
         msg.player !== this.currentUser && msg.message !== '[deleted]'
       ).length;
     } else {
-  // Last read messages not found, count all other user messagesd
-    unreadCount =
-  this.messages.filter(msg => msg.player !==
-  this.currentUser && msg.message !== '[deleted]'
-    ).length;
+  // Last read message not found in current array, assume all current messages are read
+  unreadCount = 0;
 }
     }
   }  
-  console.log('🔍 Unread count for', this.currentUser, ':', unreadCount, 'lastReadId:', this.lastReadMessageId);  
   if (unreadCount > 0) {
     this.showBadge(unreadBadge, unreadCount);
   } else {
