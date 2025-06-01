@@ -7,6 +7,7 @@ class ChatSystem {
     this.isVisible = false;
     this.hasUnreadMessages = false;
     this.lastReadMessageId = null;
+    this.lastReadTimestamp = 0;
     this.currentUser = null;
     this.isProcessing = false; // FIXED: Anti-double-send flag
     
@@ -278,11 +279,14 @@ class ChatSystem {
     // Skip messages from current user (you don't get notifications for your own messages)
     if (msg.player === this.currentUser) return false;
     
-    // FIXED: If we have a lastReadMessageId, only count messages after it
-    if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
+    // FIXED: If we have no lastReadMessageId, all other player messages are unread
+    if (!this.lastReadMessageId) return true;
     
-    // This is an unread message from another user
-    return true;
+    // FIXED: Compare message timestamps instead of IDs for better reliability
+    const msgTime = new Date(msg.created_at).getTime();
+    const lastReadTime = this.lastReadTimestamp || 0;
+    
+    return msgTime > lastReadTime;
   });
   
   // FIXED: Show badge only if there are actual unread messages
@@ -316,12 +320,15 @@ class ChatSystem {
   }
   
   if (this.messages.length > 0) {
-    // FIXED: Find the latest message from ANY user (not just other players)
+    // FIXED: Find the latest message timestamp and save it
     const allMessages = this.messages.filter(msg => msg.message !== '[deleted]');
     
     if (allMessages.length > 0) {
       const latestMessage = allMessages[allMessages.length - 1];
+      
+      // Save both the message ID and timestamp for better tracking
       await this.saveLastReadStatus(latestMessage.id);
+      this.lastReadTimestamp = new Date(latestMessage.created_at).getTime();
     }
   }
   
