@@ -215,6 +215,45 @@ async getUnreadChatCount(date, player) {
   return data?.length || 0;
 }
 
+async markChatMessagesAsRead(date, player) {
+  if (!this.client) throw new Error('Supabase not initialized');
+  
+  const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
+  
+  const { error } = await this.client
+    .from("chat_messages")
+    .update({ [readColumn]: true })
+    .eq("date", date)
+    .eq(readColumn, false); // Only update unread messages
+  
+  if (error) {
+    console.error("Error marking messages as read:", error.message);
+    throw error;
+  }
+}
+
+async getUnreadChatCount(date, player) {
+  if (!this.client) throw new Error('Supabase not initialized');
+  
+  const readColumn = player === 'Adam' ? 'read_by_adam' : 'read_by_jonathan';
+  const otherPlayer = player === 'Adam' ? 'Jonathan' : 'Adam';
+  
+  const { data, error } = await this.client
+    .from("chat_messages")
+    .select("id", { count: 'exact' })
+    .eq("date", date)
+    .eq("player", otherPlayer) // Messages from other player
+    .eq(readColumn, false) // That haven't been read
+    .neq("message", "[deleted]"); // And aren't deleted
+  
+  if (error) {
+    console.error("Error getting unread count:", error.message);
+    throw error;
+  }
+  
+  return data?.length || 0;
+}
+
   async saveUserSettings(userId, lastReadMessageId) {
     if (!this.client) throw new Error('Supabase not initialized');
     
