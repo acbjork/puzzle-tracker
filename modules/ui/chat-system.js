@@ -290,8 +290,11 @@ class ChatSystem {
         msg.player !== this.currentUser && msg.message !== '[deleted]'
       ).length;
     } else {
-  // Last read message not found in current array, assume all current messages are read
-  unreadCount = 0;
+  // Last read messages not found, count all other user messagesd
+    unreadCount =
+  this.messages.filter(msg => msg.player !==
+  this.currentUser && msg.message !== '[deleted]'
+    ).length;
 }
       console.log('🔍 DEBUG - Current messages:', this.messages.map(m => ({id: m.id, player: m.player, message: m.message.substring(0,20)})));
 console.log('🔍 DEBUG - lastReadMessageId:', this.lastReadMessageId);
