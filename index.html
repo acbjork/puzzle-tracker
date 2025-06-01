@@ -381,6 +381,7 @@
     .chat-messages {
       flex: 1;
       overflow-y: auto;
+      text-align: center;
       padding: 1em;
       background: white;
       border-radius: 8px;
@@ -920,9 +921,12 @@
     
     <div class="chat-container">
       <!-- Mini Chat Status (Always Visible) -->
-      <div class="chat-mini" id="chatMini">
+      <div class="chat-mini" id="chatMini"> 
         <div class="chat-indicator">🗑️</div>
-        <div class="chat-status" id="chatStatus">Trash Talk Central 🔥</div>
+        <div class="chat-status" id="chatStatus">.Trash Talk Central 🔥</div>
+        .chat-mini {
+            text-align: center;
+            } 
         <div class="unread-badge" id="unreadBadge">0</div>
       </div>
 
