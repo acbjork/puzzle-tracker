@@ -1030,221 +1030,221 @@
     let touchStartY = 0;
     let touchStartX = 0;
 
-      // SIMPLIFIED: Generous tap zones that span full screen width
-      // REPLACE the entire initializeSwipeGestures function with this:
+// SIMPLIFIED: Generous tap zones that span full screen width
+// REPLACE the entire initializeSwipeGestures function with this:
 
-      function initializeSwipeGestures() {
-        const topStrip = document.getElementById('topStrip');
-        const bottomStrip = document.getElementById('bottomStrip');
-        const topIndicator = document.getElementById('topSwipeIndicator');
-        const bottomIndicator = document.getElementById('bottomSwipeIndicator');
-        const overlay = document.getElementById('overlay');
+function initializeSwipeGestures() {
+  const topStrip = document.getElementById('topStrip');
+  const bottomStrip = document.getElementById('bottomStrip');
+  const topIndicator = document.getElementById('topSwipeIndicator');
+  const bottomIndicator = document.getElementById('bottomSwipeIndicator');
+  const overlay = document.getElementById('overlay');
 
-        console.log('👆 Initializing SIMPLE generous tap zones...');
-        console.log('   - Full-width tap areas ✅');
-        console.log('   - Generous vertical zones ✅');
-        console.log('   - Purple bar indicators preserved ✅');
-        console.log('   - No complex swipe detection ✅');
+  console.log('👆 Initializing SIMPLE generous tap zones...');
+  console.log('   - Full-width tap areas ✅');
+  console.log('   - Generous vertical zones ✅');
+  console.log('   - Purple bar indicators preserved ✅');
+  console.log('   - No complex swipe detection ✅');
 
-        // ================================
-        // CREATE GENEROUS TAP ZONES
-        // ================================
+  // ================================
+  // CREATE GENEROUS TAP ZONES
+  // ================================
 
-        // Create invisible full-width tap zone for TOP strip
-        const topTapZone = document.createElement('div');
-        topTapZone.id = 'topTapZone';
-        topTapZone.style.cssText = `
-          position: fixed;
-          top: 120px;
-          left: 0;
-          right: 0;
-          height: 40px;
-          z-index: 1002;
-          cursor: pointer;
-          background: transparent;
-          /* Debug: uncomment to see the tap zone */
-          /* background: rgba(255, 0, 0, 0.2); */
-        `;
-        
-        // Create invisible full-width tap zone for BOTTOM strip  
-        const bottomTapZone = document.createElement('div');
-        bottomTapZone.id = 'bottomTapZone';
-        bottomTapZone.style.cssText = `
-          position: fixed;
-          bottom: 40px;
-          left: 0;
-          right: 0;
-          height: 40px;
-          z-index: 1002;
-          cursor: pointer;
-          background: transparent;
-          /* Debug: uncomment to see the tap zone */
-          /* background: rgba(0, 255, 0, 0.2); */
-        `;
+  // Create invisible full-width tap zone for TOP strip
+  const topTapZone = document.createElement('div');
+  topTapZone.id = 'topTapZone';
+  topTapZone.style.cssText = `
+    position: fixed;
+    top: 120px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 1002;
+    cursor: pointer;
+    background: transparent;
+    /* Debug: uncomment to see the tap zone */
+    /* background: rgba(255, 0, 0, 0.2); */
+  `;
+  
+  // Create invisible full-width tap zone for BOTTOM strip  
+  const bottomTapZone = document.createElement('div');
+  bottomTapZone.id = 'bottomTapZone';
+  bottomTapZone.style.cssText = `
+    position: fixed;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 1002;
+    cursor: pointer;
+    background: transparent;
+    /* Debug: uncomment to see the tap zone */
+    /* background: rgba(0, 255, 0, 0.2); */
+  `;
 
-        // Add tap zones to the page
-        document.body.appendChild(topTapZone);
-        document.body.appendChild(bottomTapZone);
+  // Add tap zones to the page
+  document.body.appendChild(topTapZone);
+  document.body.appendChild(bottomTapZone);
 
-        // ================================
-        // SIMPLE TAP HANDLERS
-        // ================================
+  // ================================
+  // SIMPLE TAP HANDLERS
+  // ================================
 
-        function handleTopTap(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          console.log('🔝 TOP TAP ZONE clicked - toggling scoreboard');
-          toggleTopStrip();
-          
-          // Quick visual feedback
-          topTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
-          setTimeout(() => {
-            topTapZone.style.background = 'transparent';
-          }, 150);
+  function handleTopTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🔝 TOP TAP ZONE clicked - toggling scoreboard');
+    toggleTopStrip();
+    
+    // Quick visual feedback
+    topTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
+    setTimeout(() => {
+      topTapZone.style.background = 'transparent';
+    }, 150);
+  }
+
+  function handleBottomTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🔽 BOTTOM TAP ZONE clicked - toggling chat');
+    toggleBottomStrip();
+    
+    // Quick visual feedback
+    bottomTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
+    setTimeout(() => {
+      bottomTapZone.style.background = 'transparent';
+    }, 150);
+  }
+
+  // ================================
+  // ATTACH SIMPLE EVENT LISTENERS
+  // ================================
+
+  // Full-width tap zones
+  topTapZone.addEventListener('click', handleTopTap);
+  topTapZone.addEventListener('touchend', handleTopTap);
+  
+  bottomTapZone.addEventListener('click', handleBottomTap);
+  bottomTapZone.addEventListener('touchend', handleBottomTap);
+
+  // Purple indicators still work (redundant but good)
+  if (topIndicator) {
+    topIndicator.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('🟣 Purple top indicator clicked');
+      toggleTopStrip();
+    });
+    
+    // Enhanced visual feedback for purple bars
+    topIndicator.addEventListener('mouseenter', () => {
+      topIndicator.style.transform = 'translateX(-50%) scale(1.2)';
+      topIndicator.style.opacity = '1';
+    });
+    topIndicator.addEventListener('mouseleave', () => {
+      topIndicator.style.transform = 'translateX(-50%) scale(1)';
+      topIndicator.style.opacity = '0.6';
+    });
+  }
+
+  if (bottomIndicator) {
+    bottomIndicator.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('🟣 Purple bottom indicator clicked');
+      toggleBottomStrip();
+    });
+    
+    // Enhanced visual feedback for purple bars
+    bottomIndicator.addEventListener('mouseenter', () => {
+      bottomIndicator.style.transform = 'translateX(-50%) scale(1.2)';
+      bottomIndicator.style.opacity = '1';
+    });
+    bottomIndicator.addEventListener('mouseleave', () => {
+      bottomIndicator.style.transform = 'translateX(-50%) scale(1)';
+      bottomIndicator.style.opacity = '0.6';
+    });
+  }
+
+  // Overlay tap-to-dismiss (existing functionality)
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      console.log('🎯 Overlay clicked - dismissing expanded strips');
+      if (topStripExpanded) toggleTopStrip();
+      if (bottomStripExpanded) toggleBottomStrip();
+    });
+  }
+
+  // ================================
+  // DYNAMIC TAP ZONE MANAGEMENT
+  // ================================
+
+  // Hide/show tap zones based on strip state
+  function updateTapZones() {
+    if (topStripExpanded) {
+      topTapZone.style.display = 'none';
+      console.log('🔝 Top tap zone hidden (strip expanded)');
+    } else {
+      topTapZone.style.display = 'block';
+      console.log('🔝 Top tap zone visible (strip collapsed)');
+    }
+
+    if (bottomStripExpanded) {
+      bottomTapZone.style.display = 'none';
+      console.log('🔽 Bottom tap zone hidden (strip expanded)');
+    } else {
+      bottomTapZone.style.display = 'block';
+      console.log('🔽 Bottom tap zone visible (strip collapsed)');
+    }
+  }
+
+  // Hook into existing toggle functions to update tap zones
+  const originalToggleTopStrip = window.toggleTopStrip;
+  const originalToggleBottomStrip = window.toggleBottomStrip;
+
+  window.toggleTopStrip = function() {
+    if (originalToggleTopStrip) originalToggleTopStrip();
+    setTimeout(updateTapZones, 50); // Small delay to let animation start
+  };
+
+  window.toggleBottomStrip = function() {
+    if (originalToggleBottomStrip) originalToggleBottomStrip();
+    setTimeout(updateTapZones, 50); // Small delay to let animation start
+  };
+
+  // Initial setup
+  updateTapZones();
+
+  console.log('🎉 SIMPLE generous tap zones initialized!');
+  console.log('📱 Features:');
+  console.log('   • Full-width tap zones (entire screen width)');
+  console.log('   • Generous 40px height (forgiving vertical targeting)');
+  console.log('   • Purple bar indicators preserved with hover effects');
+  console.log('   • Dynamic show/hide based on strip state');
+  console.log('   • Quick visual feedback on tap');
+  console.log('   • No complex gesture detection');
+  console.log('');
+  console.log('💡 Tap zones positioned:');
+  console.log('   • Top: 120px from top, 40px tall');
+  console.log('   • Bottom: 40px from bottom, 40px tall');
+  console.log('   • Both: Full screen width, invisible overlay');
+}
+
+    function initializePullToRefresh() {
+      const mainContent = document.getElementById('mainContent');
+      const refreshIndicator = document.getElementById('refreshIndicator');
+
+      function handlePullStart(e) {
+        if (mainContent.scrollTop === 0) {
+          pullStartY = e.touches ? e.touches[0].clientY : e.clientY;
+          isPulling = true;
         }
-
-        function handleBottomTap(e) {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          console.log('🔽 BOTTOM TAP ZONE clicked - toggling chat');
-          toggleBottomStrip();
-          
-          // Quick visual feedback
-          bottomTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
-          setTimeout(() => {
-            bottomTapZone.style.background = 'transparent';
-          }, 150);
-        }
-
-        // ================================
-        // ATTACH SIMPLE EVENT LISTENERS
-        // ================================
-
-        // Full-width tap zones
-        topTapZone.addEventListener('click', handleTopTap);
-        topTapZone.addEventListener('touchend', handleTopTap);
-        
-        bottomTapZone.addEventListener('click', handleBottomTap);
-        bottomTapZone.addEventListener('touchend', handleBottomTap);
-
-        // Purple indicators still work (redundant but good)
-        if (topIndicator) {
-          topIndicator.addEventListener('click', (e) => {
-            e.stopPropagation();
-            console.log('🟣 Purple top indicator clicked');
-            toggleTopStrip();
-          });
-          
-          // Enhanced visual feedback for purple bars
-          topIndicator.addEventListener('mouseenter', () => {
-            topIndicator.style.transform = 'translateX(-50%) scale(1.2)';
-            topIndicator.style.opacity = '1';
-          });
-          topIndicator.addEventListener('mouseleave', () => {
-            topIndicator.style.transform = 'translateX(-50%) scale(1)';
-            topIndicator.style.opacity = '0.6';
-          });
-        }
-
-        if (bottomIndicator) {
-          bottomIndicator.addEventListener('click', (e) => {
-            e.stopPropagation();
-            console.log('🟣 Purple bottom indicator clicked');
-            toggleBottomStrip();
-          });
-          
-          // Enhanced visual feedback for purple bars
-          bottomIndicator.addEventListener('mouseenter', () => {
-            bottomIndicator.style.transform = 'translateX(-50%) scale(1.2)';
-            bottomIndicator.style.opacity = '1';
-          });
-          bottomIndicator.addEventListener('mouseleave', () => {
-            bottomIndicator.style.transform = 'translateX(-50%) scale(1)';
-            bottomIndicator.style.opacity = '0.6';
-          });
-        }
-
-        // Overlay tap-to-dismiss (existing functionality)
-        if (overlay) {
-          overlay.addEventListener('click', () => {
-            console.log('🎯 Overlay clicked - dismissing expanded strips');
-            if (topStripExpanded) toggleTopStrip();
-            if (bottomStripExpanded) toggleBottomStrip();
-          });
-        }
-
-        // ================================
-        // DYNAMIC TAP ZONE MANAGEMENT
-        // ================================
-
-        // Hide/show tap zones based on strip state
-        function updateTapZones() {
-          if (topStripExpanded) {
-            topTapZone.style.display = 'none';
-            console.log('🔝 Top tap zone hidden (strip expanded)');
-          } else {
-            topTapZone.style.display = 'block';
-            console.log('🔝 Top tap zone visible (strip collapsed)');
-          }
-
-          if (bottomStripExpanded) {
-            bottomTapZone.style.display = 'none';
-            console.log('🔽 Bottom tap zone hidden (strip expanded)');
-          } else {
-            bottomTapZone.style.display = 'block';
-            console.log('🔽 Bottom tap zone visible (strip collapsed)');
-          }
-        }
-
-        // Hook into existing toggle functions to update tap zones
-        const originalToggleTopStrip = window.toggleTopStrip;
-        const originalToggleBottomStrip = window.toggleBottomStrip;
-
-        window.toggleTopStrip = function() {
-          if (originalToggleTopStrip) originalToggleTopStrip();
-          setTimeout(updateTapZones, 50); // Small delay to let animation start
-        };
-
-        window.toggleBottomStrip = function() {
-          if (originalToggleBottomStrip) originalToggleBottomStrip();
-          setTimeout(updateTapZones, 50); // Small delay to let animation start
-        };
-
-        // Initial setup
-        updateTapZones();
-
-        console.log('🎉 SIMPLE generous tap zones initialized!');
-        console.log('📱 Features:');
-        console.log('   • Full-width tap zones (entire screen width)');
-        console.log('   • Generous 40px height (forgiving vertical targeting)');
-        console.log('   • Purple bar indicators preserved with hover effects');
-        console.log('   • Dynamic show/hide based on strip state');
-        console.log('   • Quick visual feedback on tap');
-        console.log('   • No complex gesture detection');
-        console.log('');
-        console.log('💡 Tap zones positioned:');
-        console.log('   • Top: 120px from top, 40px tall');
-        console.log('   • Bottom: 40px from bottom, 40px tall');
-        console.log('   • Both: Full screen width, invisible overlay');
       }
 
-          function initializePullToRefresh() {
-            const mainContent = document.getElementById('mainContent');
-            const refreshIndicator = document.getElementById('refreshIndicator');
-
-            function handlePullStart(e) {
-              if (mainContent.scrollTop === 0) {
-                pullStartY = e.touches ? e.touches[0].clientY : e.clientY;
-                isPulling = true;
-              }
-            }
-
-            function handlePullMove(e) {
-              if (!isPulling || mainContent.scrollTop > 0) return;
-              
-              const currentY = e.touches ? e.touches[0].clientY : e.clientY;
+      function handlePullMove(e) {
+        if (!isPulling || mainContent.scrollTop > 0) return;
+        
+        const currentY = e.touches ? e.touches[0].clientY : e.clientY;
         const pullDistance = currentY - pullStartY;
         
         if (pullDistance > 10) {
@@ -1541,7 +1541,6 @@
       'Wordle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
       'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
     };
-    
 
     function initialize() {
       updatePuzzleDateDisplay();
@@ -1550,7 +1549,6 @@
       initializeDatePicker();
       initializeChatSystem();
       updateUIVisibility();
-      initializeIOSKeyboardFix();
       
       console.log('✅ Claude-style interface initialized with ALL 11 FIXES');
     }
