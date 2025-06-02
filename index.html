@@ -1067,6 +1067,10 @@ function handleBottomStripCollapse(e) {
 }
 
 // SAME OPEN/CLOSE FUNCTIONS (no changes)
+function initializeSwipeGestures() {
+  const topStrip = document.getElementById('topStrip');
+  const bottomStrip = document.getElementById('bottomStrip');
+  
 function executeTopStripOpen() {
   const topStrip = document.getElementById('topStrip');
   const mainContent = document.getElementById('mainContent');
