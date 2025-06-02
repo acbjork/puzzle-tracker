@@ -990,135 +990,205 @@
       overlay.classList.remove('visible');
     }
 
-    // MUTUAL EXCLUSION FIX - Only one strip expanded at a time
+// AUTO-CLOSE THEN OPEN - Better UX flow
 // REPLACE your existing toggleTopStrip and toggleBottomStrip functions with these:
 
 function toggleTopStrip() {
-  // MUTUAL EXCLUSION: Close bottom strip first if it's open
-  if (bottomStripExpanded) {
-    console.log('🔽 Auto-closing bottom strip before opening top (mutual exclusion)');
-    
-    // Close bottom strip first
-    const bottomStrip = document.getElementById('bottomStrip');
-    const mainContent = document.getElementById('mainContent');
-    
-    bottomStrip.classList.remove('expanded');
-    mainContent.style.marginBottom = '70px';
-    bottomStripExpanded = false;
-    
-    // Hide overlay temporarily
-    hideOverlay();
-    
-    // Small delay to let bottom strip close, then open top strip
-    setTimeout(() => {
-      executeTopStripToggle();
-    }, 150);
-  } else {
-    // Bottom not open, proceed normally
-    executeTopStripToggle();
+  // If bottom strip is expanded, close it (don't open top yet)
+  if (bottomStripExpanded && !topStripExpanded) {
+    console.log('🔽 Auto-closing bottom strip - tap again to open top');
+    executeBottomStripClose();
+    return; // User must tap again to open top
   }
-}
-
-function executeTopStripToggle() {
-  const topStrip = document.getElementById('topStrip');
-  const mainContent = document.getElementById('mainContent');
   
-  topStripExpanded = !topStripExpanded;
-  
+  // If top strip is already expanded, just close it
   if (topStripExpanded) {
-    topStrip.classList.add('expanded');
-    mainContent.style.marginTop = '60vh';
-    showOverlay();
-    loadHistoryData();
-    updateCurrentChampDisplay();
-    console.log('🔝 Top strip expanded');
-  } else {
-    topStrip.classList.remove('expanded');
-    mainContent.style.marginTop = '110px';
-    hideOverlay();
-    console.log('🔝 Top strip collapsed');
+    console.log('🔝 Closing top strip');
+    executeTopStripClose();
+    return;
   }
+  
+  // If nothing is expanded, open top strip
+  console.log('🔝 Opening top strip');
+  executeTopStripOpen();
 }
 
 function toggleBottomStrip() {
-  // MUTUAL EXCLUSION: Close top strip first if it's open
-  if (topStripExpanded) {
-    console.log('🔝 Auto-closing top strip before opening bottom (mutual exclusion)');
-    
-    // Close top strip first
-    const topStrip = document.getElementById('topStrip');
-    const mainContent = document.getElementById('mainContent');
-    
-    topStrip.classList.remove('expanded');
-    mainContent.style.marginTop = '110px';
-    topStripExpanded = false;
-    
-    // Hide overlay temporarily
-    hideOverlay();
-    
-    // Small delay to let top strip close, then open bottom strip
-    setTimeout(() => {
-      executeBottomStripToggle();
-    }, 150);
-  } else {
-    // Top not open, proceed normally
-    executeBottomStripToggle();
+  // If top strip is expanded, close it (don't open bottom yet)
+  if (topStripExpanded && !bottomStripExpanded) {
+    console.log('🔝 Auto-closing top strip - tap again to open bottom');
+    executeTopStripClose();
+    return; // User must tap again to open bottom
   }
+  
+  // If bottom strip is already expanded, just close it
+  if (bottomStripExpanded) {
+    console.log('🔽 Closing bottom strip');
+    executeBottomStripClose();
+    return;
+  }
+  
+  // If nothing is expanded, open bottom strip
+  console.log('🔽 Opening bottom strip');
+  executeBottomStripOpen();
 }
 
-function executeBottomStripToggle() {
+// SEPARATE FUNCTIONS FOR CLEAN OPEN/CLOSE ACTIONS (same as before)
+
+function executeTopStripOpen() {
+  const topStrip = document.getElementById('topStrip');
+  const mainContent = document.getElementById('mainContent');
+  
+  topStrip.classList.add('expanded');
+  mainContent.style.marginTop = '60vh';
+  topStripExpanded = true;
+  showOverlay();
+  loadHistoryData();
+  updateCurrentChampDisplay();
+  
+  console.log('✅ Top strip opened - History & Stats visible');
+}
+
+function executeTopStripClose() {
+  const topStrip = document.getElementById('topStrip');
+  const mainContent = document.getElementById('mainContent');
+  
+  topStrip.classList.remove('expanded');
+  mainContent.style.marginTop = '110px';
+  topStripExpanded = false;
+  hideOverlay();
+  
+  console.log('✅ Top strip closed');
+}
+
+function executeBottomStripOpen() {
   const bottomStrip = document.getElementById('bottomStrip');
   const mainContent = document.getElementById('mainContent');
   
-  bottomStripExpanded = !bottomStripExpanded;
+  bottomStrip.classList.add('expanded');
+  mainContent.style.marginBottom = '70vh';
+  bottomStripExpanded = true;
+  showOverlay();
+  loadChatMessages();
+  
+  console.log('✅ Bottom strip opened - Trash Talk visible');
+}
+
+function executeBottomStripClose() {
+  const bottomStrip = document.getElementById('bottomStrip');
+  const mainContent = document.getElementById('mainContent');
+  
+  bottomStrip.classList.remove('expanded');
+  mainContent.style.marginBottom = '70px';
+  bottomStripExpanded = false;
+  hideOverlay();
+  
+  console.log('✅ Bottom strip closed');
+}
+
+// BACKGROUND/OVERLAY BEHAVIOR - Only close (same as before)
+function handleBackgroundCollapse(e) {
+  // Protect chat input area
+  const chatInputContainer = document.querySelector('.chat-input-container');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  
+  if (chatInputContainer && chatInputContainer.contains(e.target)) {
+    console.log('🎯 PROTECTED: Background click in input area - ignoring');
+    return;
+  }
+  
+  if (chatInput && (e.target === chatInput || chatInput.contains(e.target))) {
+    console.log('🎯 PROTECTED: Background click on input - ignoring');
+    return;
+  }
+  
+  if (chatSendBtn && (e.target === chatSendBtn || chatSendBtn.contains(e.target))) {
+    console.log('🎯 PROTECTED: Background click on send button - ignoring');
+    return;
+  }
+  
+  // Don't close if clicking on interactive elements
+  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || 
+      e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+    console.log('🎯 Interactive element clicked - not closing');
+    return;
+  }
+  
+  // Don't close if clicking on links or puzzle names
+  if (e.target.closest('a') || e.target.closest('.puzzle-name')) {
+    console.log('🎯 Link/puzzle clicked - not closing');
+    return;
+  }
+  
+  console.log('🎯 Background clicked - closing expanded strip');
+  
+  // Only close what's open
+  if (topStripExpanded) {
+    console.log('🔝 Closing top strip (background tap)');
+    executeTopStripClose();
+  }
   
   if (bottomStripExpanded) {
-    bottomStrip.classList.add('expanded');
-    mainContent.style.marginBottom = '70vh';
-    showOverlay();
-    loadChatMessages();
-    console.log('🔽 Bottom strip expanded');
-  } else {
-    bottomStrip.classList.remove('expanded');
-    mainContent.style.marginBottom = '70px';
-    hideOverlay();
-    console.log('🔽 Bottom strip collapsed');
+    console.log('🔽 Closing bottom strip (background tap)');
+    executeBottomStripClose();
   }
 }
 
-// ENHANCED: Update the gesture system to use the new functions
-// This ensures ALL ways of opening strips respect mutual exclusion
-
-// Update purple indicator click handlers (if they exist)
-document.addEventListener('DOMContentLoaded', function() {
-  const topIndicator = document.getElementById('topSwipeIndicator');
-  const bottomIndicator = document.getElementById('bottomSwipeIndicator');
+// GESTURE HANDLERS (same protection, updated behavior)
+function handleTopExpand(e) {
+  e.preventDefault();
+  e.stopPropagation();
   
-  if (topIndicator) {
-    // Remove old listeners and add new ones
-    topIndicator.onclick = null;
-    topIndicator.addEventListener('click', (e) => {
-      e.stopPropagation();
-      console.log('🟣 Purple top indicator clicked - with mutual exclusion');
-      toggleTopStrip();
-    });
+  console.log('🔝 TOP EXPAND ZONE tapped');
+  toggleTopStrip(); // Will auto-close bottom if needed, or open top
+  
+  // Visual feedback
+  const topExpandZone = document.getElementById('topExpandZone');
+  if (topExpandZone) {
+    topExpandZone.style.background = 'rgba(107, 70, 193, 0.2)';
+    setTimeout(() => {
+      topExpandZone.style.background = 'transparent';
+    }, 200);
+  }
+}
+
+function handleBottomExpand(e) {
+  // Protect chat input area
+  const chatInputContainer = document.querySelector('.chat-input-container');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  
+  if (chatInputContainer && chatInputContainer.contains(e.target)) {
+    console.log('🔽 PROTECTED: Click in input container - ignoring');
+    return;
   }
   
-  if (bottomIndicator) {
-    // Remove old listeners and add new ones  
-    bottomIndicator.onclick = null;
-    bottomIndicator.addEventListener('click', (e) => {
-      e.stopPropagation();
-      console.log('🟣 Purple bottom indicator clicked - with mutual exclusion');
-      toggleBottomStrip();
-    });
+  if (chatInput && (e.target === chatInput || chatInput.contains(e.target))) {
+    console.log('🔽 PROTECTED: Click on input field - ignoring');
+    return;
   }
   
-  console.log('✅ Mutual exclusion enforced on all strip controls');
-});
-
-    let touchStartY = 0;
-    let touchStartX = 0;
+  if (chatSendBtn && (e.target === chatSendBtn || chatSendBtn.contains(e.target))) {
+    console.log('🔽 PROTECTED: Click on send button - ignoring');
+    return;
+  }
+  
+  e.preventDefault();
+  e.stopPropagation();
+  
+  console.log('🔽 BOTTOM EXPAND ZONE tapped');
+  toggleBottomStrip(); // Will auto-close top if needed, or open bottom
+  
+  // Visual feedback
+  const bottomExpandZone = document.getElementById('bottomExpandZone');
+  if (bottomExpandZone) {
+    bottomExpandZone.style.background = 'rgba(107, 70, 193, 0.2)';
+    setTimeout(() => {
+      bottomExpandZone.style.background = 'transparent';
+    }, 200);
+  }
+}
 
 // SIMPLIFIED: Generous tap zones that span full screen width
 // REPLACE the entire initializeSwipeGestures function with this:
