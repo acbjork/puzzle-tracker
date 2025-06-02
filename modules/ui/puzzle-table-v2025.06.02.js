@@ -1,5 +1,5 @@
-// I'm Puzzled - Puzzle Table Module v2025.06.02.1
-// ENHANCED: Added input fields and enhanced result display while preserving all existing functionality
+// I'm Puzzled - Puzzle Table Module v2025.05.30.6
+// FIXED: Hide edit/submit buttons when no user selected + real-time scoreboard trigger
 
 class PuzzleTable {
   constructor() {
@@ -25,96 +25,7 @@ class PuzzleTable {
     this.results = {};
     this.cellMap = {};
     
-    // Add CSS for enhanced functionality
-    this.addEnhancedStyles();
-    
-    console.log('🧩 Puzzle Table initialized v2025.06.02.1 - ENHANCED with input fields');
-  }
-
-  // NEW: Add enhanced styles for input fields and buttons
-  addEnhancedStyles() {
-    if (!document.getElementById('puzzle-table-enhanced-styles')) {
-      const styleElement = document.createElement('style');
-      styleElement.id = 'puzzle-table-enhanced-styles';
-      styleElement.textContent = `
-        .result-input {
-          padding: 0.5em;
-        }
-
-        .result-input textarea {
-          width: 100%;
-          min-height: 60px;
-          margin-bottom: 0.5em;
-          font-family: monospace;
-          font-size: 0.85em;
-          border: 2px solid var(--purple-medium);
-          border-radius: 6px;
-          padding: 0.5em;
-          resize: vertical;
-        }
-
-        .empty-cell {
-          color: #ccc;
-          font-style: italic;
-          text-align: center;
-          padding: 1em;
-        }
-
-        .submitted.winner {
-          background-color: #d4ffd4 !important;
-        }
-
-        .submitted.tie {
-          background-color: #fff9c4 !important;
-        }
-
-        .action-buttons {
-          display: flex;
-          gap: 0.25em;
-          justify-content: center;
-          margin-top: 0.5em;
-        }
-
-        .action-buttons .btn {
-          font-size: 0.7em;
-          padding: 0.3em 0.6em;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-          transition: all 0.2s;
-        }
-
-        .btn-submit {
-          background: #10b981;
-          color: white;
-        }
-
-        .btn-edit {
-          background: var(--purple-medium);
-          color: var(--purple-dark);
-        }
-
-        .btn-delete {
-          background: #ef4444;
-          color: white;
-        }
-
-        .btn:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .btn.hidden {
-          display: none !important;
-        }
-
-        .result-container {
-          width: 100%;
-        }
-      `;
-      document.head.appendChild(styleElement);
-    }
+    console.log('🧩 Puzzle Table initialized v2025.05.30.6 - FIXED');
   }
 
   initializeResults() {
@@ -138,7 +49,7 @@ class PuzzleTable {
       }
     }
 
-    console.log('📊 Results loaded v2025.06.02.1:', Object.keys(this.results).length, 'puzzles');
+    console.log('📊 Results loaded v2025.05.30.6:', Object.keys(this.results).length, 'puzzles');
   }
 
   determineWinner(puzzle, adamResult, jonResult) {
@@ -345,7 +256,7 @@ class PuzzleTable {
     });
   }
 
-  // ENHANCED: Improved render method with input fields and enhanced result display
+  // FIXED: Enhanced render with proper button visibility control
   render(userManager, supabaseClient, today) {
     const tbody = document.getElementById("puzzleRows");
     
@@ -387,16 +298,36 @@ class PuzzleTable {
         if (!this.cellMap[puzzle]) this.cellMap[puzzle] = {};
         this.cellMap[puzzle][user] = td;
         
-        // ENHANCED: New result display logic with input fields
-        if (result) {
-          // Show existing result with enhanced display
-          this.renderExistingResult(td, puzzle, user, result, userManager, supabaseClient, today);
-        } else {
-          // Show input field for current user, empty cell for others
-          if (userManager.isCurrentUser(user)) {
-            this.createInputCell(td, puzzle, user, supabaseClient, today, userManager);
+        if (userManager.isCurrentUser(user)) {
+          if (result) {
+            const resultDiv = document.createElement("div");
+            resultDiv.className = "submitted";
+            resultDiv.textContent = result;
+            td.appendChild(resultDiv);
+            
+            const buttonContainer = document.createElement("div");
+            buttonContainer.className = "action-buttons";
+            
+            const editBtn = document.createElement("button");
+            editBtn.textContent = "Edit";
+            editBtn.className = "btn btn-edit";
+            // FIXED: Check if user is selected
+            if (!userManager.getCurrentUser()) {
+              editBtn.classList.add("hidden");
+            }
+            editBtn.onclick = () => this.enableEdit(td, puzzle, user, result, supabaseClient, today);
+            
+            buttonContainer.appendChild(editBtn);
+            td.appendChild(buttonContainer);
           } else {
-            this.createEmptyCell(td);
+            this.createInputCell(td, puzzle, user, supabaseClient, today, userManager);
+          }
+        } else {
+          if (result) {
+            const div = document.createElement("div");
+            div.className = "submitted";
+            div.textContent = result;
+            td.appendChild(div);
           }
         }
         
@@ -408,145 +339,53 @@ class PuzzleTable {
 
     this.highlightWinners();
     
-    // Trigger real-time scoreboard update after rendering
+    // FIXED: Trigger real-time scoreboard update after rendering
     setTimeout(() => {
       if (window.scoreboard) {
         window.scoreboard.update(this);
       }
     }, 100);
     
-    console.log('🏆 Puzzle table rendered v2025.06.02.1 - ENHANCED');
+    console.log('🏆 Puzzle table rendered v2025.05.30.6');
   }
 
-  // NEW: Enhanced method to render existing results with edit/delete options
-  renderExistingResult(td, puzzle, user, result, userManager, supabaseClient, today) {
-    const resultContainer = document.createElement("div");
-    resultContainer.className = "result-container";
-    
-    // Create result display
-    const resultDiv = document.createElement("div");
-    resultDiv.className = "submitted";
-    resultDiv.textContent = result;
-    resultContainer.appendChild(resultDiv);
-    
-    // Add edit/delete buttons for current user
-    if (userManager.isCurrentUser(user)) {
-      const buttonContainer = document.createElement("div");
-      buttonContainer.className = "action-buttons";
-      
-      // Create edit button
-      const editBtn = document.createElement("button");
-      editBtn.textContent = "Edit";
-      editBtn.className = "btn btn-edit";
-      
-      // Create delete button
-      const deleteBtn = document.createElement("button");
-      deleteBtn.textContent = "Delete";
-      deleteBtn.className = "btn btn-delete";
-      
-      // Hide buttons if no user selected
-      if (!userManager.getCurrentUser()) {
-        editBtn.style.display = "none";
-        deleteBtn.style.display = "none";
-      }
-      
-      // Add functionality
-      editBtn.onclick = () => this.enableEdit(td, puzzle, user, result, supabaseClient, today);
-      deleteBtn.onclick = async () => {
-        if (confirm(`Are you sure you want to delete your ${puzzle} result?`)) {
-          await this.deleteResult(puzzle, user, supabaseClient, today);
-        }
-      };
-      
-      buttonContainer.appendChild(editBtn);
-      buttonContainer.appendChild(deleteBtn);
-      resultContainer.appendChild(buttonContainer);
-    }
-    
-    td.appendChild(resultContainer);
-  }
-
-  // ENHANCED: Improved createInputCell method with better styling and functionality
+  // FIXED: Create input cell with proper button visibility
   createInputCell(td, puzzle, user, supabaseClient, today, userManager) {
-    const inputContainer = document.createElement('div');
-    inputContainer.className = 'result-input';
-    
-    // Create textarea
     const textarea = document.createElement("textarea");
-    textarea.id = `input-${puzzle}-${user}`;
-    textarea.placeholder = `Paste your ${puzzle} result here...`;
-    textarea.rows = 3;
+    textarea.placeholder = "Enter result...";
     
-    // Create button container
     const buttonContainer = document.createElement("div");
     buttonContainer.className = "action-buttons";
     
-    // Create submit button
     const submitBtn = document.createElement("button");
     submitBtn.textContent = "Submit";
     submitBtn.className = "btn btn-submit";
-    
-    // Hide button if no user selected
+    // FIXED: Hide button if no user selected
     if (!userManager.getCurrentUser()) {
       submitBtn.classList.add("hidden");
     }
+    submitBtn.onclick = () => this.submitResult(textarea.value.trim(), puzzle, user, supabaseClient, today);
     
-    // Add submit functionality
-    submitBtn.onclick = () => {
-      const value = textarea.value.trim();
-      if (value) {
-        this.submitResult(value, puzzle, user, supabaseClient, today);
-      } else {
-        alert('Please enter a result before submitting.');
-      }
-    };
-    
-    // Add keyboard shortcut (Ctrl+Enter to submit)
-    textarea.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-        e.preventDefault();
-        submitBtn.click();
-      }
-    });
-    
-    // Assemble the input cell
-    inputContainer.appendChild(textarea);
     buttonContainer.appendChild(submitBtn);
-    inputContainer.appendChild(buttonContainer);
-    td.appendChild(inputContainer);
+    td.appendChild(textarea);
+    td.appendChild(buttonContainer);
   }
 
-  // NEW: Create empty cell for other users
-  createEmptyCell(td) {
-    const emptyDiv = document.createElement('div');
-    emptyDiv.className = 'empty-cell';
-    emptyDiv.textContent = '--';
-    td.appendChild(emptyDiv);
-  }
-
-  // ENHANCED: Improved enableEdit with better styling
+  // FIXED: Enable editing with proper button visibility
   enableEdit(td, puzzle, user, oldValue, supabaseClient, today) {
     td.innerHTML = "";
-    
-    const inputContainer = document.createElement('div');
-    inputContainer.className = 'result-input';
     
     const textarea = document.createElement("textarea");
     textarea.value = oldValue;
     textarea.placeholder = "Enter result...";
-    textarea.rows = 3;
     
     const buttonContainer = document.createElement("div");
     buttonContainer.className = "action-buttons";
     
     const submitBtn = document.createElement("button");
-    submitBtn.textContent = "Update";
+    submitBtn.textContent = "Submit";
     submitBtn.className = "btn btn-submit";
-
-    const cancelBtn = document.createElement("button");
-    cancelBtn.textContent = "Cancel";
-    cancelBtn.className = "btn btn-edit";
-
+    
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
     deleteBtn.className = "btn btn-delete";
@@ -562,11 +401,6 @@ class PuzzleTable {
       await this.submitResult(newValue, puzzle, user, supabaseClient, today);
     };
 
-    cancelBtn.onclick = () => {
-      const userManager = window.userManager;
-      this.render(userManager, supabaseClient, today);
-    };
-
     deleteBtn.onclick = async () => {
       if (confirm(`Are you sure you want to permanently delete this ${puzzle} result for ${user}?`)) {
         deleteBtn.disabled = true;
@@ -576,19 +410,13 @@ class PuzzleTable {
     };
 
     buttonContainer.appendChild(submitBtn);
-    buttonContainer.appendChild(cancelBtn);
     buttonContainer.appendChild(deleteBtn);
     
-    inputContainer.appendChild(textarea);
-    inputContainer.appendChild(buttonContainer);
-    td.appendChild(inputContainer);
-    
-    // Focus the textarea
-    textarea.focus();
-    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    td.appendChild(textarea);
+    td.appendChild(buttonContainer);
   }
 
-  // Enhanced submit with real-time scoreboard trigger
+  // FIXED: Enhanced submit with real-time scoreboard trigger
   async submitResult(value, puzzle, user, supabaseClient, today) {
     if (!value) return;
     
@@ -599,7 +427,7 @@ class PuzzleTable {
       const userManager = window.userManager;
       this.render(userManager, supabaseClient, today);
       
-      // Force immediate scoreboard update
+      // FIXED: Force immediate scoreboard update
       setTimeout(() => {
         if (window.scoreboard) {
           window.scoreboard.update(this);
@@ -607,14 +435,14 @@ class PuzzleTable {
         }
       }, 50);
       
-      console.log(`✅ Result submitted v2025.06.02.1: ${puzzle} - ${user}`);
+      console.log(`✅ Result submitted v2025.05.30.6: ${puzzle} - ${user}`);
     } catch (error) {
       console.error("Submission failed:", error.message);
       alert("Submission failed. Try again.");
     }
   }
 
-  // Enhanced delete with real-time scoreboard trigger
+  // FIXED: Enhanced delete with real-time scoreboard trigger
   async deleteResult(puzzle, user, supabaseClient, today) {
     try {
       this.results[puzzle][user] = "";
@@ -623,7 +451,7 @@ class PuzzleTable {
       const userManager = window.userManager;
       this.render(userManager, supabaseClient, today);
       
-      // Force immediate scoreboard update
+      // FIXED: Force immediate scoreboard update
       setTimeout(() => {
         if (window.scoreboard) {
           window.scoreboard.update(this);
@@ -631,7 +459,7 @@ class PuzzleTable {
         }
       }, 50);
       
-      console.log(`🗑️ Result deleted v2025.06.02.1: ${puzzle} - ${user}`);
+      console.log(`🗑️ Result deleted v2025.05.30.6: ${puzzle} - ${user}`);
       return true;
     } catch (error) {
       console.error("Deletion failed:", error.message);
