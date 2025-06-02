@@ -1284,11 +1284,15 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ================================
-  // ATTACH SIMPLE EVENT LISTENERS
+  // ATTACH SIMPLE EVENT LISTENERS  
   // ================================
 
-  // Full-width tap zones
-  topTapZone.addEventListener('click', handleTopTap);
+  // ADD THESE LINES:
+const topIndicator = document.getElementById('topSwipeIndicator');
+const bottomIndicator = document.getElementById('bottomSwipeIndicator');
+
+// Full-width tap zones
+topTapZone.addEventListener('click', handleTopTap);
   topTapZone.addEventListener('touchend', handleTopTap);
   
   bottomTapZone.addEventListener('click', handleBottomTap);
