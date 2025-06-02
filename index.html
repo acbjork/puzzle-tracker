@@ -1296,8 +1296,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Purple indicators still work (redundant but good)
   if (topIndicator) {
-  topIndicator.addEventListener('click', ...);
-}
+  topIndicator.addEventListener('click', (e) => {
+  e.stopPropagation();
+  console.log('🟣 Purple top indicator clicked');
+  toggleTopStrip();
+});
       console.log('🟣 Purple top indicator clicked');
       toggleTopStrip();
     });
