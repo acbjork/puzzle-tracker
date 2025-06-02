@@ -1130,91 +1130,128 @@ function initializeSwipeGestures() {
     }
   }
 
-  // ================================
-  // ENHANCED BOTTOM STRIP GESTURES  
-  // ================================
+// FIXED: Bottom strip gesture handlers - exclude chat input area
+// REPLACE the handleBottomStripStart, handleBottomStripMove, and handleBottomStripEnd functions
+
+function handleBottomStripStart(e) {
+  // CRITICAL FIX: Don't interfere with chat input area
+  const chatInputContainer = document.querySelector('.chat-input-container');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
   
-  let bottomTouchStart = { x: 0, y: 0, time: 0 };
-  let bottomIsTracking = false;
-
-  function handleBottomStripStart(e) {
-    const touch = e.touches ? e.touches[0] : e;
-    bottomTouchStart = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now()
-    };
-    bottomIsTracking = true;
-    
-    console.log('🔽 Bottom strip touch started');
+  // Check if click/touch is within the input area
+  if (chatInputContainer && chatInputContainer.contains(e.target)) {
+    console.log('🔽 Ignoring gesture - clicked in input area');
+    return;
   }
-
-  function handleBottomStripMove(e) {
-    if (!bottomIsTracking) return;
-    
-    const touch = e.touches ? e.touches[0] : e;
-    const deltaY = touch.clientY - bottomTouchStart.y;
-    const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
-    
-    // Prevent accidental horizontal swipes
-    if (deltaX > 50) {
-      bottomIsTracking = false;
-      return;
-    }
-    
-    // Visual feedback for swipe up
-    if (deltaY < -20 && !bottomStripExpanded) {
-      bottomStrip.style.transform = `translateY(${Math.max(deltaY * 0.3, -10)}px)`;
-      bottomStrip.style.opacity = 0.9;
-    }
-    
-    // Visual feedback for swipe down
-    if (deltaY > 20 && bottomStripExpanded) {
-      bottomStrip.style.transform = `translateY(${Math.min(deltaY * 0.1, 5)}px)`;
-      bottomStrip.style.opacity = 0.9;
-    }
+  
+  if (chatInput && chatInput.contains(e.target)) {
+    console.log('🔽 Ignoring gesture - clicked on input');
+    return;
   }
+  
+  if (chatSendBtn && chatSendBtn.contains(e.target)) {
+    console.log('🔽 Ignoring gesture - clicked on send button');
+    return;
+  }
+  
+  const touch = e.touches ? e.touches[0] : e;
+  bottomTouchStart = {
+    x: touch.clientX,
+    y: touch.clientY,
+    time: Date.now()
+  };
+  bottomIsTracking = true;
+  
+  console.log('🔽 Bottom strip touch started (outside input area)');
+}
 
-  function handleBottomStripEnd(e) {
-    if (!bottomIsTracking) return;
-    
-    const touch = e.changedTouches ? e.changedTouches[0] : e;
-    const deltaY = touch.clientY - bottomTouchStart.y;
-    const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
-    const deltaTime = Date.now() - bottomTouchStart.time;
-    
-    // Reset visual feedback
+function handleBottomStripMove(e) {
+  if (!bottomIsTracking) return;
+  
+  // CRITICAL FIX: Stop tracking if we move over input area
+  const chatInputContainer = document.querySelector('.chat-input-container');
+  if (chatInputContainer && chatInputContainer.contains(e.target)) {
+    console.log('🔽 Stopping tracking - moved over input area');
+    bottomIsTracking = false;
     bottomStrip.style.transform = '';
     bottomStrip.style.opacity = '';
-    
+    return;
+  }
+  
+  const touch = e.touches ? e.touches[0] : e;
+  const deltaY = touch.clientY - bottomTouchStart.y;
+  const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
+  
+  // Prevent accidental horizontal swipes
+  if (deltaX > 50) {
     bottomIsTracking = false;
-    
-    console.log(`🔽 Bottom strip gesture: deltaY=${deltaY}, deltaX=${deltaX}, time=${deltaTime}ms`);
-    
-    // Ignore if too much horizontal movement
-    if (deltaX > 50) {
-      console.log('🔽 Ignored - too much horizontal movement');
-      return;
-    }
-    
-    // REAL SWIPE DETECTION (iPhone-style)
-    const isSwipe = Math.abs(deltaY) > 30 && deltaTime < 500;
-    const isTap = Math.abs(deltaY) < 10 && deltaTime < 300;
-    
-    if (isSwipe) {
-      console.log('🔽 SWIPE detected!');
-      if (deltaY < -30 && !bottomStripExpanded) {
-        console.log('🔽 Swipe UP - expanding bottom strip');
-        toggleBottomStrip();
-      } else if (deltaY > 30 && bottomStripExpanded) {
-        console.log('🔽 Swipe DOWN - collapsing bottom strip');
-        toggleBottomStrip();
-      }
-    } else if (isTap) {
-      console.log('🔽 TAP detected - toggling bottom strip');
+    return;
+  }
+  
+  // Visual feedback for swipe up
+  if (deltaY < -20 && !bottomStripExpanded) {
+    bottomStrip.style.transform = `translateY(${Math.max(deltaY * 0.3, -10)}px)`;
+    bottomStrip.style.opacity = 0.9;
+  }
+  
+  // Visual feedback for swipe down
+  if (deltaY > 20 && bottomStripExpanded) {
+    bottomStrip.style.transform = `translateY(${Math.min(deltaY * 0.1, 5)}px)`;
+    bottomStrip.style.opacity = 0.9;
+  }
+}
+
+function handleBottomStripEnd(e) {
+  if (!bottomIsTracking) return;
+  
+  // CRITICAL FIX: Don't trigger if ending over input area
+  const chatInputContainer = document.querySelector('.chat-input-container');
+  if (chatInputContainer && chatInputContainer.contains(e.target)) {
+    console.log('🔽 Ignoring gesture end - ended over input area');
+    bottomIsTracking = false;
+    bottomStrip.style.transform = '';
+    bottomStrip.style.opacity = '';
+    return;
+  }
+  
+  const touch = e.changedTouches ? e.changedTouches[0] : e;
+  const deltaY = touch.clientY - bottomTouchStart.y;
+  const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
+  const deltaTime = Date.now() - bottomTouchStart.time;
+  
+  // Reset visual feedback
+  bottomStrip.style.transform = '';
+  bottomStrip.style.opacity = '';
+  
+  bottomIsTracking = false;
+  
+  console.log(`🔽 Bottom strip gesture: deltaY=${deltaY}, deltaX=${deltaX}, time=${deltaTime}ms`);
+  
+  // Ignore if too much horizontal movement
+  if (deltaX > 50) {
+    console.log('🔽 Ignored - too much horizontal movement');
+    return;
+  }
+  
+  // REAL SWIPE DETECTION (iPhone-style)
+  const isSwipe = Math.abs(deltaY) > 30 && deltaTime < 500;
+  const isTap = Math.abs(deltaY) < 10 && deltaTime < 300;
+  
+  if (isSwipe) {
+    console.log('🔽 SWIPE detected!');
+    if (deltaY < -30 && !bottomStripExpanded) {
+      console.log('🔽 Swipe UP - expanding bottom strip');
+      toggleBottomStrip();
+    } else if (deltaY > 30 && bottomStripExpanded) {
+      console.log('🔽 Swipe DOWN - collapsing bottom strip');
       toggleBottomStrip();
     }
+  } else if (isTap) {
+    console.log('🔽 TAP detected - toggling bottom strip');
+    toggleBottomStrip();
   }
+}
 
   // ================================
   // ATTACH EVENT LISTENERS
