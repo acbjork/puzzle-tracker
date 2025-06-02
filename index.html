@@ -1340,28 +1340,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // ================================
-  // DYNAMIC TAP ZONE MANAGEMENT
-  // ================================
-
-  // Hide/show tap zones based on strip state
-  function updateTapZones() {
-    if (topStripExpanded) {
-      topTapZone.style.display = 'none';
-      console.log('🔝 Top tap zone hidden (strip expanded)');
-    } else {
-      topTapZone.style.display = 'block';
-      console.log('🔝 Top tap zone visible (strip collapsed)');
-    }
-
-    if (bottomStripExpanded) {
-      bottomTapZone.style.display = 'none';
-      console.log('🔽 Bottom tap zone hidden (strip expanded)');
-    } else {
-      bottomTapZone.style.display = 'block';
-      console.log('🔽 Bottom tap zone visible (strip collapsed)');
-    }
-  }
 
   // Hook into existing toggle functions to update tap zones
   const originalToggleTopStrip = window.toggleTopStrip;
