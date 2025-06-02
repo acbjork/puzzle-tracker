@@ -1030,7 +1030,8 @@
     let touchStartY = 0;
     let touchStartX = 0;
 
-    // Enhanced Gesture System - REPLACE the initializeSwipeGestures function in your index.html
+// SIMPLIFIED: Generous tap zones that span full screen width
+// REPLACE the entire initializeSwipeGestures function with this:
 
 function initializeSwipeGestures() {
   const topStrip = document.getElementById('topStrip');
@@ -1039,267 +1040,104 @@ function initializeSwipeGestures() {
   const bottomIndicator = document.getElementById('bottomSwipeIndicator');
   const overlay = document.getElementById('overlay');
 
-  console.log('👆 Initializing ENHANCED gesture system...');
-  console.log('   - Full strip tap zones ✅');
-  console.log('   - Real swipe gestures ✅');
+  console.log('👆 Initializing SIMPLE generous tap zones...');
+  console.log('   - Full-width tap areas ✅');
+  console.log('   - Generous vertical zones ✅');
   console.log('   - Purple bar indicators preserved ✅');
+  console.log('   - No complex swipe detection ✅');
 
   // ================================
-  // ENHANCED TOP STRIP GESTURES
+  // CREATE GENEROUS TAP ZONES
   // ================================
+
+  // Create invisible full-width tap zone for TOP strip
+  const topTapZone = document.createElement('div');
+  topTapZone.id = 'topTapZone';
+  topTapZone.style.cssText = `
+    position: fixed;
+    top: 120px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 1002;
+    cursor: pointer;
+    background: transparent;
+    /* Debug: uncomment to see the tap zone */
+    /* background: rgba(255, 0, 0, 0.2); */
+  `;
   
-  let topTouchStart = { x: 0, y: 0, time: 0 };
-  let topIsTracking = false;
+  // Create invisible full-width tap zone for BOTTOM strip  
+  const bottomTapZone = document.createElement('div');
+  bottomTapZone.id = 'bottomTapZone';
+  bottomTapZone.style.cssText = `
+    position: fixed;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    height: 40px;
+    z-index: 1002;
+    cursor: pointer;
+    background: transparent;
+    /* Debug: uncomment to see the tap zone */
+    /* background: rgba(0, 255, 0, 0.2); */
+  `;
 
-  function handleTopStripStart(e) {
-    const touch = e.touches ? e.touches[0] : e;
-    topTouchStart = {
-      x: touch.clientX,
-      y: touch.clientY,
-      time: Date.now()
-    };
-    topIsTracking = true;
-    
-    console.log('🔝 Top strip touch started');
-  }
+  // Add tap zones to the page
+  document.body.appendChild(topTapZone);
+  document.body.appendChild(bottomTapZone);
 
-  function handleTopStripMove(e) {
-    if (!topIsTracking) return;
-    
-    const touch = e.touches ? e.touches[0] : e;
-    const deltaY = touch.clientY - topTouchStart.y;
-    const deltaX = Math.abs(touch.clientX - topTouchStart.x);
-    
-    // Prevent accidental horizontal swipes
-    if (deltaX > 50) {
-      topIsTracking = false;
-      return;
-    }
-    
-    // Visual feedback for swipe down
-    if (deltaY > 20 && !topStripExpanded) {
-      topStrip.style.transform = `translateY(${Math.min(deltaY * 0.3, 10)}px)`;
-      topStrip.style.opacity = 0.9;
-    }
-    
-    // Visual feedback for swipe up  
-    if (deltaY < -20 && topStripExpanded) {
-      topStrip.style.transform = `translateY(${Math.max(deltaY * 0.1, -5)}px)`;
-      topStrip.style.opacity = 0.9;
-    }
-  }
+  // ================================
+  // SIMPLE TAP HANDLERS
+  // ================================
 
-  function handleTopStripEnd(e) {
-    if (!topIsTracking) return;
+  function handleTopTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
     
-    const touch = e.changedTouches ? e.changedTouches[0] : e;
-    const deltaY = touch.clientY - topTouchStart.y;
-    const deltaX = Math.abs(touch.clientX - topTouchStart.x);
-    const deltaTime = Date.now() - topTouchStart.time;
+    console.log('🔝 TOP TAP ZONE clicked - toggling scoreboard');
+    toggleTopStrip();
     
-    // Reset visual feedback
-    topStrip.style.transform = '';
-    topStrip.style.opacity = '';
-    
-    topIsTracking = false;
-    
-    console.log(`🔝 Top strip gesture: deltaY=${deltaY}, deltaX=${deltaX}, time=${deltaTime}ms`);
-    
-    // Ignore if too much horizontal movement
-    if (deltaX > 50) {
-      console.log('🔝 Ignored - too much horizontal movement');
-      return;
-    }
-    
-    // REAL SWIPE DETECTION (iPhone-style)
-    const isSwipe = Math.abs(deltaY) > 30 && deltaTime < 500;
-    const isTap = Math.abs(deltaY) < 10 && deltaTime < 300;
-    
-    if (isSwipe) {
-      console.log('🔝 SWIPE detected!');
-      if (deltaY > 30 && !topStripExpanded) {
-        console.log('🔝 Swipe DOWN - expanding top strip');
-        toggleTopStrip();
-      } else if (deltaY < -30 && topStripExpanded) {
-        console.log('🔝 Swipe UP - collapsing top strip');
-        toggleTopStrip();
-      }
-    } else if (isTap) {
-      console.log('🔝 TAP detected - toggling top strip');
-      toggleTopStrip();
-    }
+    // Quick visual feedback
+    topTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
+    setTimeout(() => {
+      topTapZone.style.background = 'transparent';
+    }, 150);
   }
 
-// FIXED: Bottom strip gesture handlers - exclude chat input area
-// REPLACE the handleBottomStripStart, handleBottomStripMove, and handleBottomStripEnd functions
-
-function handleBottomStripStart(e) {
-  // CRITICAL FIX: Don't interfere with chat input area
-  const chatInputContainer = document.querySelector('.chat-input-container');
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  
-  // Check if click/touch is within the input area
-  if (chatInputContainer && chatInputContainer.contains(e.target)) {
-    console.log('🔽 Ignoring gesture - clicked in input area');
-    return;
-  }
-  
-  if (chatInput && chatInput.contains(e.target)) {
-    console.log('🔽 Ignoring gesture - clicked on input');
-    return;
-  }
-  
-  if (chatSendBtn && chatSendBtn.contains(e.target)) {
-    console.log('🔽 Ignoring gesture - clicked on send button');
-    return;
-  }
-  
-  const touch = e.touches ? e.touches[0] : e;
-  bottomTouchStart = {
-    x: touch.clientX,
-    y: touch.clientY,
-    time: Date.now()
-  };
-  bottomIsTracking = true;
-  
-  console.log('🔽 Bottom strip touch started (outside input area)');
-}
-
-function handleBottomStripMove(e) {
-  if (!bottomIsTracking) return;
-  
-  // CRITICAL FIX: Stop tracking if we move over input area
-  const chatInputContainer = document.querySelector('.chat-input-container');
-  if (chatInputContainer && chatInputContainer.contains(e.target)) {
-    console.log('🔽 Stopping tracking - moved over input area');
-    bottomIsTracking = false;
-    bottomStrip.style.transform = '';
-    bottomStrip.style.opacity = '';
-    return;
-  }
-  
-  const touch = e.touches ? e.touches[0] : e;
-  const deltaY = touch.clientY - bottomTouchStart.y;
-  const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
-  
-  // Prevent accidental horizontal swipes
-  if (deltaX > 50) {
-    bottomIsTracking = false;
-    return;
-  }
-  
-  // Visual feedback for swipe up
-  if (deltaY < -20 && !bottomStripExpanded) {
-    bottomStrip.style.transform = `translateY(${Math.max(deltaY * 0.3, -10)}px)`;
-    bottomStrip.style.opacity = 0.9;
-  }
-  
-  // Visual feedback for swipe down
-  if (deltaY > 20 && bottomStripExpanded) {
-    bottomStrip.style.transform = `translateY(${Math.min(deltaY * 0.1, 5)}px)`;
-    bottomStrip.style.opacity = 0.9;
-  }
-}
-
-function handleBottomStripEnd(e) {
-  if (!bottomIsTracking) return;
-  
-  // CRITICAL FIX: Don't trigger if ending over input area
-  const chatInputContainer = document.querySelector('.chat-input-container');
-  if (chatInputContainer && chatInputContainer.contains(e.target)) {
-    console.log('🔽 Ignoring gesture end - ended over input area');
-    bottomIsTracking = false;
-    bottomStrip.style.transform = '';
-    bottomStrip.style.opacity = '';
-    return;
-  }
-  
-  const touch = e.changedTouches ? e.changedTouches[0] : e;
-  const deltaY = touch.clientY - bottomTouchStart.y;
-  const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
-  const deltaTime = Date.now() - bottomTouchStart.time;
-  
-  // Reset visual feedback
-  bottomStrip.style.transform = '';
-  bottomStrip.style.opacity = '';
-  
-  bottomIsTracking = false;
-  
-  console.log(`🔽 Bottom strip gesture: deltaY=${deltaY}, deltaX=${deltaX}, time=${deltaTime}ms`);
-  
-  // Ignore if too much horizontal movement
-  if (deltaX > 50) {
-    console.log('🔽 Ignored - too much horizontal movement');
-    return;
-  }
-  
-  // REAL SWIPE DETECTION (iPhone-style)
-  const isSwipe = Math.abs(deltaY) > 30 && deltaTime < 500;
-  const isTap = Math.abs(deltaY) < 10 && deltaTime < 300;
-  
-  if (isSwipe) {
-    console.log('🔽 SWIPE detected!');
-    if (deltaY < -30 && !bottomStripExpanded) {
-      console.log('🔽 Swipe UP - expanding bottom strip');
-      toggleBottomStrip();
-    } else if (deltaY > 30 && bottomStripExpanded) {
-      console.log('🔽 Swipe DOWN - collapsing bottom strip');
-      toggleBottomStrip();
-    }
-  } else if (isTap) {
-    console.log('🔽 TAP detected - toggling bottom strip');
+  function handleBottomTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('🔽 BOTTOM TAP ZONE clicked - toggling chat');
     toggleBottomStrip();
+    
+    // Quick visual feedback
+    bottomTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
+    setTimeout(() => {
+      bottomTapZone.style.background = 'transparent';
+    }, 150);
   }
-}
 
   // ================================
-  // ATTACH EVENT LISTENERS
+  // ATTACH SIMPLE EVENT LISTENERS
   // ================================
 
-  // TOP STRIP - Full strip is tappable + swipeable
-  if (topStrip) {
-    topStrip.addEventListener('touchstart', handleTopStripStart, { passive: false });
-    topStrip.addEventListener('touchmove', handleTopStripMove, { passive: false });
-    topStrip.addEventListener('touchend', handleTopStripEnd, { passive: false });
-    
-    // Mouse support for desktop testing
-    topStrip.addEventListener('mousedown', handleTopStripStart);
-    topStrip.addEventListener('mousemove', handleTopStripMove);
-    topStrip.addEventListener('mouseup', handleTopStripEnd);
-    
-    // Make it look interactive
-    topStrip.style.cursor = 'pointer';
-    
-    console.log('✅ Top strip - full area is tappable + swipeable');
-  }
+  // Full-width tap zones
+  topTapZone.addEventListener('click', handleTopTap);
+  topTapZone.addEventListener('touchend', handleTopTap);
+  
+  bottomTapZone.addEventListener('click', handleBottomTap);
+  bottomTapZone.addEventListener('touchend', handleBottomTap);
 
-  // BOTTOM STRIP - Full strip is tappable + swipeable
-  if (bottomStrip) {
-    bottomStrip.addEventListener('touchstart', handleBottomStripStart, { passive: false });
-    bottomStrip.addEventListener('touchmove', handleBottomStripMove, { passive: false });
-    bottomStrip.addEventListener('touchend', handleBottomStripEnd, { passive: false });
-    
-    // Mouse support for desktop testing
-    bottomStrip.addEventListener('mousedown', handleBottomStripStart);
-    bottomStrip.addEventListener('mousemove', handleBottomStripMove);
-    bottomStrip.addEventListener('mouseup', handleBottomStripEnd);
-    
-    // Make it look interactive
-    bottomStrip.style.cursor = 'pointer';
-    
-    console.log('✅ Bottom strip - full area is tappable + swipeable');
-  }
-
-  // PURPLE INDICATORS - Extra tap targets (redundant but good UX)
+  // Purple indicators still work (redundant but good)
   if (topIndicator) {
     topIndicator.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent double-firing
+      e.stopPropagation();
       console.log('🟣 Purple top indicator clicked');
       toggleTopStrip();
     });
     
-    // Enhanced visual feedback
+    // Enhanced visual feedback for purple bars
     topIndicator.addEventListener('mouseenter', () => {
       topIndicator.style.transform = 'translateX(-50%) scale(1.2)';
       topIndicator.style.opacity = '1';
@@ -1308,18 +1146,16 @@ function handleBottomStripEnd(e) {
       topIndicator.style.transform = 'translateX(-50%) scale(1)';
       topIndicator.style.opacity = '0.6';
     });
-    
-    console.log('✅ Purple top indicator - enhanced with hover effects');
   }
 
   if (bottomIndicator) {
     bottomIndicator.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent double-firing
+      e.stopPropagation();
       console.log('🟣 Purple bottom indicator clicked');
       toggleBottomStrip();
     });
     
-    // Enhanced visual feedback
+    // Enhanced visual feedback for purple bars
     bottomIndicator.addEventListener('mouseenter', () => {
       bottomIndicator.style.transform = 'translateX(-50%) scale(1.2)';
       bottomIndicator.style.opacity = '1';
@@ -1328,29 +1164,70 @@ function handleBottomStripEnd(e) {
       bottomIndicator.style.transform = 'translateX(-50%) scale(1)';
       bottomIndicator.style.opacity = '0.6';
     });
-    
-    console.log('✅ Purple bottom indicator - enhanced with hover effects');
   }
 
-  // OVERLAY - Tap to dismiss (existing functionality)
+  // Overlay tap-to-dismiss (existing functionality)
   if (overlay) {
     overlay.addEventListener('click', () => {
       console.log('🎯 Overlay clicked - dismissing expanded strips');
       if (topStripExpanded) toggleTopStrip();
       if (bottomStripExpanded) toggleBottomStrip();
     });
-    
-    console.log('✅ Overlay - tap to dismiss functionality preserved');
   }
 
-  console.log('🎉 ENHANCED gesture system initialized!');
-  console.log('📱 Features available:');
-  console.log('   • Full strip tap zones (entire strips clickable)');
-  console.log('   • Real iPhone-style swipe gestures');
-  console.log('   • Purple bar indicators (enhanced with hover)');
-  console.log('   • Visual feedback during gestures');
-  console.log('   • Desktop mouse support');
-  console.log('   • Overlay tap-to-dismiss');
+  // ================================
+  // DYNAMIC TAP ZONE MANAGEMENT
+  // ================================
+
+  // Hide/show tap zones based on strip state
+  function updateTapZones() {
+    if (topStripExpanded) {
+      topTapZone.style.display = 'none';
+      console.log('🔝 Top tap zone hidden (strip expanded)');
+    } else {
+      topTapZone.style.display = 'block';
+      console.log('🔝 Top tap zone visible (strip collapsed)');
+    }
+
+    if (bottomStripExpanded) {
+      bottomTapZone.style.display = 'none';
+      console.log('🔽 Bottom tap zone hidden (strip expanded)');
+    } else {
+      bottomTapZone.style.display = 'block';
+      console.log('🔽 Bottom tap zone visible (strip collapsed)');
+    }
+  }
+
+  // Hook into existing toggle functions to update tap zones
+  const originalToggleTopStrip = window.toggleTopStrip;
+  const originalToggleBottomStrip = window.toggleBottomStrip;
+
+  window.toggleTopStrip = function() {
+    if (originalToggleTopStrip) originalToggleTopStrip();
+    setTimeout(updateTapZones, 50); // Small delay to let animation start
+  };
+
+  window.toggleBottomStrip = function() {
+    if (originalToggleBottomStrip) originalToggleBottomStrip();
+    setTimeout(updateTapZones, 50); // Small delay to let animation start
+  };
+
+  // Initial setup
+  updateTapZones();
+
+  console.log('🎉 SIMPLE generous tap zones initialized!');
+  console.log('📱 Features:');
+  console.log('   • Full-width tap zones (entire screen width)');
+  console.log('   • Generous 40px height (forgiving vertical targeting)');
+  console.log('   • Purple bar indicators preserved with hover effects');
+  console.log('   • Dynamic show/hide based on strip state');
+  console.log('   • Quick visual feedback on tap');
+  console.log('   • No complex gesture detection');
+  console.log('');
+  console.log('💡 Tap zones positioned:');
+  console.log('   • Top: 120px from top, 40px tall');
+  console.log('   • Bottom: 40px from bottom, 40px tall');
+  console.log('   • Both: Full screen width, invisible overlay');
 }
 
     function initializePullToRefresh() {
