@@ -1030,75 +1030,291 @@
     let touchStartY = 0;
     let touchStartX = 0;
 
-    function initializeSwipeGestures() {
-      const topStrip = document.getElementById('topStrip');
-      const bottomStrip = document.getElementById('bottomStrip');
-      const topIndicator = document.getElementById('topSwipeIndicator');
-      const bottomIndicator = document.getElementById('bottomSwipeIndicator');
-      const overlay = document.getElementById('overlay');
+    // Enhanced Gesture System - REPLACE the initializeSwipeGestures function in your index.html
 
-      function handleTopStripTouch(e) {
-        const touchY = e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY;
-        const touchX = e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX;
-        
-        if (e.type === 'touchstart' || e.type === 'mousedown') {
-          touchStartY = touchY;
-          touchStartX = touchX;
-        } else if (e.type === 'touchend' || e.type === 'mouseup') {
-          const deltaY = touchY - touchStartY;
-          const deltaX = Math.abs(touchX - touchStartX);
-          
-          if (deltaX < 50) {
-            if (deltaY > 30) {
-              if (!topStripExpanded) toggleTopStrip();
-            } else if (deltaY < -30) {
-              if (topStripExpanded) toggleTopStrip();
-            }
-          }
-        }
-      }
+function initializeSwipeGestures() {
+  const topStrip = document.getElementById('topStrip');
+  const bottomStrip = document.getElementById('bottomStrip');
+  const topIndicator = document.getElementById('topSwipeIndicator');
+  const bottomIndicator = document.getElementById('bottomSwipeIndicator');
+  const overlay = document.getElementById('overlay');
 
-      function handleBottomStripTouch(e) {
-        const touchY = e.touches && e.touches[0] ? e.touches[0].clientY : e.clientY;
-        const touchX = e.touches && e.touches[0] ? e.touches[0].clientX : e.clientX;
-        
-        if (e.type === 'touchstart' || e.type === 'mousedown') {
-          touchStartY = touchY;
-          touchStartX = touchX;
-        } else if (e.type === 'touchend' || e.type === 'mouseup') {
-          const deltaY = touchY - touchStartY;
-          const deltaX = Math.abs(touchX - touchStartX);
-          
-          if (deltaX < 50) {
-            if (deltaY < -30) {
-              if (!bottomStripExpanded) toggleBottomStrip();
-            } else if (deltaY > 30) {
-              if (bottomStripExpanded) toggleBottomStrip();
-            }
-          }
-        }
-      }
+  console.log('👆 Initializing ENHANCED gesture system...');
+  console.log('   - Full strip tap zones ✅');
+  console.log('   - Real swipe gestures ✅');
+  console.log('   - Purple bar indicators preserved ✅');
 
-      topStrip.addEventListener('touchstart', handleTopStripTouch, { passive: false });
-      topStrip.addEventListener('touchend', handleTopStripTouch, { passive: false });
-      topStrip.addEventListener('mousedown', handleTopStripTouch);
-      topStrip.addEventListener('mouseup', handleTopStripTouch);
-      
-      bottomStrip.addEventListener('touchstart', handleBottomStripTouch, { passive: false });
-      bottomStrip.addEventListener('touchend', handleBottomStripTouch, { passive: false });
-      bottomStrip.addEventListener('mousedown', handleBottomStripTouch);
-      bottomStrip.addEventListener('mouseup', handleBottomStripTouch);
+  // ================================
+  // ENHANCED TOP STRIP GESTURES
+  // ================================
+  
+  let topTouchStart = { x: 0, y: 0, time: 0 };
+  let topIsTracking = false;
 
-      topIndicator.addEventListener('click', toggleTopStrip);
-      bottomIndicator.addEventListener('click', toggleBottomStrip);
+  function handleTopStripStart(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    topTouchStart = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    };
+    topIsTracking = true;
+    
+    console.log('🔝 Top strip touch started');
+  }
 
-      overlay.addEventListener('click', () => {
-        if (topStripExpanded) toggleTopStrip();
-        if (bottomStripExpanded) toggleBottomStrip();
-      });
-
-      console.log('👆 Enhanced swipe gestures with overlay support initialized');
+  function handleTopStripMove(e) {
+    if (!topIsTracking) return;
+    
+    const touch = e.touches ? e.touches[0] : e;
+    const deltaY = touch.clientY - topTouchStart.y;
+    const deltaX = Math.abs(touch.clientX - topTouchStart.x);
+    
+    // Prevent accidental horizontal swipes
+    if (deltaX > 50) {
+      topIsTracking = false;
+      return;
     }
+    
+    // Visual feedback for swipe down
+    if (deltaY > 20 && !topStripExpanded) {
+      topStrip.style.transform = `translateY(${Math.min(deltaY * 0.3, 10)}px)`;
+      topStrip.style.opacity = 0.9;
+    }
+    
+    // Visual feedback for swipe up  
+    if (deltaY < -20 && topStripExpanded) {
+      topStrip.style.transform = `translateY(${Math.max(deltaY * 0.1, -5)}px)`;
+      topStrip.style.opacity = 0.9;
+    }
+  }
+
+  function handleTopStripEnd(e) {
+    if (!topIsTracking) return;
+    
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    const deltaY = touch.clientY - topTouchStart.y;
+    const deltaX = Math.abs(touch.clientX - topTouchStart.x);
+    const deltaTime = Date.now() - topTouchStart.time;
+    
+    // Reset visual feedback
+    topStrip.style.transform = '';
+    topStrip.style.opacity = '';
+    
+    topIsTracking = false;
+    
+    console.log(`🔝 Top strip gesture: deltaY=${deltaY}, deltaX=${deltaX}, time=${deltaTime}ms`);
+    
+    // Ignore if too much horizontal movement
+    if (deltaX > 50) {
+      console.log('🔝 Ignored - too much horizontal movement');
+      return;
+    }
+    
+    // REAL SWIPE DETECTION (iPhone-style)
+    const isSwipe = Math.abs(deltaY) > 30 && deltaTime < 500;
+    const isTap = Math.abs(deltaY) < 10 && deltaTime < 300;
+    
+    if (isSwipe) {
+      console.log('🔝 SWIPE detected!');
+      if (deltaY > 30 && !topStripExpanded) {
+        console.log('🔝 Swipe DOWN - expanding top strip');
+        toggleTopStrip();
+      } else if (deltaY < -30 && topStripExpanded) {
+        console.log('🔝 Swipe UP - collapsing top strip');
+        toggleTopStrip();
+      }
+    } else if (isTap) {
+      console.log('🔝 TAP detected - toggling top strip');
+      toggleTopStrip();
+    }
+  }
+
+  // ================================
+  // ENHANCED BOTTOM STRIP GESTURES  
+  // ================================
+  
+  let bottomTouchStart = { x: 0, y: 0, time: 0 };
+  let bottomIsTracking = false;
+
+  function handleBottomStripStart(e) {
+    const touch = e.touches ? e.touches[0] : e;
+    bottomTouchStart = {
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    };
+    bottomIsTracking = true;
+    
+    console.log('🔽 Bottom strip touch started');
+  }
+
+  function handleBottomStripMove(e) {
+    if (!bottomIsTracking) return;
+    
+    const touch = e.touches ? e.touches[0] : e;
+    const deltaY = touch.clientY - bottomTouchStart.y;
+    const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
+    
+    // Prevent accidental horizontal swipes
+    if (deltaX > 50) {
+      bottomIsTracking = false;
+      return;
+    }
+    
+    // Visual feedback for swipe up
+    if (deltaY < -20 && !bottomStripExpanded) {
+      bottomStrip.style.transform = `translateY(${Math.max(deltaY * 0.3, -10)}px)`;
+      bottomStrip.style.opacity = 0.9;
+    }
+    
+    // Visual feedback for swipe down
+    if (deltaY > 20 && bottomStripExpanded) {
+      bottomStrip.style.transform = `translateY(${Math.min(deltaY * 0.1, 5)}px)`;
+      bottomStrip.style.opacity = 0.9;
+    }
+  }
+
+  function handleBottomStripEnd(e) {
+    if (!bottomIsTracking) return;
+    
+    const touch = e.changedTouches ? e.changedTouches[0] : e;
+    const deltaY = touch.clientY - bottomTouchStart.y;
+    const deltaX = Math.abs(touch.clientX - bottomTouchStart.x);
+    const deltaTime = Date.now() - bottomTouchStart.time;
+    
+    // Reset visual feedback
+    bottomStrip.style.transform = '';
+    bottomStrip.style.opacity = '';
+    
+    bottomIsTracking = false;
+    
+    console.log(`🔽 Bottom strip gesture: deltaY=${deltaY}, deltaX=${deltaX}, time=${deltaTime}ms`);
+    
+    // Ignore if too much horizontal movement
+    if (deltaX > 50) {
+      console.log('🔽 Ignored - too much horizontal movement');
+      return;
+    }
+    
+    // REAL SWIPE DETECTION (iPhone-style)
+    const isSwipe = Math.abs(deltaY) > 30 && deltaTime < 500;
+    const isTap = Math.abs(deltaY) < 10 && deltaTime < 300;
+    
+    if (isSwipe) {
+      console.log('🔽 SWIPE detected!');
+      if (deltaY < -30 && !bottomStripExpanded) {
+        console.log('🔽 Swipe UP - expanding bottom strip');
+        toggleBottomStrip();
+      } else if (deltaY > 30 && bottomStripExpanded) {
+        console.log('🔽 Swipe DOWN - collapsing bottom strip');
+        toggleBottomStrip();
+      }
+    } else if (isTap) {
+      console.log('🔽 TAP detected - toggling bottom strip');
+      toggleBottomStrip();
+    }
+  }
+
+  // ================================
+  // ATTACH EVENT LISTENERS
+  // ================================
+
+  // TOP STRIP - Full strip is tappable + swipeable
+  if (topStrip) {
+    topStrip.addEventListener('touchstart', handleTopStripStart, { passive: false });
+    topStrip.addEventListener('touchmove', handleTopStripMove, { passive: false });
+    topStrip.addEventListener('touchend', handleTopStripEnd, { passive: false });
+    
+    // Mouse support for desktop testing
+    topStrip.addEventListener('mousedown', handleTopStripStart);
+    topStrip.addEventListener('mousemove', handleTopStripMove);
+    topStrip.addEventListener('mouseup', handleTopStripEnd);
+    
+    // Make it look interactive
+    topStrip.style.cursor = 'pointer';
+    
+    console.log('✅ Top strip - full area is tappable + swipeable');
+  }
+
+  // BOTTOM STRIP - Full strip is tappable + swipeable
+  if (bottomStrip) {
+    bottomStrip.addEventListener('touchstart', handleBottomStripStart, { passive: false });
+    bottomStrip.addEventListener('touchmove', handleBottomStripMove, { passive: false });
+    bottomStrip.addEventListener('touchend', handleBottomStripEnd, { passive: false });
+    
+    // Mouse support for desktop testing
+    bottomStrip.addEventListener('mousedown', handleBottomStripStart);
+    bottomStrip.addEventListener('mousemove', handleBottomStripMove);
+    bottomStrip.addEventListener('mouseup', handleBottomStripEnd);
+    
+    // Make it look interactive
+    bottomStrip.style.cursor = 'pointer';
+    
+    console.log('✅ Bottom strip - full area is tappable + swipeable');
+  }
+
+  // PURPLE INDICATORS - Extra tap targets (redundant but good UX)
+  if (topIndicator) {
+    topIndicator.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent double-firing
+      console.log('🟣 Purple top indicator clicked');
+      toggleTopStrip();
+    });
+    
+    // Enhanced visual feedback
+    topIndicator.addEventListener('mouseenter', () => {
+      topIndicator.style.transform = 'translateX(-50%) scale(1.2)';
+      topIndicator.style.opacity = '1';
+    });
+    topIndicator.addEventListener('mouseleave', () => {
+      topIndicator.style.transform = 'translateX(-50%) scale(1)';
+      topIndicator.style.opacity = '0.6';
+    });
+    
+    console.log('✅ Purple top indicator - enhanced with hover effects');
+  }
+
+  if (bottomIndicator) {
+    bottomIndicator.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent double-firing
+      console.log('🟣 Purple bottom indicator clicked');
+      toggleBottomStrip();
+    });
+    
+    // Enhanced visual feedback
+    bottomIndicator.addEventListener('mouseenter', () => {
+      bottomIndicator.style.transform = 'translateX(-50%) scale(1.2)';
+      bottomIndicator.style.opacity = '1';
+    });
+    bottomIndicator.addEventListener('mouseleave', () => {
+      bottomIndicator.style.transform = 'translateX(-50%) scale(1)';
+      bottomIndicator.style.opacity = '0.6';
+    });
+    
+    console.log('✅ Purple bottom indicator - enhanced with hover effects');
+  }
+
+  // OVERLAY - Tap to dismiss (existing functionality)
+  if (overlay) {
+    overlay.addEventListener('click', () => {
+      console.log('🎯 Overlay clicked - dismissing expanded strips');
+      if (topStripExpanded) toggleTopStrip();
+      if (bottomStripExpanded) toggleBottomStrip();
+    });
+    
+    console.log('✅ Overlay - tap to dismiss functionality preserved');
+  }
+
+  console.log('🎉 ENHANCED gesture system initialized!');
+  console.log('📱 Features available:');
+  console.log('   • Full strip tap zones (entire strips clickable)');
+  console.log('   • Real iPhone-style swipe gestures');
+  console.log('   • Purple bar indicators (enhanced with hover)');
+  console.log('   • Visual feedback during gestures');
+  console.log('   • Desktop mouse support');
+  console.log('   • Overlay tap-to-dismiss');
+}
 
     function initializePullToRefresh() {
       const mainContent = document.getElementById('mainContent');
