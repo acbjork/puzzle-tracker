@@ -254,66 +254,73 @@ class ChatSystem {
   }
 
   async updateUnreadBadge() {
-    const unreadBadge = document.getElementById('unreadBadge');
-    if (!unreadBadge) {
-      if (this.debugMode) console.log('❌ unreadBadge element not found');
-      return;
-    }
-    
-    if (!this.currentUser || !this.userManager.canRenderTable()) {
-      unreadBadge.style.display = 'none';
-      this.hasUnreadMessages = false;
-      if (this.debugMode) console.log('🚫 No user or cannot render table - hiding badge');
-      return;
-    }
-    
-    if (this.isVisible) {
-      unreadBadge.style.display = 'none';
-      this.hasUnreadMessages = false;
-      if (this.debugMode) console.log('💬 Chat is visible - hiding badge');
-      return;
-    }
-    
-    try {
-      const today = this.dateHelpers.getToday();
-      const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
-      
-      if (this.debugMode) {
-        console.log(`🔍 UNREAD BADGE UPDATE for ${this.currentUser}: ${unreadCount}`);
-        console.log(`   isVisible: ${this.isVisible}`);
-        console.log(`   current time: ${new Date().toISOString()}`);
-      }
-      
-      if (unreadCount > 0) {
-        unreadBadge.textContent = unreadCount;
-        unreadBadge.style.display = 'flex';
-        unreadBadge.style.position = 'absolute';
-        unreadBadge.style.top = '-10px';
-        unreadBadge.style.right = '10px';
-        unreadBadge.style.background = '#ef4444';
-        unreadBadge.style.color = 'white';
-        unreadBadge.style.borderRadius = '50%';
-        unreadBadge.style.minWidth = '20px';
-        unreadBadge.style.height = '20px';
-        unreadBadge.style.fontSize = '0.7em';
-        unreadBadge.style.fontWeight = 'bold';
-        unreadBadge.style.alignItems = 'center';
-        unreadBadge.style.justifyContent = 'center';
-        unreadBadge.style.zIndex = '1001';
-        this.hasUnreadMessages = true;
-        
-        if (this.debugMode) console.log(`✅ Badge shown with count: ${unreadCount}`);
-      } else {
-        unreadBadge.style.display = 'none';
-        this.hasUnreadMessages = false;
-        
-        if (this.debugMode) console.log('✅ Badge hidden - no unread messages');
-      }
-    } catch (error) {
-      console.error("Failed to get unread count:", error);
-      unreadBadge.style.display = 'none';
-    }
+  const unreadBadge = document.getElementById('unreadBadge');
+  if (!unreadBadge) {
+    if (this.debugMode) console.log('❌ unreadBadge element not found');
+    return;
   }
+  
+  if (!this.currentUser || !this.userManager.canRenderTable()) {
+    unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
+    if (this.debugMode) console.log('🚫 No user or cannot render table - hiding badge');
+    return;
+  }
+  
+  if (this.isVisible) {
+    unreadBadge.style.display = 'none';
+    this.hasUnreadMessages = false;
+    if (this.debugMode) console.log('💬 Chat is visible - hiding badge');
+    return;
+  }
+  
+  try {
+    const today = this.dateHelpers.getToday();
+    
+    // CRITICAL FIX: Always get fresh count from database
+    const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
+    
+    if (this.debugMode) {
+      console.log(`🔍 BADGE UPDATE - DATABASE REALITY CHECK:`);
+      console.log(`   Player: ${this.currentUser}`);
+      console.log(`   Date: ${today}`);
+      console.log(`   Database unread count: ${unreadCount}`);
+      console.log(`   Chat visible: ${this.isVisible}`);
+      console.log(`   Current time: ${new Date().toISOString()}`);
+    }
+    
+    // Update local state to match database reality
+    this.hasUnreadMessages = unreadCount > 0;
+    
+    if (unreadCount > 0) {
+      unreadBadge.textContent = unreadCount;
+      unreadBadge.style.display = 'flex';
+      unreadBadge.style.position = 'absolute';
+      unreadBadge.style.top = '-10px';
+      unreadBadge.style.right = '10px';
+      unreadBadge.style.background = '#ef4444';
+      unreadBadge.style.color = 'white';
+      unreadBadge.style.borderRadius = '50%';
+      unreadBadge.style.minWidth = '20px';
+      unreadBadge.style.height = '20px';
+      unreadBadge.style.fontSize = '0.7em';
+      unreadBadge.style.fontWeight = 'bold';
+      unreadBadge.style.alignItems = 'center';
+      unreadBadge.style.justifyContent = 'center';
+      unreadBadge.style.zIndex = '1001';
+      
+      if (this.debugMode) console.log(`✅ Badge shown with DATABASE count: ${unreadCount}`);
+    } else {
+      unreadBadge.style.display = 'none';
+      this.hasUnreadMessages = false;
+      
+      if (this.debugMode) console.log('✅ Badge hidden - DATABASE shows no unread messages');
+    }
+  } catch (error) {
+    console.error("Failed to get unread count from database:", error);
+    unreadBadge.style.display = 'none';
+  }
+}
 
   // CRITICAL FIX: Enhanced markAsRead with detailed debugging and proper database calls
   async markAsRead() {
@@ -648,27 +655,27 @@ class ChatSystem {
   }
 
   getUnreadCount() {
-    return this.messages.filter(msg => {
-      if (msg.player === this.currentUser || msg.message === '[deleted]') return false;
-      if (this.lastReadMessageId && msg.id <= this.lastReadMessageId) return false;
-      return true;
-    }).length;
-  }
+  console.log('⚠️ getUnreadCount() called - this should use database, not local calculation');
+  // This method should not be used for badge display - updateUnreadBadge should call database directly
+  return 0; // Return 0 to avoid confusion, use database calls for real count
+}
 
   getChatStatus() {
-    return {
-      messageCount: this.messages.length,
-      unreadCount: this.getUnreadCount(),
-      isVisible: this.isVisible,
-      currentUser: this.currentUser,
-      isProcessing: this.isProcessing,
-      hasUnreadMessages: this.hasUnreadMessages,
-      debugMode: this.debugMode,
-      markAsReadInProgress: this.markAsReadInProgress,
-      listenersSetup: this.listenersSetup,
-      version: 'v2025.06.01.2 - CRITICAL FIX'
-    };
-  }
+  return {
+    messageCount: this.messages.length,
+    localUnreadCount: this.getUnreadCount(), // This is wrong/cached
+    unreadCount: 'USE_DATABASE_INSTEAD', // Reminder to use database
+    isVisible: this.isVisible,
+    currentUser: this.currentUser,
+    isProcessing: this.isProcessing,
+    hasUnreadMessages: this.hasUnreadMessages,
+    debugMode: this.debugMode,
+    markAsReadInProgress: this.markAsReadInProgress,
+    listenersSetup: this.listenersSetup,
+    version: 'v2025.06.01.3 - FIXED DATABASE REALITY',
+    note: 'Badge now uses database reality, not local calculation'
+  };
+}
 
   // DEBUG HELPER: Manual trigger for testing
   async debugMarkAsRead() {
