@@ -1341,20 +1341,6 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 
-  // Hook into existing toggle functions to update tap zones
-  const originalToggleTopStrip = window.toggleTopStrip;
-  const originalToggleBottomStrip = window.toggleBottomStrip;
-
-  window.toggleTopStrip = function() {
-    if (originalToggleTopStrip) originalToggleTopStrip();
-    setTimeout(updateTapZones, 50); // Small delay to let animation start
-  };
-
-  window.toggleBottomStrip = function() {
-    if (originalToggleBottomStrip) originalToggleBottomStrip();
-    setTimeout(updateTapZones, 50); // Small delay to let animation start
-  };
-
   // Initial setup
   updateTapZones();
 
