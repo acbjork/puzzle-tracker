@@ -990,54 +990,132 @@
       overlay.classList.remove('visible');
     }
 
-    function toggleTopStrip() {
-      const topStrip = document.getElementById('topStrip');
-      const mainContent = document.getElementById('mainContent');
-      
-      if (bottomStripExpanded) {
-        toggleBottomStrip();
-      }
-      
-      topStripExpanded = !topStripExpanded;
-      
-      if (topStripExpanded) {
-        topStrip.classList.add('expanded');
-        mainContent.style.marginTop = '60vh';
-        showOverlay();
-        loadHistoryData();
-        updateCurrentChampDisplay();
-      } else {
-        topStrip.classList.remove('expanded');
-        mainContent.style.marginTop = '110px';
-        hideOverlay();
-      }
-      
-      console.log('📊 Top strip toggled:', topStripExpanded ? 'expanded' : 'collapsed');
-    }
+    // MUTUAL EXCLUSION FIX - Only one strip expanded at a time
+// REPLACE your existing toggleTopStrip and toggleBottomStrip functions with these:
 
-    function toggleBottomStrip() {
-      const bottomStrip = document.getElementById('bottomStrip');
-      const mainContent = document.getElementById('mainContent');
-      
-      if (topStripExpanded) {
-        toggleTopStrip();
-      }
-      
-      bottomStripExpanded = !bottomStripExpanded;
-      
-      if (bottomStripExpanded) {
-        bottomStrip.classList.add('expanded');
-        mainContent.style.marginBottom = '70vh';
-        showOverlay();
-        loadChatMessages();
-      } else {
-        bottomStrip.classList.remove('expanded');
-        mainContent.style.marginBottom = '70px';
-        hideOverlay();
-      }
-      
-      console.log('💬 Bottom strip toggled:', bottomStripExpanded ? 'expanded' : 'collapsed');
-    }
+function toggleTopStrip() {
+  // MUTUAL EXCLUSION: Close bottom strip first if it's open
+  if (bottomStripExpanded) {
+    console.log('🔽 Auto-closing bottom strip before opening top (mutual exclusion)');
+    
+    // Close bottom strip first
+    const bottomStrip = document.getElementById('bottomStrip');
+    const mainContent = document.getElementById('mainContent');
+    
+    bottomStrip.classList.remove('expanded');
+    mainContent.style.marginBottom = '70px';
+    bottomStripExpanded = false;
+    
+    // Hide overlay temporarily
+    hideOverlay();
+    
+    // Small delay to let bottom strip close, then open top strip
+    setTimeout(() => {
+      executeTopStripToggle();
+    }, 150);
+  } else {
+    // Bottom not open, proceed normally
+    executeTopStripToggle();
+  }
+}
+
+function executeTopStripToggle() {
+  const topStrip = document.getElementById('topStrip');
+  const mainContent = document.getElementById('mainContent');
+  
+  topStripExpanded = !topStripExpanded;
+  
+  if (topStripExpanded) {
+    topStrip.classList.add('expanded');
+    mainContent.style.marginTop = '60vh';
+    showOverlay();
+    loadHistoryData();
+    updateCurrentChampDisplay();
+    console.log('🔝 Top strip expanded');
+  } else {
+    topStrip.classList.remove('expanded');
+    mainContent.style.marginTop = '110px';
+    hideOverlay();
+    console.log('🔝 Top strip collapsed');
+  }
+}
+
+function toggleBottomStrip() {
+  // MUTUAL EXCLUSION: Close top strip first if it's open
+  if (topStripExpanded) {
+    console.log('🔝 Auto-closing top strip before opening bottom (mutual exclusion)');
+    
+    // Close top strip first
+    const topStrip = document.getElementById('topStrip');
+    const mainContent = document.getElementById('mainContent');
+    
+    topStrip.classList.remove('expanded');
+    mainContent.style.marginTop = '110px';
+    topStripExpanded = false;
+    
+    // Hide overlay temporarily
+    hideOverlay();
+    
+    // Small delay to let top strip close, then open bottom strip
+    setTimeout(() => {
+      executeBottomStripToggle();
+    }, 150);
+  } else {
+    // Top not open, proceed normally
+    executeBottomStripToggle();
+  }
+}
+
+function executeBottomStripToggle() {
+  const bottomStrip = document.getElementById('bottomStrip');
+  const mainContent = document.getElementById('mainContent');
+  
+  bottomStripExpanded = !bottomStripExpanded;
+  
+  if (bottomStripExpanded) {
+    bottomStrip.classList.add('expanded');
+    mainContent.style.marginBottom = '70vh';
+    showOverlay();
+    loadChatMessages();
+    console.log('🔽 Bottom strip expanded');
+  } else {
+    bottomStrip.classList.remove('expanded');
+    mainContent.style.marginBottom = '70px';
+    hideOverlay();
+    console.log('🔽 Bottom strip collapsed');
+  }
+}
+
+// ENHANCED: Update the gesture system to use the new functions
+// This ensures ALL ways of opening strips respect mutual exclusion
+
+// Update purple indicator click handlers (if they exist)
+document.addEventListener('DOMContentLoaded', function() {
+  const topIndicator = document.getElementById('topSwipeIndicator');
+  const bottomIndicator = document.getElementById('bottomSwipeIndicator');
+  
+  if (topIndicator) {
+    // Remove old listeners and add new ones
+    topIndicator.onclick = null;
+    topIndicator.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('🟣 Purple top indicator clicked - with mutual exclusion');
+      toggleTopStrip();
+    });
+  }
+  
+  if (bottomIndicator) {
+    // Remove old listeners and add new ones  
+    bottomIndicator.onclick = null;
+    bottomIndicator.addEventListener('click', (e) => {
+      e.stopPropagation();
+      console.log('🟣 Purple bottom indicator clicked - with mutual exclusion');
+      toggleBottomStrip();
+    });
+  }
+  
+  console.log('✅ Mutual exclusion enforced on all strip controls');
+});
 
     let touchStartY = 0;
     let touchStartX = 0;
