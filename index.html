@@ -990,51 +990,83 @@
       overlay.classList.remove('visible');
     }
 
-// AUTO-CLOSE THEN OPEN - Better UX flow
+// CROSS-STRIP CLOSING + SEPARATE OPEN ACTIONS
 // REPLACE your existing toggleTopStrip and toggleBottomStrip functions with these:
 
 function toggleTopStrip() {
-  // If bottom strip is expanded, close it (don't open top yet)
+  // If bottom strip (trash talk) is expanded, close it when tapping top strip
   if (bottomStripExpanded && !topStripExpanded) {
-    console.log('🔽 Auto-closing bottom strip - tap again to open top');
+    console.log('🔽 Closing trash talk by tapping top strip');
     executeBottomStripClose();
-    return; // User must tap again to open top
+    return; // Don't open top strip yet - user must tap again
   }
   
-  // If top strip is already expanded, just close it
+  // If top strip is already expanded, close it (normal collapse)
   if (topStripExpanded) {
-    console.log('🔝 Closing top strip');
+    console.log('🔝 Closing history & stats (normal collapse)');
     executeTopStripClose();
     return;
   }
   
   // If nothing is expanded, open top strip
-  console.log('🔝 Opening top strip');
+  console.log('🔝 Opening history & stats');
   executeTopStripOpen();
 }
 
 function toggleBottomStrip() {
-  // If top strip is expanded, close it (don't open bottom yet)
+  // If top strip (history) is expanded, close it when tapping bottom strip
   if (topStripExpanded && !bottomStripExpanded) {
-    console.log('🔝 Auto-closing top strip - tap again to open bottom');
+    console.log('🔝 Closing history & stats by tapping bottom strip');
     executeTopStripClose();
-    return; // User must tap again to open bottom
+    return; // Don't open bottom strip yet - user must tap again
   }
   
-  // If bottom strip is already expanded, just close it
+  // If bottom strip is already expanded, close it (normal collapse)
   if (bottomStripExpanded) {
-    console.log('🔽 Closing bottom strip');
+    console.log('🔽 Closing trash talk (normal collapse)');
     executeBottomStripClose();
     return;
   }
   
   // If nothing is expanded, open bottom strip
-  console.log('🔽 Opening bottom strip');
+  console.log('🔽 Opening trash talk');
   executeBottomStripOpen();
 }
 
-// SEPARATE FUNCTIONS FOR CLEAN OPEN/CLOSE ACTIONS (same as before)
+// ADD: Cross-strip closing for expanded strip top/bottom areas
+function handleTopStripCollapse(e) {
+  // This handles tapping the top area of trash talk to close it
+  if (bottomStripExpanded) {
+    console.log('🔽 Closing trash talk by tapping its top area');
+    executeBottomStripClose();
+    return;
+  }
+  
+  // If top strip is expanded, tapping its own area closes it
+  if (topStripExpanded) {
+    console.log('🔝 Closing history & stats by tapping its area');
+    executeTopStripClose();
+    return;
+  }
+}
 
+function handleBottomStripCollapse(e) {
+  // This handles tapping the bottom area of history to close it
+  if (topStripExpanded) {
+    console.log('🔝 Closing history & stats by tapping its bottom area');
+    executeTopStripClose();
+    return;
+  }
+  
+  // If bottom strip is expanded, tapping its own area closes it
+  if (bottomStripExpanded) {
+    console.log('🔽 Closing trash talk by tapping its area');
+    executeBottomStripClose();
+    return;
+  }
+}
+
+// SAME OPEN/CLOSE FUNCTIONS (no changes)
 function executeTopStripOpen() {
   const topStrip = document.getElementById('topStrip');
   const mainContent = document.getElementById('mainContent');
@@ -1046,7 +1078,7 @@ function executeTopStripOpen() {
   loadHistoryData();
   updateCurrentChampDisplay();
   
-  console.log('✅ Top strip opened - History & Stats visible');
+  console.log('✅ History & Stats opened');
 }
 
 function executeTopStripClose() {
@@ -1058,7 +1090,7 @@ function executeTopStripClose() {
   topStripExpanded = false;
   hideOverlay();
   
-  console.log('✅ Top strip closed');
+  console.log('✅ History & Stats closed');
 }
 
 function executeBottomStripOpen() {
@@ -1071,7 +1103,7 @@ function executeBottomStripOpen() {
   showOverlay();
   loadChatMessages();
   
-  console.log('✅ Bottom strip opened - Trash Talk visible');
+  console.log('✅ Trash Talk opened');
 }
 
 function executeBottomStripClose() {
@@ -1083,128 +1115,101 @@ function executeBottomStripClose() {
   bottomStripExpanded = false;
   hideOverlay();
   
-  console.log('✅ Bottom strip closed');
+  console.log('✅ Trash Talk closed');
 }
 
-// BACKGROUND/OVERLAY BEHAVIOR - Only close (same as before)
-function handleBackgroundCollapse(e) {
-  // Protect chat input area
-  const chatInputContainer = document.querySelector('.chat-input-container');
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  
-  if (chatInputContainer && chatInputContainer.contains(e.target)) {
-    console.log('🎯 PROTECTED: Background click in input area - ignoring');
-    return;
-  }
-  
-  if (chatInput && (e.target === chatInput || chatInput.contains(e.target))) {
-    console.log('🎯 PROTECTED: Background click on input - ignoring');
-    return;
-  }
-  
-  if (chatSendBtn && (e.target === chatSendBtn || chatSendBtn.contains(e.target))) {
-    console.log('🎯 PROTECTED: Background click on send button - ignoring');
-    return;
-  }
-  
-  // Don't close if clicking on interactive elements
-  if (e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || 
-      e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
-    console.log('🎯 Interactive element clicked - not closing');
-    return;
-  }
-  
-  // Don't close if clicking on links or puzzle names
-  if (e.target.closest('a') || e.target.closest('.puzzle-name')) {
-    console.log('🎯 Link/puzzle clicked - not closing');
-    return;
-  }
-  
-  console.log('🎯 Background clicked - closing expanded strip');
-  
-  // Only close what's open
-  if (topStripExpanded) {
-    console.log('🔝 Closing top strip (background tap)');
-    executeTopStripClose();
-  }
-  
-  if (bottomStripExpanded) {
-    console.log('🔽 Closing bottom strip (background tap)');
-    executeBottomStripClose();
-  }
-}
-
-// GESTURE HANDLERS (same protection, updated behavior)
-function handleTopExpand(e) {
-  e.preventDefault();
-  e.stopPropagation();
-  
-  console.log('🔝 TOP EXPAND ZONE tapped');
-  toggleTopStrip(); // Will auto-close bottom if needed, or open top
-  
-  // Visual feedback
+// ENHANCED TAP ZONE MANAGEMENT - Add collapse zones for expanded strips
+function updateTapZones() {
   const topExpandZone = document.getElementById('topExpandZone');
-  if (topExpandZone) {
-    topExpandZone.style.background = 'rgba(107, 70, 193, 0.2)';
-    setTimeout(() => {
-      topExpandZone.style.background = 'transparent';
-    }, 200);
-  }
-}
-
-function handleBottomExpand(e) {
-  // Protect chat input area
-  const chatInputContainer = document.querySelector('.chat-input-container');
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  
-  if (chatInputContainer && chatInputContainer.contains(e.target)) {
-    console.log('🔽 PROTECTED: Click in input container - ignoring');
-    return;
-  }
-  
-  if (chatInput && (e.target === chatInput || chatInput.contains(e.target))) {
-    console.log('🔽 PROTECTED: Click on input field - ignoring');
-    return;
-  }
-  
-  if (chatSendBtn && (e.target === chatSendBtn || chatSendBtn.contains(e.target))) {
-    console.log('🔽 PROTECTED: Click on send button - ignoring');
-    return;
-  }
-  
-  e.preventDefault();
-  e.stopPropagation();
-  
-  console.log('🔽 BOTTOM EXPAND ZONE tapped');
-  toggleBottomStrip(); // Will auto-close top if needed, or open bottom
-  
-  // Visual feedback
   const bottomExpandZone = document.getElementById('bottomExpandZone');
-  if (bottomExpandZone) {
-    bottomExpandZone.style.background = 'rgba(107, 70, 193, 0.2)';
-    setTimeout(() => {
-      bottomExpandZone.style.background = 'transparent';
-    }, 200);
+  
+  // CREATE COLLAPSE ZONES if they don't exist
+  let topCollapseZone = document.getElementById('topCollapseZone');
+  let bottomCollapseZone = document.getElementById('bottomCollapseZone');
+  
+  if (!topCollapseZone) {
+    topCollapseZone = document.createElement('div');
+    topCollapseZone.id = 'topCollapseZone';
+    topCollapseZone.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      z-index: 1003;
+      cursor: pointer;
+      background: transparent;
+      display: none;
+    `;
+    topCollapseZone.addEventListener('click', handleTopStripCollapse);
+    topCollapseZone.addEventListener('touchend', handleTopStripCollapse);
+    document.body.appendChild(topCollapseZone);
+  }
+  
+  if (!bottomCollapseZone) {
+    bottomCollapseZone = document.createElement('div');
+    bottomCollapseZone.id = 'bottomCollapseZone';
+    bottomCollapseZone.style.cssText = `
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      z-index: 1003;
+      cursor: pointer;
+      background: transparent;
+      display: none;
+    `;
+    bottomCollapseZone.addEventListener('click', handleBottomStripCollapse);
+    bottomCollapseZone.addEventListener('touchend', handleBottomStripCollapse);
+    document.body.appendChild(bottomCollapseZone);
+  }
+  
+  // MANAGE ZONE VISIBILITY
+  if (topStripExpanded) {
+    // History is open: hide top expand zone, show bottom collapse zone
+    if (topExpandZone) topExpandZone.style.display = 'none';
+    if (bottomExpandZone) bottomExpandZone.style.display = 'none';
+    topCollapseZone.style.display = 'none'; // Don't show top collapse (use cross-strip)
+    bottomCollapseZone.style.display = 'block'; // Show bottom for closing history
+    console.log('🔝 History expanded - bottom zone can close it');
+    
+  } else if (bottomStripExpanded) {
+    // Trash talk is open: hide bottom expand zone, show top collapse zone
+    if (topExpandZone) topExpandZone.style.display = 'none';
+    if (bottomExpandZone) bottomExpandZone.style.display = 'none';
+    topCollapseZone.style.display = 'block'; // Show top for closing trash talk
+    bottomCollapseZone.style.display = 'none'; // Don't show bottom collapse (use cross-strip)
+    console.log('🔽 Trash talk expanded - top zone can close it');
+    
+  } else {
+    // Nothing expanded: show expand zones, hide collapse zones
+    if (topExpandZone) topExpandZone.style.display = 'block';
+    if (bottomExpandZone) bottomExpandZone.style.display = 'block';
+    topCollapseZone.style.display = 'none';
+    bottomCollapseZone.style.display = 'none';
+    console.log('✨ Nothing expanded - expand zones active');
   }
 }
 
-// SIMPLIFIED: Generous tap zones that span full screen width
-// REPLACE the entire initializeSwipeGestures function with this:
+// Hook into existing toggle functions to update zones
+const originalToggleTopStrip = window.toggleTopStrip;
+const originalToggleBottomStrip = window.toggleBottomStrip;
 
-function initializeSwipeGestures() {
-  const topStrip = document.getElementById('topStrip');
-  const bottomStrip = document.getElementById('bottomStrip');
-  const topIndicator = document.getElementById('topSwipeIndicator');
-  const bottomIndicator = document.getElementById('bottomSwipeIndicator');
-  const overlay = document.getElementById('overlay');
+window.toggleTopStrip = function() {
+  toggleTopStrip(); // Call our new function
+  setTimeout(updateTapZones, 100);
+};
 
-  console.log('👆 Initializing SIMPLE generous tap zones...');
-  console.log('   - Full-width tap areas ✅');
-  console.log('   - Generous vertical zones ✅');
-  console.log('   - Purple bar indicators preserved ✅');
-  console.log('   - No complex swipe detection ✅');
+window.toggleBottomStrip = function() {
+  toggleBottomStrip(); // Call our new function  
+  setTimeout(updateTapZones, 100);
+};
+
+// Initialize zones
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(updateTapZones, 500); // Initial setup
+});
 
   // ================================
   // CREATE GENEROUS TAP ZONES
