@@ -60,10 +60,11 @@
       box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
     }
 
-    /* ENHANCED: Edge-to-edge expansion - exactly to bottom strip */
-    .top-strip.expanded {
-      height: calc(100vh - 70px); /* Full height minus bottom strip */
-    }
+    /* FIXED: Edge-to-edge expansion - stops at top of bottom strip */
+.top-strip.expanded {
+  height: calc(100vh - 70px);
+  bottom: 70px; /* Stop above bottom strip */
+}
 
     /* ENHANCED: Fixed Bottom Strip with edge-to-edge expansion */
     .bottom-strip {
@@ -82,10 +83,12 @@
       padding-top: 10px;
     }
 
-    /* ENHANCED: Edge-to-edge expansion - exactly to top strip */
-    .bottom-strip.expanded {
-      height: calc(100vh - 140px); /* Full height minus top strip */
-    }
+      /* FIXED: Edge-to-edge expansion - stops at bottom of top strip */
+.bottom-strip.expanded {
+  height: calc(100vh - 140px);
+  top: 140px; /* Start below top strip */
+  bottom: auto;
+}
 
     /* FIXED: Main Content Area with proper positioning */
     .main-content {
@@ -107,9 +110,10 @@
     }
 
     .main-content.bottom-expanded {
-      margin-bottom: calc(100vh - 140px);
-      min-height: 0;
-    }
+  margin-bottom: calc(100vh - 140px);
+  margin-top: 140px; /* Keep below top strip */
+  min-height: 0;
+}
 
     .main-content.both-collapsed {
       margin-top: 140px;
@@ -390,12 +394,12 @@
       text-align: center;
     }
 
-    /* ENHANCED: Chat expanded with proper height calculation */
-    .chat-expanded {
-      display: none;
-      padding: 1em;
-      padding-top: 10px;
-      height: calc(100vh - 140px - 50px); /* Full expansion minus top strip and mini chat */
+    /* FIXED: Chat expanded with proper height calculation */
+.chat-expanded {
+  display: none;
+  padding: 1em;
+  padding-top: 10px;
+  height: calc(100vh - 280px); /* Account for both strips */
       flex-direction: column;
       overflow: hidden;
       justify-content: space-between;
@@ -764,9 +768,9 @@
       }
 
       .chat-expanded {
-        padding: 0.5em;
-        height: calc(100vh - 140px - 40px); /* Adjust for mobile */
-      }
+  padding: 0.5em;
+  height: calc(100vh - 280px); /* Consistent with desktop */
+}
 
       .message-bubble {
         max-width: 85%;
