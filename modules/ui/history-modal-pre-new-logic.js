@@ -1,5 +1,5 @@
-// I'm Puzzled - History Modal Module v2025.06.02.3
-// ENHANCED: Updated with Cat's Game support, tiebreaker tracking, and enhanced champion logic
+// I'm Puzzled - History Modal Module v2025.05.30.6
+// FIXED: Current champ panel functionality + emoji names
 
 class HistoryModal {
   constructor() {
@@ -12,7 +12,7 @@ class HistoryModal {
     this.isDevelopment = this.detectDevelopmentEnvironment();
     this.useMockData = this.isDevelopment;
     
-    console.log(`📊 History Modal initialized v2025.06.02.3 - CAT'S GAME SUPPORT (${this.isDevelopment ? 'DEV' : 'PROD'} mode)`);
+    console.log(`📊 History Modal initialized v2025.05.30.6 (${this.isDevelopment ? 'DEV' : 'PROD'} mode)`);
   }
 
   detectDevelopmentEnvironment() {
@@ -72,7 +72,7 @@ class HistoryModal {
     this.setupEventListeners();
     this.updateInterfaceVisibility();
     
-    console.log('📊 History Modal ready v2025.06.02.3 - Cat\'s Game enabled');
+    console.log('📊 History Modal ready v2025.05.30.6');
     return true;
   }
 
@@ -120,7 +120,7 @@ class HistoryModal {
   }
 
   async loadHistoryData() {
-    // ENHANCED: Update current champ panel with Cat's Game support
+    // FIXED: Update current champ panel
     this.updateCurrentChampPanel();
     
     try {
@@ -128,7 +128,7 @@ class HistoryModal {
         console.log('📊 Attempting to load real history data...');
         await this.loadRealHistoryData();
       } else if (this.useMockData) {
-        console.log('🚧 Using mock data with Cat\'s Game (development mode)');
+        console.log('🚧 Using mock data (development mode)');
         this.loadMockHistoryData();
       } else {
         console.log('📊 No data available (production mode)');
@@ -146,88 +146,28 @@ class HistoryModal {
     }
   }
 
-  // ENHANCED: Update current champ panel with Cat's Game and tiebreaker support
+  // FIXED: Update current champ panel from scoreboard
   updateCurrentChampPanel() {
     const champName = document.getElementById('currentChampName');
     const champStreak = document.getElementById('currentChampStreak');
     
     if (!champName || !champStreak) return;
     
-    // Get current champion from scoreboard with enhanced logic
+    // Get current champion from scoreboard
     if (window.scoreboard && window.scoreboard.getCurrentChampion) {
       const champ = window.scoreboard.getCurrentChampion();
       if (champ) {
-        // ENHANCED: Handle Cat's Game champion
-        if (champ.name === 'Cat' || champ.name === 'Cat\'s Game') {
-          champName.textContent = 'Cat\'s Game 🐱';
-          champStreak.textContent = `${champ.streak} day${champ.streak !== 1 ? 's' : ''} streak`;
-        } else {
-          // Regular champion with emoji
-          const emoji = champ.name === 'Adam' ? ' 🌵' : ' 💩';
-          champName.textContent = champ.name + emoji;
-          champStreak.textContent = `${champ.streak} day${champ.streak !== 1 ? 's' : ''} streak`;
-        }
+        // FIXED: Include emoji in champion name
+        const emoji = champ.name === 'Adam' ? ' 🌵' : ' 💩';
+        champName.textContent = champ.name + emoji;
+        champStreak.textContent = `${champ.streak} day${champ.streak !== 1 ? 's' : ''} streak`;
       } else {
         champName.textContent = 'No champion yet';
         champStreak.textContent = 'Start competing!';
       }
     } else {
-      // ENHANCED: Check current day winner with tiebreaker logic
-      const currentWinner = this.calculateCurrentDayWinner();
-      if (currentWinner) {
-        if (currentWinner === 'Cat') {
-          champName.textContent = 'Cat\'s Game 🐱';
-          champStreak.textContent = 'Daily tie';
-        } else {
-          const emoji = currentWinner === 'Adam' ? ' 🌵' : ' 💩';
-          champName.textContent = currentWinner + emoji;
-          champStreak.textContent = 'Leading today';
-        }
-      } else {
-        champName.textContent = 'No champion yet';
-        champStreak.textContent = 'Start competing!';
-      }
-    }
-  }
-
-  // NEW: Calculate current day winner with enhanced tiebreaker logic
-  calculateCurrentDayWinner() {
-    if (!window.scoreboard) return null;
-    
-    const scores = window.scoreboard.getScores();
-    const tiebreakers = window.puzzleTable ? window.puzzleTable.getTiebreakers() : { Adam: 0, Jonathan: 0 };
-    
-    // Check for definitive winner
-    const definitiveWinner = window.scoreboard.hasDefinitiveWinner();
-    if (definitiveWinner) return definitiveWinner;
-    
-    // All puzzles completed - determine winner with tiebreaker logic
-    if (scores.remaining === 0) {
-      if (scores.acb > scores.jbb) {
-        return 'Adam';
-      } else if (scores.jbb > scores.acb) {
-        return 'Jonathan';
-      } else {
-        // Equal wins - check tiebreakers
-        if (tiebreakers.Adam > tiebreakers.Jonathan) {
-          return 'Adam';
-        } else if (tiebreakers.Jonathan > tiebreakers.Adam) {
-          return 'Jonathan';
-        } else {
-          // Equal wins and equal tiebreakers = Cat's Game
-          return 'Cat';
-        }
-      }
-    }
-    
-    // Game in progress - show current leader
-    if (scores.acb > scores.jbb) {
-      return 'Adam';
-    } else if (scores.jbb > scores.acb) {
-      return 'Jonathan';
-    } else {
-      // Currently tied
-      return 'Cat';
+      champName.textContent = 'No champion yet';
+      champStreak.textContent = 'Start competing!';
     }
   }
 
@@ -246,11 +186,10 @@ class HistoryModal {
         return;
       }
       
-      // ENHANCED: Calculate streaks with Cat's Game support
       const streaks = this.calculateStreaksFromData(historyData);
       this.updatePuzzleStreaksTable(streaks);
       
-      console.log('✅ Real history data loaded successfully with Cat\'s Game support');
+      console.log('✅ Real history data loaded successfully');
       
     } catch (error) {
       console.error('Failed to load real history data:', error);
@@ -258,9 +197,8 @@ class HistoryModal {
     }
   }
 
-  // ENHANCED: Mock data with Cat's Game examples
   loadMockHistoryData() {
-    console.log('🚧 Loading mock data with Cat\'s Game for development/testing');
+    console.log('🚧 Loading mock data for development/testing');
     
     const mockStreaks = {
       puzzles: {
@@ -269,23 +207,23 @@ class HistoryModal {
           longest: { count: 8, holders: ['Jonathan'] } 
         },
         'Strands': { 
-          current: { winner: 'Cat', count: 1 }, 
+          current: { winner: 'Jonathan', count: 1 }, 
           longest: { count: 5, holders: ['Adam'] } 
         },
         'On the Record': { 
           current: { winner: 'Adam', count: 3 }, 
-          longest: { count: 7, holders: ['Cat'] } 
+          longest: { count: 7, holders: ['Adam'] } 
         },
         'Keyword': { 
           current: { winner: null, count: 0 }, 
-          longest: { count: 4, holders: ['Jonathan', 'Cat'] } 
+          longest: { count: 4, holders: ['Jonathan'] } 
         },
         'NYT Mini': { 
           current: { winner: 'Jonathan', count: 2 }, 
           longest: { count: 6, holders: ['Adam', 'Jonathan'] } 
         },
         'Apple Mini': { 
-          current: { winner: 'Cat', count: 2 }, 
+          current: { winner: 'Adam', count: 1 }, 
           longest: { count: 3, holders: ['Adam'] } 
         },
         'Globle': { 
@@ -297,12 +235,12 @@ class HistoryModal {
           longest: { count: 4, holders: ['Adam'] } 
         },
         'Wordle': { 
-          current: { winner: 'Cat', count: 3 }, 
+          current: { winner: 'Jonathan', count: 1 }, 
           longest: { count: 11, holders: ['Adam'] } 
         },
         'Tightrope': { 
           current: { winner: 'Adam', count: 2 }, 
-          longest: { count: 5, holders: ['Cat'] } 
+          longest: { count: 5, holders: ['Jonathan'] } 
         }
       }
     };
@@ -327,7 +265,7 @@ class HistoryModal {
         font-weight: bold;
         opacity: 0.8;
       `;
-      devIndicator.textContent = 'DEV + CAT';
+      devIndicator.textContent = 'DEV';
       historyHeader.appendChild(devIndicator);
     }
   }
@@ -346,16 +284,13 @@ class HistoryModal {
             background: #f8fafc;
             border-radius: 8px;
           ">
-            Complete some puzzles to see streak data! 🧩<br>
-            <small style="color: #999; margin-top: 0.5em; display: block;">
-              Cat's Game 🐱 streaks included!
-            </small>
+            Complete some puzzles to see streak data! 🧩
           </td>
         </tr>
       `;
     }
     
-    console.log('📊 Displaying "no data yet" message with Cat\'s Game info');
+    console.log('📊 Displaying "no data yet" message');
   }
 
   showErrorMessage() {
@@ -379,7 +314,7 @@ class HistoryModal {
     console.log('❌ Displaying error message');
   }
 
-  // ENHANCED: Update puzzle streaks table with Cat's Game support
+  // FIXED: Update puzzle streaks table with emojis
   updatePuzzleStreaksTable(streaks) {
     const puzzleStreaksEl = document.getElementById('historyTableBody');
     if (!puzzleStreaksEl) return;
@@ -405,15 +340,9 @@ class HistoryModal {
       currentCell.className = 'streak-current';
       const current = puzzleData.current;
       if (current.winner && current.count > 0) {
-        // ENHANCED: Handle Cat's Game in current streaks
-        if (current.winner === 'Cat') {
-          currentCell.textContent = `Cat's Game 🐱 (${current.count} day${current.count !== 1 ? 's' : ''})`;
-          currentCell.style.color = '#f59e0b';
-          currentCell.style.fontWeight = 'bold';
-        } else {
-          const emoji = current.winner === 'Adam' ? ' 🌵' : ' 💩';
-          currentCell.textContent = `${current.winner}${emoji} (${current.count} day${current.count !== 1 ? 's' : ''})`;
-        }
+        // FIXED: Include emoji in current streak display
+        const emoji = current.winner === 'Adam' ? ' 🌵' : ' 💩';
+        currentCell.textContent = `${current.winner}${emoji} (${current.count} day${current.count !== 1 ? 's' : ''})`;
       } else {
         currentCell.textContent = '--';
       }
@@ -422,22 +351,12 @@ class HistoryModal {
       recordCell.className = 'streak-record';
       const longest = puzzleData.longest;
       if (longest.count > 0) {
-        // ENHANCED: Handle Cat's Game in record streaks
+        // FIXED: Include emojis in record streak display
         const holderText = longest.holders.map(holder => {
-          if (holder === 'Cat') {
-            return 'Cat\'s Game 🐱';
-          } else {
-            const emoji = holder === 'Adam' ? ' 🌵' : ' 💩';
-            return holder + emoji;
-          }
+          const emoji = holder === 'Adam' ? ' 🌵' : ' 💩';
+          return holder + emoji;
         }).join(' & ');
         recordCell.textContent = `${holderText} (${longest.count} day${longest.count !== 1 ? 's' : ''})`;
-        
-        // Color Cat's Game records differently
-        if (longest.holders.includes('Cat')) {
-          recordCell.style.color = '#f59e0b';
-          recordCell.style.fontWeight = 'bold';
-        }
       } else {
         recordCell.textContent = 'No records yet';
       }
@@ -449,10 +368,9 @@ class HistoryModal {
       puzzleStreaksEl.appendChild(row);
     });
 
-    console.log('📊 History table updated with Cat\'s Game support v2025.06.02.3');
+    console.log('📊 History table updated with emojis v2025.05.30.6');
   }
 
-  // ENHANCED: Calculate streaks from data with Cat's Game support
   calculateStreaksFromData(historyData) {
     const puzzles = [
       'Connections', 'Strands', 'On the Record', 'Keyword', 'NYT Mini',
@@ -464,118 +382,6 @@ class HistoryModal {
       puzzleStreaks[puzzle] = {
         current: { winner: null, count: 0 },
         longest: { count: 0, holders: [] }
-      };
-    });
-
-    // Group data by date and calculate daily winners
-    const dailyResults = {};
-    historyData.forEach(result => {
-      if (!dailyResults[result.date]) {
-        dailyResults[result.date] = {};
-      }
-      if (!dailyResults[result.date][result.puzzle_name]) {
-        dailyResults[result.date][result.puzzle_name] = {};
-      }
-      dailyResults[result.date][result.puzzle_name][result.player] = result.raw_result;
-    });
-
-    // Calculate daily winners for each puzzle with tiebreaker support
-    const dailyWinners = {};
-    Object.keys(dailyResults).sort().forEach(date => {
-      dailyWinners[date] = {};
-      
-      puzzles.forEach(puzzle => {
-        const puzzleResults = dailyResults[date][puzzle];
-        if (!puzzleResults) {
-          dailyWinners[date][puzzle] = null;
-          return;
-        }
-
-        const adamResult = puzzleResults.Adam || "";
-        const jonResult = puzzleResults.Jonathan || "";
-        
-        if (!adamResult && !jonResult) {
-          dailyWinners[date][puzzle] = null;
-        } else if (!adamResult) {
-          dailyWinners[date][puzzle] = 'Jonathan';
-        } else if (!jonResult) {
-          dailyWinners[date][puzzle] = 'Adam';
-        } else {
-          // Both have results - determine winner with tiebreaker logic
-          const winnerResult = this.puzzleTable ? 
-            this.puzzleTable.determineWinner(puzzle, adamResult, jonResult) :
-            { winner: 'tie', tiebreaker: null };
-          
-          if (winnerResult.winner === 'tie') {
-            dailyWinners[date][puzzle] = 'Cat'; // Ties become Cat's Game
-          } else {
-            dailyWinners[date][puzzle] = winnerResult.winner;
-          }
-        }
-      });
-    });
-
-    // Calculate current and longest streaks for each puzzle
-    puzzles.forEach(puzzle => {
-      const winners = Object.keys(dailyWinners).sort().map(date => dailyWinners[date][puzzle]);
-      
-      // Calculate current streak (from most recent backwards)
-      let currentStreak = 0;
-      let currentWinner = null;
-      
-      for (let i = winners.length - 1; i >= 0; i--) {
-        const winner = winners[i];
-        if (winner && winner === currentWinner) {
-          currentStreak++;
-        } else if (winner && !currentWinner) {
-          currentWinner = winner;
-          currentStreak = 1;
-        } else {
-          break;
-        }
-      }
-      
-      puzzleStreaks[puzzle].current = {
-        winner: currentWinner,
-        count: currentStreak
-      };
-      
-      // Calculate longest streak
-      let longestStreak = 0;
-      let longestHolders = [];
-      let tempStreak = 0;
-      let tempWinner = null;
-      
-      winners.forEach(winner => {
-        if (winner && winner === tempWinner) {
-          tempStreak++;
-        } else if (winner) {
-          if (tempStreak > longestStreak) {
-            longestStreak = tempStreak;
-            longestHolders = [tempWinner];
-          } else if (tempStreak === longestStreak && tempWinner && !longestHolders.includes(tempWinner)) {
-            longestHolders.push(tempWinner);
-          }
-          
-          tempWinner = winner;
-          tempStreak = 1;
-        } else {
-          tempWinner = null;
-          tempStreak = 0;
-        }
-      });
-      
-      // Check final streak
-      if (tempStreak > longestStreak) {
-        longestStreak = tempStreak;
-        longestHolders = [tempWinner];
-      } else if (tempStreak === longestStreak && tempWinner && !longestHolders.includes(tempWinner)) {
-        longestHolders.push(tempWinner);
-      }
-      
-      puzzleStreaks[puzzle].longest = {
-        count: longestStreak,
-        holders: longestHolders.filter(h => h !== null)
       };
     });
 
@@ -591,7 +397,7 @@ class HistoryModal {
     if (historyToggle && this.userManager) {
       const shouldShow = this.userManager.canRenderTable();
       historyToggle.style.display = shouldShow ? 'block' : 'none';
-      console.log('📊 History button visibility v2025.06.02.3:', shouldShow ? 'visible' : 'hidden');
+      console.log('📊 History button visibility v2025.05.30.6:', shouldShow ? 'visible' : 'hidden');
     }
   }
 
@@ -611,8 +417,7 @@ class HistoryModal {
       isDevelopment: this.isDevelopment,
       useMockData: this.useMockData,
       hasData: !!document.getElementById('historyTableBody')?.children.length,
-      catsGameSupport: true,
-      version: 'v2025.06.02.3'
+      version: 'v2025.05.30.6'
     };
   }
 
@@ -624,9 +429,7 @@ class HistoryModal {
       href: window.location.href,
       hasSupabase: !!this.supabaseClient,
       hasUserManager: !!this.userManager,
-      canRenderTable: this.userManager?.canRenderTable() || false,
-      catsGameEnabled: true,
-      tiebreakersSupported: true
+      canRenderTable: this.userManager?.canRenderTable() || false
     };
   }
 }

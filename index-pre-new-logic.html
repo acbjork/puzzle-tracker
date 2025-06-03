@@ -770,17 +770,17 @@
       <!-- Mini Scoreboard (Always Visible) -->
       <div class="scoreboard-mini" id="scoreboardMini">
         <div class="scoreboard-item">
-          <div class="scoreboard-label">ACB🌵</div>
+          <div class="scoreboard-label">ACB</div>
           <div id="acbCrown" class="crown" style="display: none;">👑</div>
           <div id="acbCount" class="scoreboard-value">0</div>
         </div>
         <div class="scoreboard-item">
-          <div class="scoreboard-label">JBB💩</div>
+          <div class="scoreboard-label">JBB</div>
           <div id="jbbCrown" class="crown" style="display: none;">👑</div>
           <div id="jbbCount" class="scoreboard-value">0</div>
         </div>
         <div class="scoreboard-item">
-          <div class="scoreboard-label">Cat🐱</div>
+          <div class="scoreboard-label">Tie</div>
           <div id="tieCount" class="scoreboard-value">0</div>
         </div>
         <div class="scoreboard-item">
@@ -1368,19 +1368,19 @@
       return div;
     };
 
-      window.DEADLINE_CONFIG = {
-      'Connections': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
-      'Strands': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
+    window.DEADLINE_CONFIG = {
+      'Connections': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Strands': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
       'On the Record': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15, weekendExtended: true },
       'Keyword': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
       'NYT Mini': { resetTime: '22:00', timezone: 'ET', gracePeriod: 15, weekendTime: '18:00' },
-      'Apple Mini': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
-      'Globle': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
-      'Flagle': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
-      'Wordle': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
-      'Tightrope': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 }
+      'Apple Mini': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Globle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Flagle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Wordle': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 },
+      'Tightrope': { resetTime: '00:00', timezone: 'local', gracePeriod: 15 }
     };
- 
+
     // Initialize everything
     function initialize() {
       updatePuzzleDateDisplay();

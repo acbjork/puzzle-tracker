@@ -1,5 +1,5 @@
-// I'm Puzzled - Puzzle Table Module v2025.06.02.2
-// ENHANCED: Updated with new scoring logic, tiebreakers, Cat's Game, and weekday-only On the Record
+// I'm Puzzled - Puzzle Table Module v2025.06.02.1
+// ENHANCED: Added input fields and enhanced result display while preserving all existing functionality
 
 class PuzzleTable {
   constructor() {
@@ -24,15 +24,14 @@ class PuzzleTable {
 
     this.results = {};
     this.cellMap = {};
-    this.tiebreakers = {}; // NEW: Track tiebreakers separate from wins
     
     // Add CSS for enhanced functionality
     this.addEnhancedStyles();
     
-    console.log('🧩 Puzzle Table initialized v2025.06.02.2 - NEW SCORING LOGIC');
+    console.log('🧩 Puzzle Table initialized v2025.06.02.1 - ENHANCED with input fields');
   }
 
-  // Add enhanced styles for input fields and buttons
+  // NEW: Add enhanced styles for input fields and buttons
   addEnhancedStyles() {
     if (!document.getElementById('puzzle-table-enhanced-styles')) {
       const styleElement = document.createElement('style');
@@ -67,11 +66,6 @@ class PuzzleTable {
 
         .submitted.tie {
           background-color: #fff9c4 !important;
-        }
-
-        .submitted.tiebreak {
-          background-color: #e0f2fe !important;
-          border-left: 4px solid #0288d1;
         }
 
         .action-buttons {
@@ -118,40 +112,15 @@ class PuzzleTable {
         .result-container {
           width: 100%;
         }
-
-        .weekend-disabled {
-          opacity: 0.5;
-          background-color: #f5f5f5 !important;
-        }
-
-        .weekend-disabled .puzzle-name {
-          color: #999 !important;
-          text-decoration: line-through !important;
-          cursor: not-allowed !important;
-        }
       `;
       document.head.appendChild(styleElement);
     }
-  }
-
-  // NEW: Get active puzzles based on day of week
-  getActivePuzzles(date = null) {
-    const checkDate = date ? new Date(date + 'T00:00:00') : new Date();
-    const dayOfWeek = checkDate.getDay(); // 0 = Sunday, 6 = Saturday
-    
-    // On weekends (Saturday=6, Sunday=0), exclude "On the Record"
-    if (dayOfWeek === 0 || dayOfWeek === 6) {
-      return this.puzzles.filter(puzzle => puzzle !== "On the Record");
-    }
-    
-    return [...this.puzzles]; // All puzzles on weekdays
   }
 
   initializeResults() {
     this.puzzles.forEach(puzzle => {
       this.results[puzzle] = { Adam: "", Jonathan: "" };
     });
-    this.tiebreakers = { Adam: 0, Jonathan: 0 }; // NEW: Initialize tiebreaker counts
   }
 
   loadResults(resultsData) {
@@ -169,14 +138,12 @@ class PuzzleTable {
       }
     }
 
-    console.log('📊 Results loaded v2025.06.02.2:', Object.keys(this.results).length, 'puzzles');
+    console.log('📊 Results loaded v2025.06.02.1:', Object.keys(this.results).length, 'puzzles');
   }
 
-  // ENHANCED: New scoring system with tiebreakers
   determineWinner(puzzle, adamResult, jonResult) {
-    if (!adamResult && !jonResult) return { winner: 'none', tiebreaker: null };
-    if (!adamResult) return { winner: 'Jonathan', tiebreaker: null }; // Adam DNF
-    if (!jonResult) return { winner: 'Adam', tiebreaker: null }; // Jonathan DNF
+    if (!adamResult || !jonResult) return 'none';
+    if (adamResult === jonResult) return 'tie';
 
     switch (puzzle) {
       case "Connections":
@@ -199,221 +166,124 @@ class PuzzleTable {
       case "Tightrope":
         return this.determineTightropeWinner(adamResult, jonResult);
       default:
-        return { winner: 'tie', tiebreaker: null };
+        return 'tie';
     }
   }
 
-  // NEW: Enhanced Connections scoring with purple group tiebreaker
   determineConnectionsWinner(adamResult, jonResult) {
-    const adamGroups = this.countConnectionsGroups(adamResult);
-    const jonGroups = this.countConnectionsGroups(jonResult);
+    const aLines = adamResult.split("\n");
+    const jLines = jonResult.split("\n");
     
-    // Check if both completed all 4 groups
-    if (adamGroups.total === 4 && jonGroups.total === 4) {
-      if (adamGroups.attempts === jonGroups.attempts) {
-        // Same attempts - check purple group tiebreaker
-        const adamPurpleFirst = this.foundPurpleFirst(adamResult, jonResult);
-        return { 
-          winner: 'tie', 
-          tiebreaker: adamPurpleFirst ? 'Adam' : (adamPurpleFirst === false ? 'Jonathan' : null)
-        };
-      }
-      return { winner: adamGroups.attempts < jonGroups.attempts ? 'Adam' : 'Jonathan', tiebreaker: null };
-    }
+    const aIndex = aLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
+    const jIndex = jLines.findIndex(line => line.includes("🟪🟪🟪🟪"));
     
-    // One or both failed to complete
-    if (adamGroups.total === jonGroups.total) {
-      return { winner: 'tie', tiebreaker: null };
-    }
+    if (aIndex !== -1 && (jIndex === -1 || aIndex < jIndex)) return 'Adam';
+    if (jIndex !== -1 && (aIndex === -1 || jIndex < aIndex)) return 'Jonathan';
     
-    return { winner: adamGroups.total > jonGroups.total ? 'Adam' : 'Jonathan', tiebreaker: null };
+    return 'tie';
   }
 
-  countConnectionsGroups(result) {
-    const lines = result.split('\n');
-    let total = 0;
-    let attempts = 0;
-    
-    lines.forEach(line => {
-      if (line.includes('🟪🟪🟪🟪') || line.includes('🟦🟦🟦🟦') || 
-          line.includes('🟩🟩🟩🟩') || line.includes('🟨🟨🟨🟨')) {
-        total++;
-        attempts++;
-      } else if (line.includes('🟪') || line.includes('🟦') || line.includes('🟩') || line.includes('🟨')) {
-        attempts++; // Failed attempt
-      }
-    });
-    
-    return { total, attempts };
-  }
-
-  foundPurpleFirst(adamResult, jonResult) {
-    const adamLines = adamResult.split('\n');
-    const jonLines = jonResult.split('\n');
-    
-    let adamPurpleIndex = -1;
-    let jonPurpleIndex = -1;
-    
-    adamLines.forEach((line, i) => {
-      if (line.includes('🟪🟪🟪🟪') && adamPurpleIndex === -1) {
-        adamPurpleIndex = i;
-      }
-    });
-    
-    jonLines.forEach((line, i) => {
-      if (line.includes('🟪🟪🟪🟪') && jonPurpleIndex === -1) {
-        jonPurpleIndex = i;
-      }
-    });
-    
-    if (adamPurpleIndex === -1 && jonPurpleIndex === -1) return null;
-    if (adamPurpleIndex === -1) return false;
-    if (jonPurpleIndex === -1) return true;
-    
-    return adamPurpleIndex < jonPurpleIndex;
-  }
-
-  // NEW: Enhanced Strands scoring with spangram tiebreaker
   determineStrandsWinner(adamResult, jonResult) {
-    const adamGuesses = this.countStrandsGuesses(adamResult);
-    const jonGuesses = this.countStrandsGuesses(jonResult);
+    const aHints = (adamResult.match(/💡/g) || []).length;
+    const jHints = (jonResult.match(/💡/g) || []).length;
+    const aTotal = adamResult.split("\n").length;
+    const jTotal = jonResult.split("\n").length;
     
-    if (adamGuesses.total === jonGuesses.total) {
-      // Same total guesses - check spangram tiebreaker
-      const adamSpangramFirst = this.foundSpangramFirst(adamResult, jonResult);
-      return { 
-        winner: 'tie', 
-        tiebreaker: adamSpangramFirst ? 'Adam' : (adamSpangramFirst === false ? 'Jonathan' : null)
-      };
-    }
+    if (aTotal < jTotal) return 'Adam';
+    if (jTotal < aTotal) return 'Jonathan';
     
-    return { winner: adamGuesses.total < jonGuesses.total ? 'Adam' : 'Jonathan', tiebreaker: null };
+    if (aHints < jHints) return 'Adam';
+    if (jHints < aHints) return 'Jonathan';
+    
+    const aThemeIndex = adamResult.indexOf("🟡");
+    const jThemeIndex = jonResult.indexOf("🟡");
+    
+    if (aThemeIndex !== -1 && (jThemeIndex === -1 || aThemeIndex < jThemeIndex)) return 'Adam';
+    if (jThemeIndex !== -1 && (aThemeIndex === -1 || jThemeIndex < aThemeIndex)) return 'Jonathan';
+    
+    return 'tie';
   }
 
-  countStrandsGuesses(result) {
-    const lines = result.split('\n');
-    let total = 0;
-    
-    lines.forEach(line => {
-      total += (line.match(/🔵/g) || []).length;
-      total += (line.match(/🟡/g) || []).length;
-      total += (line.match(/💡/g) || []).length;
-    });
-    
-    return { total };
-  }
-
-  foundSpangramFirst(adamResult, jonResult) {
-    const adamLines = adamResult.split('\n');
-    const jonLines = jonResult.split('\n');
-    
-    let adamSpangramIndex = -1;
-    let jonSpangramIndex = -1;
-    
-    adamLines.forEach((line, i) => {
-      if (line.includes('🟡') && adamSpangramIndex === -1) {
-        adamSpangramIndex = i;
-      }
-    });
-    
-    jonLines.forEach((line, i) => {
-      if (line.includes('🟡') && jonSpangramIndex === -1) {
-        jonSpangramIndex = i;
-      }
-    });
-    
-    if (adamSpangramIndex === -1 && jonSpangramIndex === -1) return null;
-    if (adamSpangramIndex === -1) return false;
-    if (jonSpangramIndex === -1) return true;
-    
-    return adamSpangramIndex < jonSpangramIndex;
-  }
-
-  // NEW: Enhanced Keyword scoring with time tiebreaker
   determineKeywordWinner(adamResult, jonResult) {
     const aGuesses = parseInt(adamResult.match(/(\d+) guesses/)?.[1] || "999");
     const jGuesses = parseInt(jonResult.match(/(\d+) guesses/)?.[1] || "999");
     
-    if (aGuesses === jGuesses) {
-      // Same guesses - check time tiebreaker
-      const aTime = this.parseTime(adamResult.match(/(\d+:\d+)/)?.[1] || "99:99");
-      const jTime = this.parseTime(jonResult.match(/(\d+:\d+)/)?.[1] || "99:99");
-      
-      if (aTime === jTime) {
-        return { winner: 'tie', tiebreaker: null };
-      }
-      
-      return { 
-        winner: 'tie', 
-        tiebreaker: aTime < jTime ? 'Adam' : 'Jonathan'
-      };
-    }
+    if (aGuesses < jGuesses) return 'Adam';
+    if (jGuesses < aGuesses) return 'Jonathan';
     
-    return { winner: aGuesses < jGuesses ? 'Adam' : 'Jonathan', tiebreaker: null };
+    const aTime = this.parseTime(adamResult.match(/(\d+:\d+)/)?.[1] || "99:99");
+    const jTime = this.parseTime(jonResult.match(/(\d+:\d+)/)?.[1] || "99:99");
+    
+    if (aTime < jTime) return 'Adam';
+    if (jTime < aTime) return 'Jonathan';
+    
+    return 'tie';
   }
 
-  // NEW: Enhanced Tightrope scoring with score tiebreaker
-  determineTightropeWinner(adamResult, jonResult) {
-    const aChecks = (adamResult.match(/✅/g) || []).length;
-    const jChecks = (jonResult.match(/✅/g) || []).length;
-    
-    if (aChecks === jChecks) {
-      // Same correct answers - check score tiebreaker
-      const aScore = parseInt(adamResult.match(/My Score:\s*(\d+)/)?.[1] || "0");
-      const jScore = parseInt(jonResult.match(/My Score:\s*(\d+)/)?.[1] || "0");
-      
-      if (aScore === jScore) {
-        return { winner: 'tie', tiebreaker: null };
-      }
-      
-      return { 
-        winner: 'tie', 
-        tiebreaker: aScore > jScore ? 'Adam' : 'Jonathan'
-      };
-    }
-    
-    return { winner: aChecks > jChecks ? 'Adam' : 'Jonathan', tiebreaker: null };
-  }
-
-  // Standard scoring methods (no tiebreakers)
   determineWordleWinner(adamResult, jonResult) {
     const aScore = parseInt(adamResult.match(/\b(\d)\/6/)?.[1] || "7");
     const jScore = parseInt(jonResult.match(/\b(\d)\/6/)?.[1] || "7");
     
-    if (aScore === jScore) return { winner: 'tie', tiebreaker: null };
-    return { winner: aScore < jScore ? 'Adam' : 'Jonathan', tiebreaker: null };
+    if (aScore < jScore) return 'Adam';
+    if (jScore < aScore) return 'Jonathan';
+    
+    return 'tie';
   }
 
   determineOnTheRecordWinner(adamResult, jonResult) {
     const aScore = parseInt(adamResult.match(/\b(\d{1,3})\b/)?.[1] || "0");
     const jScore = parseInt(jonResult.match(/\b(\d{1,3})\b/)?.[1] || "0");
     
-    if (aScore === jScore) return { winner: 'tie', tiebreaker: null };
-    return { winner: aScore > jScore ? 'Adam' : 'Jonathan', tiebreaker: null };
+    if (aScore > jScore) return 'Adam';
+    if (jScore > aScore) return 'Jonathan';
+    
+    return 'tie';
   }
 
   determineMiniWinner(adamResult, jonResult) {
     const aTime = this.parseComplexTime(adamResult);
     const jTime = this.parseComplexTime(jonResult);
     
-    if (aTime === jTime) return { winner: 'tie', tiebreaker: null };
-    return { winner: aTime < jTime ? 'Adam' : 'Jonathan', tiebreaker: null };
+    if (aTime < jTime) return 'Adam';
+    if (jTime < aTime) return 'Jonathan';
+    
+    return 'tie';
   }
 
   determineGlobleWinner(adamResult, jonResult) {
     const aGuesses = parseInt(adamResult.match(/=\s*(\d+)/)?.[1] || "999");
     const jGuesses = parseInt(jonResult.match(/=\s*(\d+)/)?.[1] || "999");
     
-    if (aGuesses === jGuesses) return { winner: 'tie', tiebreaker: null };
-    return { winner: aGuesses < jGuesses ? 'Adam' : 'Jonathan', tiebreaker: null };
+    if (aGuesses < jGuesses) return 'Adam';
+    if (jGuesses < aGuesses) return 'Jonathan';
+    
+    return 'tie';
   }
 
   determineFlagleWinner(adamResult, jonResult) {
     const aScore = adamResult.includes("X") ? 7 : parseInt(adamResult.match(/(\d)\/6/)?.[1] || "7");
     const jScore = jonResult.includes("X") ? 7 : parseInt(jonResult.match(/(\d)\/6/)?.[1] || "7");
     
-    if (aScore === jScore) return { winner: 'tie', tiebreaker: null };
-    return { winner: aScore < jScore ? 'Adam' : 'Jonathan', tiebreaker: null };
+    if (aScore < jScore) return 'Adam';
+    if (jScore < aScore) return 'Jonathan';
+    
+    return 'tie';
+  }
+
+  determineTightropeWinner(adamResult, jonResult) {
+    const aChecks = (adamResult.match(/✅/g) || []).length;
+    const jChecks = (jonResult.match(/✅/g) || []).length;
+    
+    if (aChecks > jChecks) return 'Adam';
+    if (jChecks > aChecks) return 'Jonathan';
+    
+    const aScore = parseInt(adamResult.match(/My Score:\s*(\d+)/)?.[1] || "0");
+    const jScore = parseInt(jonResult.match(/My Score:\s*(\d+)/)?.[1] || "0");
+    
+    if (aScore > jScore) return 'Adam';
+    if (jScore > aScore) return 'Jonathan';
+    
+    return 'tie';
   }
 
   parseTime(timeString) {
@@ -443,10 +313,7 @@ class PuzzleTable {
     return 9999;
   }
 
-  // NEW: Enhanced highlighting with tiebreaker indication
   highlightWinners() {
-    this.tiebreakers = { Adam: 0, Jonathan: 0 }; // Reset tiebreaker counts
-    
     this.puzzles.forEach(puzzle => {
       const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
       if (!row) return;
@@ -454,16 +321,16 @@ class PuzzleTable {
       const adamCell = row.children[1];
       const jonCell = row.children[2];
       
-      adamCell.classList.remove("winner", "tie", "tiebreak");
-      jonCell.classList.remove("winner", "tie", "tiebreak");
+      adamCell.classList.remove("winner", "tie");
+      jonCell.classList.remove("winner", "tie");
 
-      const result = this.determineWinner(
+      const winner = this.determineWinner(
         puzzle, 
         this.results[puzzle].Adam, 
         this.results[puzzle].Jonathan
       );
 
-      switch (result.winner) {
+      switch (winner) {
         case 'Adam':
           adamCell.classList.add("winner");
           break;
@@ -473,26 +340,12 @@ class PuzzleTable {
         case 'tie':
           adamCell.classList.add("tie");
           jonCell.classList.add("tie");
-          
-          // Handle tiebreaker highlighting
-          if (result.tiebreaker === 'Adam') {
-            adamCell.classList.add("tiebreak");
-            this.tiebreakers.Adam++;
-          } else if (result.tiebreaker === 'Jonathan') {
-            jonCell.classList.add("tiebreak");
-            this.tiebreakers.Jonathan++;
-          }
           break;
       }
     });
   }
 
-  // NEW: Get tiebreaker counts
-  getTiebreakers() {
-    return { ...this.tiebreakers };
-  }
-
-  // ENHANCED: Improved render method with weekend handling
+  // ENHANCED: Improved render method with input fields and enhanced result display
   render(userManager, supabaseClient, today) {
     const tbody = document.getElementById("puzzleRows");
     
@@ -503,17 +356,9 @@ class PuzzleTable {
 
     tbody.innerHTML = "";
     
-    const activePuzzles = this.getActivePuzzles(today);
-    const isWeekend = !activePuzzles.includes("On the Record");
-    
     this.puzzles.forEach(puzzle => {
       const tr = document.createElement("tr");
       tr.setAttribute("data-puzzle", puzzle);
-      
-      // Add weekend styling for disabled puzzles
-      if (puzzle === "On the Record" && isWeekend) {
-        tr.classList.add("weekend-disabled");
-      }
       
       const tdPuzzle = document.createElement("td");
       const puzzleSpan = document.createElement("span");
@@ -525,7 +370,7 @@ class PuzzleTable {
       }
       
       const url = this.puzzleUrls[puzzle];
-      if (url && (!isWeekend || puzzle !== "On the Record")) {
+      if (url) {
         puzzleSpan.setAttribute("data-url", url);
         puzzleSpan.addEventListener('click', () => {
           window.open(url, '_blank');
@@ -542,23 +387,16 @@ class PuzzleTable {
         if (!this.cellMap[puzzle]) this.cellMap[puzzle] = {};
         this.cellMap[puzzle][user] = td;
         
-        // Disable On the Record on weekends
-        if (puzzle === "On the Record" && isWeekend) {
-          const disabledDiv = document.createElement('div');
-          disabledDiv.className = 'empty-cell';
-          disabledDiv.textContent = 'Weekend';
-          disabledDiv.style.color = '#999';
-          td.appendChild(disabledDiv);
+        // ENHANCED: New result display logic with input fields
+        if (result) {
+          // Show existing result with enhanced display
+          this.renderExistingResult(td, puzzle, user, result, userManager, supabaseClient, today);
         } else {
-          // Normal rendering for active puzzles
-          if (result) {
-            this.renderExistingResult(td, puzzle, user, result, userManager, supabaseClient, today);
+          // Show input field for current user, empty cell for others
+          if (userManager.isCurrentUser(user)) {
+            this.createInputCell(td, puzzle, user, supabaseClient, today, userManager);
           } else {
-            if (userManager.isCurrentUser(user)) {
-              this.createInputCell(td, puzzle, user, supabaseClient, today, userManager);
-            } else {
-              this.createEmptyCell(td);
-            }
+            this.createEmptyCell(td);
           }
         }
         
@@ -577,10 +415,10 @@ class PuzzleTable {
       }
     }, 100);
     
-    console.log('🏆 Puzzle table rendered v2025.06.02.2 - NEW SCORING with tiebreakers');
+    console.log('🏆 Puzzle table rendered v2025.06.02.1 - ENHANCED');
   }
 
-  // Enhanced method to render existing results with edit/delete options
+  // NEW: Enhanced method to render existing results with edit/delete options
   renderExistingResult(td, puzzle, user, result, userManager, supabaseClient, today) {
     const resultContainer = document.createElement("div");
     resultContainer.className = "result-container";
@@ -628,7 +466,7 @@ class PuzzleTable {
     td.appendChild(resultContainer);
   }
 
-  // Enhanced createInputCell method with better styling and functionality
+  // ENHANCED: Improved createInputCell method with better styling and functionality
   createInputCell(td, puzzle, user, supabaseClient, today, userManager) {
     const inputContainer = document.createElement('div');
     inputContainer.className = 'result-input';
@@ -678,7 +516,7 @@ class PuzzleTable {
     td.appendChild(inputContainer);
   }
 
-  // Create empty cell for other users
+  // NEW: Create empty cell for other users
   createEmptyCell(td) {
     const emptyDiv = document.createElement('div');
     emptyDiv.className = 'empty-cell';
@@ -686,7 +524,7 @@ class PuzzleTable {
     td.appendChild(emptyDiv);
   }
 
-  // Enhanced enableEdit with better styling
+  // ENHANCED: Improved enableEdit with better styling
   enableEdit(td, puzzle, user, oldValue, supabaseClient, today) {
     td.innerHTML = "";
     
@@ -769,31 +607,7 @@ class PuzzleTable {
         }
       }, 50);
       
-      console.log(`✅ Result submitted v2025.06.02.2: ${puzzle} - ${user}`);
-    } catch (error) {
-      console.error("Submission failed:", error.message);
-      alert("Submission failed. Try again.");
-    }
-  }
-
-  // Enhanced delete with real-time scoreboard trigger
-  async deleteResult(puzzle, user, supabaseClient, today) {
-    try {
-      this.results[puzzle][user] = "";
-      await supabaseClient.deleteResult(today, puzzle, user);
-      
-      const userManager = window.userManager;
-      this.render(userManager, supabaseClient, today);
-      
-      // Force immediate scoreboard update
-      setTimeout(() => {
-        if (window.scoreboard) {
-        
-window.scoreboard.triggerRealtimeUpdate();
-        }
-      }, 50);
-      
-      console.log(`✅ Result submitted v2025.06.02.2: ${puzzle} - ${user}`);
+      console.log(`✅ Result submitted v2025.06.02.1: ${puzzle} - ${user}`);
     } catch (error) {
       console.error("Submission failed:", error.message);
       alert("Submission failed. Try again.");
@@ -817,7 +631,7 @@ window.scoreboard.triggerRealtimeUpdate();
         }
       }, 50);
       
-      console.log(`🗑️ Result deleted v2025.06.02.2: ${puzzle} - ${user}`);
+      console.log(`🗑️ Result deleted v2025.06.02.1: ${puzzle} - ${user}`);
       return true;
     } catch (error) {
       console.error("Deletion failed:", error.message);
@@ -838,11 +652,6 @@ window.scoreboard.triggerRealtimeUpdate();
     return [...this.puzzles];
   }
 
-  // NEW: Get active puzzles for current date
-  getActivePuzzlesForDate(date) {
-    return this.getActivePuzzles(date);
-  }
-
   hasResults() {
     return Object.values(this.results).some(puzzle => 
       puzzle.Adam || puzzle.Jonathan
@@ -850,11 +659,10 @@ window.scoreboard.triggerRealtimeUpdate();
   }
 
   getCompletionStatus() {
-    const activePuzzles = this.getActivePuzzles();
     let completed = 0;
-    let total = activePuzzles.length;
+    let total = this.puzzles.length;
     
-    activePuzzles.forEach(puzzle => {
+    this.puzzles.forEach(puzzle => {
       if (this.results[puzzle].Adam && this.results[puzzle].Jonathan) {
         completed++;
       }
@@ -871,4 +679,4 @@ window.scoreboard.triggerRealtimeUpdate();
 const puzzleTable = new PuzzleTable();
 
 export default puzzleTable;
-export { PuzzleTable }; 
+export { PuzzleTable };

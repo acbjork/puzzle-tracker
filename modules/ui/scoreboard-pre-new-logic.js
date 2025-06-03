@@ -1,5 +1,5 @@
-// I'm Puzzled - Scoreboard Module v2025.06.02.3
-// ENHANCED: Updated with tiebreaker system, Cat's Game support, and enhanced champion logic
+// I'm Puzzled - Scoreboard Module v2025.05.30.6
+// FIXED: Real-time updates, current champion tracking
 
 class Scoreboard {
   constructor() {
@@ -10,27 +10,18 @@ class Scoreboard {
       remaining: 10
     };
     
-    this.tiebreakers = {
-      Adam: 0,
-      Jonathan: 0
-    };
-    
     this.currentChampion = null;
     this.currentStreak = 0;
     this.dailyWins = []; // Track daily wins for streak calculation
     
-    console.log('🏆 Scoreboard initialized v2025.06.02.3 - TIEBREAKER SYSTEM + CAT\'S GAME');
+    console.log('🏆 Scoreboard initialized v2025.05.30.6 - FIXED');
   }
 
-  // ENHANCED: Calculate scores with tiebreaker integration
   calculateScores(puzzleTable) {
     let acb = 0, jbb = 0, tie = 0, remaining = 0;
     
     const puzzles = puzzleTable.getPuzzles();
     const results = puzzleTable.getResults();
-    
-    // Reset tiebreakers
-    this.tiebreakers = { Adam: 0, Jonathan: 0 };
     
     puzzles.forEach(puzzle => {
       const row = document.querySelector(`tr[data-puzzle="${puzzle}"]`);
@@ -45,42 +36,28 @@ class Scoreboard {
         return;
       }
       
-      // Get winner result with tiebreaker info from puzzle table
-      const winnerResult = puzzleTable.determineWinner(puzzle, adamResult, jonResult);
+      const adamIsWinner = adamCell.classList.contains("winner");
+      const jonIsWinner = jonCell.classList.contains("winner");
+      const isTie = adamCell.classList.contains("tie") && jonCell.classList.contains("tie");
       
-      switch (winnerResult.winner) {
-        case 'Adam':
-          acb++;
-          break;
-        case 'Jonathan':
-          jbb++;
-          break;
-        case 'tie':
-          tie++;
-          // Handle tiebreakers - these don't change the tie count but affect daily winner
-          if (winnerResult.tiebreaker === 'Adam') {
-            this.tiebreakers.Adam++;
-          } else if (winnerResult.tiebreaker === 'Jonathan') {
-            this.tiebreakers.Jonathan++;
-          }
-          break;
+      if (adamIsWinner && !jonIsWinner) {
+        acb++;
+      } else if (jonIsWinner && !adamIsWinner) {
+        jbb++;
+      } else if (isTie) {
+        tie++;
       }
     });
 
     this.scores = { acb, jbb, tie, remaining };
     
-    // ENHANCED: Update current champion with tiebreaker logic
+    // FIXED: Update current champion tracking
     this.updateCurrentChampion();
     
     return this.scores;
   }
 
-  // ENHANCED: Get tiebreaker counts
-  getTiebreakers() {
-    return { ...this.tiebreakers };
-  }
-
-  // ENHANCED: Real-time display updates
+  // FIXED: Real-time display updates
   updateDisplay() {
     // Update score values
     document.getElementById("acbCount").textContent = this.scores.acb;
@@ -121,29 +98,34 @@ class Scoreboard {
       jbbEl.style.color = "#f59e0b";
     }
 
-    // ENHANCED: Trigger enhanced scoreboard update for real-time sync
+    // FIXED: Trigger enhanced scoreboard update for real-time sync
     if (window.enhancedUpdateScoreboard) {
       window.enhancedUpdateScoreboard(this.scores.acb, this.scores.jbb, this.scores.tie, this.scores.remaining);
     }
 
-    console.log(`🏆 Scoreboard updated v2025.06.02.3: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, TB: A${this.tiebreakers.Adam} J${this.tiebreakers.Jonathan}, Remaining ${this.scores.remaining}`);
+    console.log(`🏆 Scoreboard updated v2025.05.30.6: ACB ${this.scores.acb}, JBB ${this.scores.jbb}, Tie ${this.scores.tie}, Remaining ${this.scores.remaining}`);
   }
 
-  // ENHANCED: Current champion tracking with tiebreaker logic
+  // FIXED: Current champion tracking
   updateCurrentChampion() {
     const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
     const canJbbWin = this.scores.jbb + this.scores.remaining > this.scores.acb;
     
     let newChampion = null;
     
-    // Determine current champion based on mathematical certainty or completion
+    // Determine current champion based on mathematical certainty
     if (this.scores.acb > this.scores.jbb && !canJbbWin) {
       newChampion = 'Adam';
     } else if (this.scores.jbb > this.scores.acb && !canAcbWin) {
       newChampion = 'Jonathan';
     } else if (this.scores.remaining === 0) {
-      // All puzzles complete - use enhanced daily winner logic
-      newChampion = this.calculateDailyWinner();
+      // All puzzles complete
+      if (this.scores.acb > this.scores.jbb) {
+        newChampion = 'Adam';
+      } else if (this.scores.jbb > this.scores.acb) {
+        newChampion = 'Jonathan';
+      }
+      // If tied, no champion
     }
     
     if (newChampion !== this.currentChampion) {
@@ -158,27 +140,7 @@ class Scoreboard {
     }
   }
 
-  // NEW: Calculate daily winner with enhanced tiebreaker logic
-  calculateDailyWinner() {
-    // Rule: Adam wins more puzzles OR Adam and Jonathan win same number but Adam has more tiebreaks
-    if (this.scores.acb > this.scores.jbb) {
-      return 'Adam';
-    } else if (this.scores.jbb > this.scores.acb) {
-      return 'Jonathan';
-    } else {
-      // Equal puzzle wins - check tiebreakers
-      if (this.tiebreakers.Adam > this.tiebreakers.Jonathan) {
-        return 'Adam';
-      } else if (this.tiebreakers.Jonathan > this.tiebreakers.Adam) {
-        return 'Jonathan';
-      } else {
-        // Equal puzzle wins AND equal tiebreaks = Cat's Game
-        return 'Cat';
-      }
-    }
-  }
-
-  // ENHANCED: Get current champion info with Cat's Game support
+  // FIXED: Get current champion info for display
   getCurrentChampion() {
     if (!this.currentChampion) {
       return null;
@@ -187,9 +149,7 @@ class Scoreboard {
     return {
       name: this.currentChampion,
       streak: this.currentStreak,
-      score: this.currentChampion === 'Adam' ? this.scores.acb : 
-             this.currentChampion === 'Jonathan' ? this.scores.jbb :
-             this.scores.tie // For Cat's Game
+      score: this.currentChampion === 'Adam' ? this.scores.acb : this.scores.jbb
     };
   }
 
@@ -197,31 +157,18 @@ class Scoreboard {
     return { ...this.scores };
   }
 
-  // ENHANCED: Get leader with tiebreaker consideration
   getLeader() {
-    if (this.scores.remaining === 0) {
-      // Game complete - use full daily winner logic
-      return this.calculateDailyWinner();
-    }
-    
-    // Game in progress - show current leader
     if (this.scores.acb > this.scores.jbb) return 'Adam';
     if (this.scores.jbb > this.scores.acb) return 'Jonathan';
     return 'Tie';
   }
 
-  // ENHANCED: Check for definitive winner with tiebreaker logic
   hasDefinitiveWinner() {
     const canAcbWin = this.scores.acb + this.scores.remaining > this.scores.jbb;
     const canJbbWin = this.scores.jbb + this.scores.remaining > this.scores.acb;
     
     if (this.scores.acb > this.scores.jbb && !canJbbWin) return 'Adam';
     if (this.scores.jbb > this.scores.acb && !canAcbWin) return 'Jonathan';
-    
-    // Check if all puzzles are complete
-    if (this.scores.remaining === 0) {
-      return this.calculateDailyWinner();
-    }
     
     return null;
   }
@@ -257,22 +204,18 @@ class Scoreboard {
     return { Adam: adamProbability, Jonathan: jonathanProbability };
   }
 
-  // ENHANCED: Status message with tiebreaker info
   getStatusMessage() {
     const winner = this.hasDefinitiveWinner();
     if (winner) {
-      if (winner === 'Cat') {
-        return `🐱 Cat's Game! Final score: ${this.getScoreString()} (tied on tiebreaks)`;
-      }
       return `🎉 ${winner} wins! Final score: ${this.getScoreString()}`;
     }
     
     if (this.scores.remaining === 0) {
-      const dailyWinner = this.calculateDailyWinner();
-      if (dailyWinner === 'Cat') {
-        return `🐱 Cat's Game! Final score: ${this.getScoreString()} (tied on tiebreaks)`;
+      const leader = this.getLeader();
+      if (leader === 'Tie') {
+        return `🤝 It's a tie! Final score: ${this.getScoreString()}`;
       }
-      return `🏆 ${dailyWinner} wins! Final score: ${this.getScoreString()}`;
+      return `🏆 ${leader} wins! Final score: ${this.getScoreString()}`;
     }
     
     if (this.scores.acb === 0 && this.scores.jbb === 0) {
@@ -308,25 +251,24 @@ class Scoreboard {
       tie: 0,
       remaining: 10
     };
-    this.tiebreakers = { Adam: 0, Jonathan: 0 };
     this.currentChampion = null;
     this.currentStreak = 0;
     this.updateDisplay();
-    console.log('🔄 Scoreboard reset v2025.06.02.3');
+    console.log('🔄 Scoreboard reset v2025.05.30.6');
   }
 
-  // ENHANCED: Update with tiebreaker support
+  // FIXED: Enhanced update for real-time sync
   update(puzzleTable) {
     this.calculateScores(puzzleTable);
     this.updateDisplay();
     
-    // Force immediate real-time update
+    // FIXED: Force immediate real-time update
     setTimeout(() => {
       this.triggerRealtimeUpdate();
     }, 50);
   }
 
-  // Force real-time update across all displays
+  // FIXED: Force real-time update across all displays
   triggerRealtimeUpdate() {
     if (window.enhancedUpdateScoreboard) {
       window.enhancedUpdateScoreboard(this.scores.acb, this.scores.jbb, this.scores.tie, this.scores.remaining);
@@ -343,41 +285,23 @@ class Scoreboard {
     this.updateDisplay();
   }
 
-  // ENHANCED: Tie status with Cat's Game info
   getTieStatus() {
-    const dailyWinner = this.calculateDailyWinner();
     return {
       isTied: this.scores.acb === this.scores.jbb,
       showAsYellow: true,
-      count: this.scores.acb,
-      isCatsGame: dailyWinner === 'Cat',
-      tiebreakers: { ...this.tiebreakers }
+      count: this.scores.acb
     };
   }
 
-  // Set champion streak (would come from historical data)
+  // FIXED: Set champion streak (would come from historical data)
   setChampionStreak(streak) {
     this.currentStreak = streak;
   }
 
-  // Add daily win to streak tracking
+  // FIXED: Add daily win to streak tracking
   addDailyWin(date, winner) {
     this.dailyWins.push({ date, winner });
     // In production, this would calculate streaks from historical data
-  }
-
-  // NEW: Get detailed scoring breakdown for debugging
-  getDetailedStatus() {
-    return {
-      scores: { ...this.scores },
-      tiebreakers: { ...this.tiebreakers },
-      currentChampion: this.currentChampion,
-      currentStreak: this.currentStreak,
-      dailyWinner: this.calculateDailyWinner(),
-      definitiveWinner: this.hasDefinitiveWinner(),
-      isComplete: this.isComplete(),
-      version: 'v2025.06.02.3'
-    };
   }
 }
 
