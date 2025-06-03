@@ -1,5 +1,5 @@
-// I'm Puzzled - Main App Module v2025.06.03.1 - Enhanced UI Integration
-// FIXED: Bottom strip visibility logic, edge-to-edge expansion support, enhanced real-time sync
+// I'm Puzzled - Main App Module v2025.05.30.2 - Claude-Style Interface
+// Orchestrates all modules with enhanced real-time sync for dual scoreboard displays
 
 class App {
   constructor() {
@@ -7,13 +7,13 @@ class App {
     this.isInitialized = false;
     this.today = new Date().toISOString().slice(0, 10);
     
-    console.log('🎮 App initialized v2025.06.03.1 - Enhanced UI integration');
+    console.log('🎮 App initialized for Claude-style interface');
   }
 
   // Initialize the complete application
   async init() {
     try {
-      console.log('🚀 Starting app initialization v2025.06.03.1...');
+      console.log('🚀 Starting app initialization...');
       
       // Load all modules
       await this.loadModules();
@@ -27,13 +27,10 @@ class App {
       // Load initial data
       await this.loadInitialData();
       
-      // ENHANCED: Initialize UI state properly
-      this.initializeUIState();
-      
       // Mark as initialized
       this.isInitialized = true;
       
-      console.log('✅ App initialization complete v2025.06.03.1!');
+      console.log('✅ App initialization complete!');
       
       // Remove loading overlay
       this.hideLoadingOverlay();
@@ -82,7 +79,7 @@ class App {
     window.chatSystem = this.modules.chatSystem;
     window.historyModal = this.modules.historyModal;
 
-    console.log('📦 All modules loaded v2025.06.03.1');
+    console.log('📦 All modules loaded');
   }
 
   // Initialize modules with dependencies
@@ -93,16 +90,16 @@ class App {
     // Initialize user manager
     userManager.setupUserSelector();
 
-    // Initialize chat system with enhanced UI integration
+    // Initialize chat system with Claude-style interface
     await chatSystem.init(userManager, supabaseClient, dateHelpers);
 
-    // Initialize history modal with enhanced UI integration
+    // Initialize history modal for Claude-style interface
     historyModal.init(userManager, supabaseClient, dateHelpers, puzzleTable);
 
-    // ENHANCED: Setup user change listener to update interface properly
+    // ENHANCED: Setup user change listener to update interface
     userManager.onUserChanged = () => this.onUserChanged();
 
-    console.log('🔧 Modules initialized v2025.06.03.1');
+    console.log('🔧 Modules initialized');
   }
 
   // ENHANCED: Setup real-time subscriptions with improved sync
@@ -120,7 +117,7 @@ class App {
       chatSystem.handleRealtimeUpdate(payload);
     });
 
-    console.log('📡 Enhanced real-time subscriptions active v2025.06.03.1');
+    console.log('📡 Enhanced real-time subscriptions active');
   }
 
   // ENHANCED: Handle real-time puzzle result updates with forced scoreboard sync
@@ -133,7 +130,7 @@ class App {
     
     if (!puzzle || !player) return;
 
-    console.log(`🔄 Real-time update received v2025.06.03.1: ${puzzle} - ${player}`);
+    console.log(`🔄 Real-time update received: ${puzzle} - ${player}`);
 
     // Update puzzle table results
     if (!puzzleTable.results[puzzle]) {
@@ -152,7 +149,7 @@ class App {
     // ENHANCED: Force immediate scoreboard update with dual display sync
     scoreboard.update(puzzleTable);
     
-    // CRITICAL FIX: Force enhanced scoreboard update for UI integration
+    // CRITICAL FIX: Force enhanced scoreboard update for Claude-style interface
     setTimeout(() => {
       const scores = scoreboard.getScores();
       if (window.enhancedUpdateScoreboard) {
@@ -160,7 +157,7 @@ class App {
       }
     }, 100); // Small delay to ensure table rendering is complete
 
-    console.log(`✅ Real-time sync complete v2025.06.03.1: ${puzzle} - ${player}`);
+    console.log(`✅ Real-time sync complete: ${puzzle} - ${player}`);
   }
 
   // Load initial application data
@@ -178,13 +175,13 @@ class App {
         puzzleTable.render(userManager, supabaseClient, this.today);
         scoreboard.update(puzzleTable);
         
-        // ENHANCED: Ensure UI scoreboard is updated
+        // ENHANCED: Ensure Claude-style scoreboard is updated
         const scores = scoreboard.getScores();
         if (window.enhancedUpdateScoreboard) {
           window.enhancedUpdateScoreboard(scores.acb, scores.jbb, scores.tie, scores.remaining);
         }
         
-        console.log('📊 Initial data loaded with enhanced UI sync v2025.06.03.1');
+        console.log('📊 Initial data loaded with Claude-style sync');
       } catch (error) {
         console.error('Error loading initial data:', error);
         // Render empty table as fallback
@@ -208,12 +205,6 @@ class App {
     }
   }
 
-  // ENHANCED: Initialize UI state for proper strip visibility
-  initializeUIState() {
-    this.updateInterfaceVisibility();
-    console.log('🎨 UI state initialized v2025.06.03.1');
-  }
-
   // Hide loading overlay
   hideLoadingOverlay() {
     const overlay = document.getElementById('loadingOverlay');
@@ -222,34 +213,35 @@ class App {
     }
   }
 
-  // ENHANCED: Refresh application data with UI sync
+  // ENHANCED: Refresh application data with Claude-style sync
   async refresh() {
     if (!this.isInitialized) return;
     
-    console.log('🔄 Refreshing app data v2025.06.03.1...');
+    console.log('🔄 Refreshing app data...');
     await this.loadInitialData();
     
-    // Force update of UI elements
-    this.updateInterfaceVisibility();
+    // Force update of Claude-style interface elements
+    this.updateClaudeInterfaceVisibility();
   }
 
-  // ENHANCED: Handle user changes with proper UI updates
+  // ENHANCED: Handle user changes with Claude-style interface updates
   async onUserChanged() {
     if (!this.isInitialized) return;
     
-    console.log('👤 User changed, updating interface v2025.06.03.1...');
+    console.log('👤 User changed, updating Claude-style interface...');
     
     // Update current user reference
     this.modules.chatSystem.currentUser = this.modules.userManager.getCurrentUser();
     
-    // Update interface visibility properly
-    this.updateInterfaceVisibility();
+    // Update interface visibility for Claude-style layout
+    this.updateClaudeInterfaceVisibility();
     
     // Reload data
     await this.refresh();
   }
-  // ENHANCED: Update interface visibility with FIXED bottom strip logic
-  updateInterfaceVisibility() {
+
+  // ENHANCED: Update Claude-style interface visibility
+  updateClaudeInterfaceVisibility() {
     const { userManager, chatSystem, historyModal } = this.modules;
     
     // Update chat system visibility
@@ -258,32 +250,28 @@ class App {
     // Update history modal visibility
     historyModal.updateInterfaceVisibility();
     
-    // FIXED: Bottom strip should ALWAYS be visible (Bug #3 fix)
+    // Show/hide Claude-style interface elements
     const bottomStrip = document.getElementById('bottomStrip');
     const topStrip = document.getElementById('topStrip');
     
     const canUseInterface = userManager.canRenderTable();
     
-    // CRITICAL FIX: Bottom strip is always visible, only functionality changes
     if (bottomStrip) {
-      bottomStrip.style.display = 'block'; // FIXED: Always visible
-      bottomStrip.style.opacity = canUseInterface ? '1' : '0.6';
-      bottomStrip.style.pointerEvents = canUseInterface ? 'auto' : 'limited';
+      bottomStrip.style.display = canUseInterface ? 'flex' : 'none';
     }
     
-    // Top strip behavior unchanged - always visible
+    // Top strip is always visible but functionality depends on user
     if (topStrip) {
-      topStrip.style.display = 'block';
       topStrip.style.opacity = canUseInterface ? '1' : '0.6';
-      topStrip.style.pointerEvents = canUseInterface ? 'auto' : 'limited';
+      topStrip.style.pointerEvents = canUseInterface ? 'auto' : 'none';
     }
     
-    console.log('🎨 Interface visibility updated v2025.06.03.1 - Bottom strip always visible');
+    console.log('🎨 Claude-style interface visibility updated');
   }
 
-  // ENHANCED: Start new day with proper UI updates
+  // ENHANCED: Start new day with Claude-style updates
   startNewDay() {
-    console.log('🆕 Starting new puzzle day v2025.06.03.1...');
+    console.log('🆕 Starting new puzzle day with Claude-style interface...');
     
     const newDate = new Date().toISOString().slice(0, 10);
     this.today = newDate;
@@ -296,7 +284,7 @@ class App {
     // Reset scoreboard for new day
     this.modules.scoreboard.reset();
     
-    // Force UI scoreboard update
+    // Force Claude-style scoreboard update
     if (window.enhancedUpdateScoreboard) {
       window.enhancedUpdateScoreboard(0, 0, 0, 10);
     }
@@ -308,22 +296,20 @@ class App {
     // Update real-time subscriptions for new date
     this.setupRealtimeSubscriptions();
     
-    console.log('✅ New day started v2025.06.03.1');
+    console.log('✅ New day started with Claude-style interface');
   }
 
-  // ENHANCED: Get app status with UI info
+  // ENHANCED: Get app status with Claude-style info
   getStatus() {
     return {
       initialized: this.isInitialized,
       currentUser: this.modules.userManager?.getCurrentUser(),
       modulesLoaded: Object.keys(this.modules).length,
       today: this.today,
-      uiIntegration: true,
-      edgeToEdgeExpansion: true,
+      claudeStyleInterface: true,
       scoreboardSyncEnabled: !!window.enhancedUpdateScoreboard,
-      bottomStripAlwaysVisible: true, // FIXED
-      topStripVisible: true,
-      version: 'v2025.06.03.1'
+      chatPanelVisible: document.getElementById('bottomStrip')?.style.display !== 'none',
+      historyPanelVisible: document.getElementById('topStrip')?.style.display !== 'none'
     };
   }
 
@@ -334,13 +320,13 @@ class App {
       if (window.enhancedUpdateScoreboard) {
         window.enhancedUpdateScoreboard(scores.acb, scores.jbb, scores.tie, scores.remaining);
       }
-      console.log('🔄 Forced scoreboard sync completed v2025.06.03.1');
+      console.log('🔄 Forced scoreboard sync completed');
     }
   }
 
   // ENHANCED: Manual refresh for debugging
   async forceRefresh() {
-    console.log('🔧 Force refreshing with enhanced UI sync v2025.06.03.1...');
+    console.log('🔧 Force refreshing with Claude-style sync...');
     
     // Force reload all data
     await this.loadInitialData();
@@ -349,62 +335,9 @@ class App {
     this.forceSyncScoreboard();
     
     // Update interface visibility
-    this.updateInterfaceVisibility();
+    this.updateClaudeInterfaceVisibility();
     
-    console.log('✅ Force refresh completed v2025.06.03.1');
-  }
-
-  // ENHANCED: Load data for specific date with UI sync
-  async loadDataForDate(date) {
-    if (!this.isInitialized) return;
-    
-    console.log(`📅 Loading data for date: ${date} v2025.06.03.1`);
-    
-    const { userManager, puzzleTable, scoreboard } = this.modules;
-    const supabaseClient = window.supabaseClient;
-    
-    this.today = date;
-    
-    if (userManager.canRenderTable()) {
-      try {
-        // Load results for specific date
-        const resultsData = await supabaseClient.loadTodayResults(date);
-        puzzleTable.loadResults(resultsData);
-        
-        // Render table and scoreboard
-        puzzleTable.render(userManager, supabaseClient, date);
-        scoreboard.update(puzzleTable);
-        
-        // Force UI sync
-        const scores = scoreboard.getScores();
-        if (window.enhancedUpdateScoreboard) {
-          window.enhancedUpdateScoreboard(scores.acb, scores.jbb, scores.tie, scores.remaining);
-        }
-        
-        console.log(`✅ Data loaded for ${date} v2025.06.03.1`);
-      } catch (error) {
-        console.error(`Error loading data for ${date}:`, error);
-      }
-    }
-    
-    // Update real-time subscriptions for new date
-    this.setupRealtimeSubscriptions();
-  }
-
-  // ENHANCED: Reset for new day
-  resetForNewDay() {
-    console.log('🔄 Resetting for new day v2025.06.03.1...');
-    
-    // Reset all modules
-    this.modules.scoreboard.reset();
-    this.modules.puzzleTable.initializeResults();
-    
-    // Force UI reset
-    if (window.enhancedUpdateScoreboard) {
-      window.enhancedUpdateScoreboard(0, 0, 0, 10);
-    }
-    
-    console.log('✅ Reset complete v2025.06.03.1');
+    console.log('✅ Force refresh completed');
   }
 
   // Cleanup (for testing or page unload)
@@ -415,7 +348,7 @@ class App {
     }
     
     this.isInitialized = false;
-    console.log('🧹 App cleanup complete v2025.06.03.1');
+    console.log('🧹 App cleanup complete');
   }
 }
 
@@ -425,9 +358,9 @@ const app = new App();
 // Make app globally available
 window.app = app;
 
-// ENHANCED: Add global debugging functions with version info
+// ENHANCED: Add global debugging functions
 window.debugScoreboard = () => {
-  console.log('🐛 Debug: Current scoreboard state v2025.06.03.1');
+  console.log('🐛 Debug: Current scoreboard state');
   if (window.app && window.app.modules.scoreboard) {
     const scores = window.app.modules.scoreboard.getScores();
     console.log('Scores:', scores);
@@ -436,18 +369,9 @@ window.debugScoreboard = () => {
 };
 
 window.debugRefresh = () => {
-  console.log('🐛 Debug: Force refreshing app v2025.06.03.1');
+  console.log('🐛 Debug: Force refreshing app');
   if (window.app) {
     window.app.forceRefresh();
-  }
-};
-
-window.debugUI = () => {
-  console.log('🐛 Debug: UI state v2025.06.03.1');
-  if (window.app) {
-    console.log('App status:', window.app.getStatus());
-    console.log('Bottom strip expanded:', window.bottomStripExpanded);
-    console.log('Top strip expanded:', window.topStripExpanded);
   }
 };
 

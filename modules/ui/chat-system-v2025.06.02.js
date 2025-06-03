@@ -1,9 +1,10 @@
-// I'm Puzzled - Chat System Module v2025.06.01.2
-// CRITICAL FIX: Enhanced UI integration to properly call markAsRead()
+// I'm Puzzled - Chat System Module v2025.06.02.4
+// ENHANCED: Fixed collapse behavior, improved unread badge, better real-time integration
+// PART 1 OF 2 - CONCATENATE WITH PART 2
 
 class ChatSystem {
   constructor() {
-    console.log('🚨 ChatSystem constructor called! v2025.06.01.2');
+    console.log('🚨 ChatSystem constructor called! v2025.06.02.4');
     this.messages = [];
     this.isVisible = false;
     this.hasUnreadMessages = false;
@@ -13,8 +14,14 @@ class ChatSystem {
     this.isProcessing = false;
     this.debugMode = true; // Enhanced debugging
     this.markAsReadInProgress = false; // Prevent duplicate calls
+    this.listenersSetup = false;
+    this.initializationTime = new Date().toISOString();
+    this.messagesSentCount = 0;
+    this.messagesDeletedCount = 0;
+    this.badgeUpdateCount = 0;
+    this.markAsReadCallCount = 0;
     
-    console.log('💬 Chat System initialized v2025.06.01.2 - CRITICAL FIX');
+    console.log('💬 Chat System initialized v2025.06.02.4 - COLLAPSE FIX + UNREAD BADGE');
   }
 
   async init(userManager, supabaseClient, dateHelpers) {
@@ -30,10 +37,10 @@ class ChatSystem {
     this.setupEventListeners();
     this.updateInterfaceVisibility();
     
-    // CRITICAL FIX: Ensure we're properly exposed to global scope
+    // Ensure we're properly exposed to global scope
     window.chatSystem = this;
     
-    console.log('💬 Chat System ready v2025.06.01.2 - ENHANCED UI INTEGRATION');
+    console.log('💬 Chat System ready v2025.06.02.4 - ENHANCED UI INTEGRATION');
   }
 
   async loadLastReadStatus() {
@@ -70,12 +77,16 @@ class ChatSystem {
       if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages`);
     } catch (error) {
       console.error("Failed to load chat messages:", error);
+      this.messages = [];
     }
   }
 
   renderMessages() {
     const container = document.getElementById('chatMessages');
-    if (!container) return;
+    if (!container) {
+      console.warn('❌ chatMessages container not found');
+      return;
+    }
 
     if (this.messages.length === 0) {
       container.innerHTML = `
@@ -96,14 +107,16 @@ class ChatSystem {
 
     container.innerHTML = '';
     
-    this.messages.forEach(msg => {
+    this.messages.forEach((msg, index) => {
       const messageDiv = document.createElement('div');
       const isCurrentUser = msg.player === this.currentUser;
       messageDiv.className = 'chat-message';
+      messageDiv.setAttribute('data-message-id', msg.id);
+      messageDiv.setAttribute('data-message-index', index);
       
-      const senderEmoji = this.userManager.getUserEmoji(msg.player);
+      const senderEmoji = this.userManager ? this.userManager.getUserEmoji(msg.player) : '';
       const senderName = `${msg.player} ${senderEmoji}`;
-      const timestamp = this.dateHelpers.formatChatTimestamp(msg.created_at);
+      const timestamp = this.dateHelpers ? this.dateHelpers.formatChatTimestamp(msg.created_at) : msg.created_at;
       
       const bubbleDiv = document.createElement('div');
       bubbleDiv.className = `message-bubble ${isCurrentUser ? 'current-user' : 'other-user'}`;
@@ -116,7 +129,7 @@ class ChatSystem {
           <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
             ${senderName}
           </div>
-          <div class="message-text" style="margin: 0.25em 0;">
+          <div class="message-text" style="margin: 0.25em 0; color: #999;">
             This message was deleted
           </div>
           <div class="timestamp" style="font-size: 0.8em; opacity: 0.7; margin-top: 0.25em;">
@@ -128,7 +141,7 @@ class ChatSystem {
           <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
             ${senderName}
           </div>
-          <div class="message-text" style="margin: 0.25em 0; word-wrap: break-word;">
+          <div class="message-text" style="margin: 0.25em 0; word-wrap: break-word; white-space: pre-wrap;">
             ${this.escapeHtml(msg.message)}
           </div>
           <div class="timestamp" style="font-size: 0.8em; opacity: 0.7; margin-top: 0.25em;">
@@ -138,13 +151,22 @@ class ChatSystem {
         
         if (isCurrentUser) {
           bubbleDiv.style.cursor = 'pointer';
+          bubbleDiv.title = 'Click to delete this message';
+          
           bubbleDiv.addEventListener('mouseenter', () => {
             bubbleDiv.style.transform = 'translateY(-1px)';
+            bubbleDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
           });
+          
           bubbleDiv.addEventListener('mouseleave', () => {
             bubbleDiv.style.transform = 'translateY(0)';
+            bubbleDiv.style.boxShadow = '';
           });
-          bubbleDiv.addEventListener('click', () => this.showDeleteConfirmation(bubbleDiv, msg.id));
+          
+          bubbleDiv.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showDeleteConfirmation(bubbleDiv, msg.id);
+          });
         }
       }
       
@@ -152,10 +174,16 @@ class ChatSystem {
       container.appendChild(messageDiv);
     });
     
+    // Scroll to bottom
     container.scrollTop = container.scrollHeight;
+    
+    if (this.debugMode) {
+      console.log(`📋 Rendered ${this.messages.length} messages`);
+    }
   }
 
   showDeleteConfirmation(bubbleElement, messageId) {
+    // Remove any existing confirmations
     document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
     
     const confirmDiv = document.createElement('div');
@@ -171,47 +199,73 @@ class ChatSystem {
       box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       z-index: 1000;
       min-width: 200px;
+      margin-top: 0.5em;
     `;
     
     confirmDiv.innerHTML = `
       <div style="margin-bottom: 0.5em; color: #374151; font-weight: 500;">
         Delete this message?
       </div>
-      <div style="display: flex; gap: 0.5em;">
-        <button onclick="window.chatSystem.deleteMessage('${messageId}')" 
+      <div style="display: flex; gap: 0.5em; justify-content: flex-end;">
+        <button class="delete-confirm-yes" 
                 style="background: #ef4444; color: white; border: none; padding: 0.4em 0.8em; border-radius: 6px; cursor: pointer; font-size: 0.8em; font-weight: 500;">
           Yes
         </button>
-        <button onclick="this.parentElement.parentElement.remove()" 
+        <button class="delete-confirm-no" 
                 style="background: #6b7280; color: white; border: none; padding: 0.4em 0.8em; border-radius: 6px; cursor: pointer; font-size: 0.8em; font-weight: 500;">
           No
         </button>
       </div>
     `;
     
+    // Add event listeners to buttons
+    const yesBtn = confirmDiv.querySelector('.delete-confirm-yes');
+    const noBtn = confirmDiv.querySelector('.delete-confirm-no');
+    
+    yesBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this.deleteMessage(messageId);
+    });
+    
+    noBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      confirmDiv.remove();
+    });
+    
+    // Position the confirmation
     bubbleElement.style.position = 'relative';
     bubbleElement.appendChild(confirmDiv);
     
+    // Auto-remove after 10 seconds
     setTimeout(() => {
-      if (confirmDiv.parentElement) confirmDiv.remove();
-    }, 5000);
+      if (confirmDiv.parentElement) {
+        confirmDiv.remove();
+      }
+    }, 10000);
   }
 
   async deleteMessage(messageId) {
     try {
+      console.log(`🗑️ Deleting message ${messageId}`);
+      
       await this.supabaseClient.deleteChatMessage(messageId);
       
+      // Update local message
       const msgIndex = this.messages.findIndex(m => m.id === messageId);
       if (msgIndex !== -1) {
         this.messages[msgIndex].message = '[deleted]';
         this.renderMessages();
+        this.messagesDeletedCount++;
       }
+      
+      console.log(`✅ Message ${messageId} deleted successfully`);
     } catch (error) {
       console.error("Error deleting message:", error);
-      alert("Failed to delete message. Try again.");
+      alert("Failed to delete message. Please try again.");
+    } finally {
+      // Remove any confirmation dialogs
+      document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
     }
-    
-    document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
   }
 
   async sendMessage() {
@@ -223,10 +277,22 @@ class ChatSystem {
     const chatInput = document.getElementById('chatInput');
     const sendBtn = document.getElementById('chatSendBtn');
     
-    if (!chatInput || !sendBtn) return;
+    if (!chatInput || !sendBtn) {
+      console.warn('❌ Chat input elements not found');
+      return;
+    }
     
     const message = chatInput.value.trim();
-    if (!message || !this.currentUser) return;
+    if (!message || !this.currentUser) {
+      console.log('⚠️ No message content or user selected');
+      return;
+    }
+    
+    // Prevent very long messages
+    if (message.length > 1000) {
+      alert('Message too long! Please keep it under 1000 characters.');
+      return;
+    }
     
     this.isProcessing = true;
     sendBtn.disabled = true;
@@ -234,19 +300,23 @@ class ChatSystem {
     
     try {
       const today = this.dateHelpers.getToday();
+      console.log(`💬 Sending message: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
+      
       await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
       
       chatInput.value = '';
+      this.messagesSentCount++;
       
-      console.log('💬 Message sent successfully');
+      console.log('✅ Message sent successfully');
     } catch (error) {
       console.error("Error sending message:", error);
-      alert("Failed to send message. Try again.");
+      alert("Failed to send message. Please try again.");
     } finally {
       this.isProcessing = false;
       sendBtn.disabled = false;
       sendBtn.textContent = '🚮';
       
+      // Update button state
       const hasText = chatInput.value.trim().length > 0;
       const hasUser = !!this.currentUser;
       sendBtn.disabled = !hasText || !hasUser;
@@ -254,107 +324,119 @@ class ChatSystem {
   }
 
   async updateUnreadBadge() {
-  const unreadBadge = document.getElementById('unreadBadge');
-  if (!unreadBadge) {
-    if (this.debugMode) console.log('❌ unreadBadge element not found');
-    return;
-  }
-  
-  if (!this.currentUser || !this.userManager.canRenderTable()) {
-    unreadBadge.style.display = 'none';
-    this.hasUnreadMessages = false;
-    if (this.debugMode) console.log('🚫 No user or cannot render table - hiding badge');
-    return;
-  }
-  
-  if (this.isVisible) {
-    unreadBadge.style.display = 'none';
-    this.hasUnreadMessages = false;
-    if (this.debugMode) console.log('💬 Chat is visible - hiding badge');
-    return;
-  }
-  
-  try {
-    const today = this.dateHelpers.getToday();
+    this.badgeUpdateCount++;
     
-    // CRITICAL FIX: Always get fresh count from database
-    const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
-    
-    if (this.debugMode) {
-      console.log(`🔍 BADGE UPDATE - DATABASE REALITY CHECK:`);
-      console.log(`   Player: ${this.currentUser}`);
-      console.log(`   Date: ${today}`);
-      console.log(`   Database unread count: ${unreadCount}`);
-      console.log(`   Chat visible: ${this.isVisible}`);
-      console.log(`   Current time: ${new Date().toISOString()}`);
+    const unreadBadge = document.getElementById('unreadBadge');
+    if (!unreadBadge) {
+      if (this.debugMode) console.log('❌ unreadBadge element not found');
+      return;
     }
     
-    // Update local state to match database reality
-    this.hasUnreadMessages = unreadCount > 0;
-    
-    if (unreadCount > 0) {
-      unreadBadge.textContent = unreadCount;
-      unreadBadge.style.display = 'flex';
-      unreadBadge.style.position = 'absolute';
-      unreadBadge.style.top = '-10px';
-      unreadBadge.style.right = '10px';
-      unreadBadge.style.background = '#ef4444';
-      unreadBadge.style.color = 'white';
-      unreadBadge.style.borderRadius = '50%';
-      unreadBadge.style.minWidth = '20px';
-      unreadBadge.style.height = '20px';
-      unreadBadge.style.fontSize = '0.7em';
-      unreadBadge.style.fontWeight = 'bold';
-      unreadBadge.style.alignItems = 'center';
-      unreadBadge.style.justifyContent = 'center';
-      unreadBadge.style.zIndex = '1001';
-      
-      if (this.debugMode) console.log(`✅ Badge shown with DATABASE count: ${unreadCount}`);
-    } else {
+    if (!this.currentUser || !this.userManager?.canRenderTable()) {
       unreadBadge.style.display = 'none';
       this.hasUnreadMessages = false;
-      
-      if (this.debugMode) console.log('✅ Badge hidden - DATABASE shows no unread messages');
+      if (this.debugMode) console.log('🚫 No user or cannot render table - hiding badge');
+      return;
     }
-  } catch (error) {
-    console.error("Failed to get unread count from database:", error);
-    unreadBadge.style.display = 'none';
+    
+    // Check if chat is actually visible and expanded
+    const bottomStripExpanded = window.bottomStripExpanded || false;
+    const chatActuallyVisible = this.isVisible && bottomStripExpanded;
+    
+    if (chatActuallyVisible) {
+      unreadBadge.style.display = 'none';
+      this.hasUnreadMessages = false;
+      if (this.debugMode) console.log('💬 Chat is actually visible - hiding badge');
+      return;
+    }
+    
+    try {
+      const today = this.dateHelpers.getToday();
+      
+      // Always get fresh count from database
+      const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
+      
+      if (this.debugMode) {
+        console.log(`🔍 BADGE UPDATE #${this.badgeUpdateCount} - DATABASE REALITY CHECK:`);
+        console.log(`   Player: ${this.currentUser}`);
+        console.log(`   Date: ${today}`);
+        console.log(`   Database unread count: ${unreadCount}`);
+        console.log(`   Chat visible: ${this.isVisible}`);
+        console.log(`   Bottom strip expanded: ${bottomStripExpanded}`);
+        console.log(`   Chat actually visible: ${chatActuallyVisible}`);
+        console.log(`   Current time: ${new Date().toISOString()}`);
+      }
+      
+      // Update local state to match database reality
+      this.hasUnreadMessages = unreadCount > 0;
+      
+      if (unreadCount > 0) {
+        unreadBadge.textContent = unreadCount;
+        unreadBadge.style.display = 'flex';
+        unreadBadge.style.position = 'absolute';
+        unreadBadge.style.top = '-10px';
+        unreadBadge.style.right = '10px';
+        unreadBadge.style.background = '#ef4444';
+        unreadBadge.style.color = 'white';
+        unreadBadge.style.borderRadius = '50%';
+        unreadBadge.style.minWidth = '20px';
+        unreadBadge.style.height = '20px';
+        unreadBadge.style.fontSize = '0.7em';
+        unreadBadge.style.fontWeight = 'bold';
+        unreadBadge.style.alignItems = 'center';
+        unreadBadge.style.justifyContent = 'center';
+        unreadBadge.style.zIndex = '1001';
+        unreadBadge.style.border = '1px solid white';
+        unreadBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        
+        if (this.debugMode) console.log(`✅ Badge shown with DATABASE count: ${unreadCount}`);
+      } else {
+        unreadBadge.style.display = 'none';
+        this.hasUnreadMessages = false;
+        
+        if (this.debugMode) console.log('✅ Badge hidden - DATABASE shows no unread messages');
+      }
+    } catch (error) {
+      console.error("Failed to get unread count from database:", error);
+      unreadBadge.style.display = 'none';
+      this.hasUnreadMessages = false;
+    }
   }
-}
 
-  // CRITICAL FIX: Enhanced markAsRead with detailed debugging and proper database calls
   async markAsRead() {
+    this.markAsReadCallCount++;
+    
     if (this.markAsReadInProgress) {
-      console.log('🔄 markAsRead already in progress, skipping...');
+      console.log(`🔄 markAsRead #${this.markAsReadCallCount} already in progress, skipping...`);
       return;
     }
 
-    if (!this.currentUser || !this.userManager.canRenderTable()) {
+    if (!this.currentUser || !this.userManager?.canRenderTable()) {
       console.log('🚫 Cannot mark as read - no user selected or cannot render table');
       return;
     }
     
     this.markAsReadInProgress = true;
     
-    console.log(`🔄 MARK AS READ CALLED for ${this.currentUser}`);
+    console.log(`🔄 MARK AS READ #${this.markAsReadCallCount} CALLED for ${this.currentUser}`);
     console.log(`⏰ Timestamp: ${new Date().toISOString()}`);
     console.log(`💬 Chat visible: ${this.isVisible}`);
+    console.log(`🎞️ Bottom strip expanded: ${window.bottomStripExpanded}`);
     
     try {
       const today = this.dateHelpers.getToday();
       console.log(`📅 Marking messages as read for ${this.currentUser} on ${today}`);
       
-      // CRITICAL FIX: Pre-check unread count
+      // Pre-check unread count
       const preCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
       console.log(`📊 PRE-MARK unread count: ${preCount}`);
       
       if (preCount === 0) {
         console.log('✅ No messages to mark as read');
-        this.markAsReadInProgress = false;
         return;
       }
       
-      // CRITICAL: Actually call the database update with full error handling
+      // Actually call the database update
       console.log('🚀 Calling supabaseClient.markChatMessagesAsRead...');
       
       const result = await this.supabaseClient.markChatMessagesAsRead(today, this.currentUser);
@@ -362,7 +444,7 @@ class ChatSystem {
       console.log(`✅ markChatMessagesAsRead returned:`, result);
       console.log(`📊 Updated ${result?.length || 0} messages in database`);
       
-      // CRITICAL FIX: Verify the update worked
+      // Verify the update worked
       const postCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
       console.log(`📊 POST-MARK unread count: ${postCount}`);
       
@@ -373,215 +455,350 @@ class ChatSystem {
       }
       
       // Update local state
-      this.hasUnreadMessages = false;
+      this.hasUnreadMessages = postCount > 0;
       
-      // CRITICAL FIX: Force immediate badge update with delay to ensure database propagation
-      console.log('🔄 Updating unread badge...');
+      // Force immediate badge update with delay to ensure database propagation
+      console.log('🔄 Updating unread badge after markAsRead...');
       setTimeout(async () => {
         await this.updateUnreadBadge();
-      }, 100); // Small delay to ensure database changes propagate
+      }, 100);
       
-      console.log('✅ markAsRead completed successfully');
+      console.log(`✅ markAsRead #${this.markAsReadCallCount} completed successfully`);
       
     } catch (error) {
-      console.error("❌ markAsRead FAILED:", error);
+      console.error(`❌ markAsRead #${this.markAsReadCallCount} FAILED:`, error);
       console.error("❌ Error details:", {
         name: error.name,
         message: error.message,
-        stack: error.stack
+        stack: error.stack?.substring(0, 500) + '...'
       });
     } finally {
       this.markAsReadInProgress = false;
     }
   }
 
-  // CRITICAL FIX: Enhanced showChat with comprehensive debugging
-  async showChat() {
-  console.log('💬 SHOW CHAT CALLED - working with existing HTML structure');
-  console.log(`👤 Current user: ${this.currentUser}`);
-  
-  // UPDATED: Work with your existing bottom strip expansion
-  const bottomStrip = document.querySelector('.bottom-strip');
-  const chatInput = document.getElementById('chatInput');
-  
-  if (!bottomStrip) {
-    console.error('❌ Bottom strip not found');
-    return;
-  }
-  
-  console.log('💬 Setting chat as visible...');
-  this.isVisible = true;
-  
-  // UPDATED: If bottom strip isn't expanded yet, expand it
-  if (!window.bottomStripExpanded && window.toggleBottomStrip) {
-    console.log('🎧 Bottom strip not expanded, expanding now...');
-    // Don't call toggleBottomStrip to avoid recursion - just set the state
-    window.bottomStripExpanded = true;
-    bottomStrip.classList.add('expanded');
-    const mainContent = document.getElementById('mainContent');
-    if (mainContent) {
-      mainContent.style.marginBottom = '70vh';
-    }
-    window.showOverlay && window.showOverlay();
-  }
-  
-  console.log('💬 Chat opened - marking messages as read');
-  
-  // Mark as read immediately when chat opens
-  if (this.currentUser && this.userManager.canRenderTable()) {
-    console.log('🚀 Calling markAsRead() from showChat...');
-    try {
-      await this.markAsRead();
-      console.log('✅ markAsRead() completed from showChat');
-    } catch (error) {
-      console.error('❌ markAsRead() failed from showChat:', error);
-    }
-  } else {
-    console.log('🚫 Skipping markAsRead - user conditions not met');
-  }
-  
-  if (chatInput) {
-    chatInput.focus();
-    console.log('💬 Chat input focused');
-  }
-  
-  // Force badge update after opening
-  setTimeout(async () => {
-    await this.updateUnreadBadge();
-  }, 200);
-  
-  console.log('💬 showChat completed');
-}
+// END OF PART 1 - CONTINUE WITH PART 2
 
-  // CRITICAL FIX: Enhanced hideChat with comprehensive debugging
-  async hideChat() {
-  console.log('💬 HIDE CHAT CALLED - working with existing HTML structure');
-  
-  const bottomStrip = document.querySelector('.bottom-strip');
-  
-  if (!bottomStrip) {
-    console.error('❌ Bottom strip not found');
-    return;
-  }
-  
-  console.log('💬 Chat closing - final read check');
-  
-  // Mark as read one more time when closing chat
-  if (this.currentUser && this.userManager.canRenderTable()) {
-    console.log('🚀 Calling markAsRead() from hideChat...');
-    try {
-      await this.markAsRead();
-      console.log('✅ markAsRead() completed from hideChat');
-    } catch (error) {
-      console.error('❌ markAsRead() failed from hideChat:', error);
+async showChat() {
+    console.log('💬 SHOW CHAT CALLED - working with existing HTML structure');
+    console.log(`👤 Current user: ${this.currentUser}`);
+    
+    const bottomStrip = document.querySelector('.bottom-strip');
+    const chatInput = document.getElementById('chatInput');
+    
+    if (!bottomStrip) {
+      console.error('❌ Bottom strip not found');
+      return;
     }
+    
+    console.log('💬 Setting chat as visible...');
+    this.isVisible = true;
+    
+    console.log('💬 Chat opened - marking messages as read');
+    
+    if (this.currentUser && this.userManager?.canRenderTable()) {
+      console.log('🚀 Calling markAsRead() from showChat...');
+      try {
+        await this.markAsRead();
+        console.log('✅ markAsRead() completed from showChat');
+      } catch (error) {
+        console.error('❌ markAsRead() failed from showChat:', error);
+      }
+    } else {
+      console.log('🚫 Skipping markAsRead - user conditions not met');
+    }
+    
+    if (chatInput) {
+      setTimeout(() => {
+        try {
+          chatInput.focus();
+          console.log('💬 Chat input focused with delay');
+        } catch (error) {
+          console.warn('⚠️ Could not focus chat input:', error);
+        }
+      }, 300);
+    }
+    
+    setTimeout(async () => {
+      await this.updateUnreadBadge();
+    }, 200);
+    
+    console.log('💬 showChat completed');
   }
-  
-  console.log('💬 Setting chat as hidden...');
-  this.isVisible = false;
-  
-  // Update badge after closing with longer delay
-  console.log('🔄 Updating badge after closing chat...');
-  setTimeout(async () => {
-    console.log('🔄 Badge update timeout triggered...');
-    await this.updateUnreadBadge();
-  }, 300);
-  
-  console.log('💬 hideChat completed');
-}
+
+  async hideChat() {
+    console.log('💬 HIDE CHAT CALLED');
+    
+    const bottomStrip = document.querySelector('.bottom-strip');
+    
+    if (!bottomStrip) {
+      console.error('❌ Bottom strip not found');
+      return;
+    }
+    
+    console.log('💬 Chat closing - final read check');
+    
+    if (this.currentUser && this.userManager?.canRenderTable()) {
+      console.log('🚀 Calling markAsRead() from hideChat...');
+      try {
+        await this.markAsRead();
+        console.log('✅ markAsRead() completed from hideChat');
+      } catch (error) {
+        console.error('❌ markAsRead() failed from hideChat:', error);
+      }
+    }
+    
+    console.log('💬 Setting chat as hidden...');
+    this.isVisible = false;
+    
+    console.log('🔄 Updating badge after closing chat...');
+    setTimeout(async () => {
+      console.log('🔄 Badge update timeout triggered after hideChat...');
+      await this.updateUnreadBadge();
+    }, 300);
+    
+    console.log('💬 hideChat completed');
+  }
 
   setupEventListeners() {
-  if (this.listenersSetup) {
-    console.log('🎧 Event listeners already setup, skipping...');
-    return;
-  }
-  
-  // UPDATED: Use your existing HTML structure
-  const chatStatus = document.getElementById('chatStatus'); // Your existing chat trigger
-  const bottomStrip = document.getElementById('bottomStrip'); // Your existing bottom strip
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
+    if (this.listenersSetup) {
+      console.log('🎧 Event listeners already setup, skipping...');
+      return;
+    }
+    
+    console.log('🎧 Setting up ENHANCED event listeners...');
+    
+    const chatStatus = document.getElementById('chatStatus');
+    const bottomStrip = document.getElementById('bottomStrip');
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const chatInputContainer = document.querySelector('.chat-input-container');
+    const chatMessages = document.getElementById('chatMessages');
+    const chatExpanded = document.getElementById('chatExpanded');
 
-  console.log('🎧 Setting up event listeners for existing HTML structure...');
-  console.log(`   chatStatus: ${chatStatus ? 'found' : 'NOT FOUND'}`);
-  console.log(`   bottomStrip: ${bottomStrip ? 'found' : 'NOT FOUND'}`);
-
-  // UPDATED: Make chatStatus clickable to open chat
-  if (chatStatus) {
-    chatStatus.addEventListener('click', async () => {
-      console.log('🖱️ Chat status clicked - opening chat');
-      await this.showChat();
-    });
-    // Make it look clickable
-    chatStatus.style.cursor = 'pointer';
-    console.log('✅ Chat status click listener added');
-  }
-
-  // UPDATED: Listen for your existing swipe gesture that expands bottom strip
-  // We'll hook into the existing bottomStripExpanded state
-  const originalToggleBottomStrip = window.toggleBottomStrip;
-  if (originalToggleBottomStrip) {
-    window.toggleBottomStrip = async function() {
-      // Call original function
-      originalToggleBottomStrip();
+    if (chatStatus) {
+      const chatStatusClickHandler = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🖱️ Chat status clicked - opening chat');
+        if (window.toggleBottomStrip && !window.bottomStripExpanded) {
+          window.toggleBottomStrip();
+        }
+      };
       
-      // Then handle chat system state
-      if (window.bottomStripExpanded) {
-        console.log('🎧 Bottom strip expanded - calling chat showChat');
-        await window.chatSystem.showChat();
-      } else {
-        console.log('🎧 Bottom strip collapsed - calling chat hideChat');
-        await window.chatSystem.hideChat();
+      chatStatus.addEventListener('click', chatStatusClickHandler);
+      chatStatus.addEventListener('touchend', chatStatusClickHandler);
+      chatStatus.style.cursor = 'pointer';
+      chatStatus.style.userSelect = 'none';
+      console.log('✅ Chat status click listeners added');
+    }
+
+    const originalToggleBottomStrip = window.toggleBottomStrip;
+    if (originalToggleBottomStrip) {
+      window.toggleBottomStrip = async function() {
+        const wasExpanded = window.bottomStripExpanded;
+        originalToggleBottomStrip();
+        
+        if (window.bottomStripExpanded && !wasExpanded) {
+          console.log('🎧 Bottom strip expanded - calling chat showChat');
+          if (window.chatSystem) {
+            await window.chatSystem.showChat();
+          }
+        } else if (!window.bottomStripExpanded && wasExpanded) {
+          console.log('🎧 Bottom strip collapsed - calling chat hideChat');
+          if (window.chatSystem) {
+            await window.chatSystem.hideChat();
+          }
+        }
+      };
+      console.log('✅ Hooked into existing toggleBottomStrip function');
+    }
+
+    if (chatInputContainer) {
+      const preventCollapseHandler = (e) => {
+        e.stopPropagation();
+        if (this.debugMode) {
+          console.log('💬 Chat input container interaction - preventing collapse');
+        }
+      };
+      
+      chatInputContainer.addEventListener('click', preventCollapseHandler);
+      chatInputContainer.addEventListener('touchstart', preventCollapseHandler);
+      chatInputContainer.addEventListener('touchend', preventCollapseHandler);
+      
+      console.log('✅ Chat input container collapse prevention added');
+    }
+
+    if (chatMessages) {
+      const preventCollapseHandler = (e) => {
+        e.stopPropagation();
+        if (this.debugMode) {
+          console.log('💬 Chat messages area interaction - preventing collapse');
+        }
+      };
+      
+      chatMessages.addEventListener('click', preventCollapseHandler);
+      chatMessages.addEventListener('touchstart', preventCollapseHandler);
+      chatMessages.addEventListener('touchend', preventCollapseHandler);
+      
+      console.log('✅ Chat messages area collapse prevention added');
+    }
+
+    if (chatExpanded) {
+      const preventCollapseHandler = (e) => {
+        e.stopPropagation();
+        if (this.debugMode) {
+          console.log('💬 Chat expanded area interaction - preventing collapse');
+        }
+      };
+      
+      chatExpanded.addEventListener('click', preventCollapseHandler);
+      chatExpanded.addEventListener('touchstart', preventCollapseHandler);
+      chatExpanded.addEventListener('touchend', preventCollapseHandler);
+      
+      console.log('✅ Chat expanded area collapse prevention added');
+    }
+
+    if (bottomStrip) {
+      const existingTapZone = document.getElementById('chatTopTapZone');
+      if (existingTapZone) {
+        existingTapZone.remove();
+      }
+      
+      const topTapZone = document.createElement('div');
+      topTapZone.id = 'chatTopTapZone';
+      topTapZone.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 40px;
+        z-index: 1001;
+        cursor: pointer;
+        background: transparent;
+        user-select: none;
+      `;
+      
+      const topTapZoneHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🖱️ Top tap zone clicked - closing chat');
+        if (window.toggleBottomStrip && window.bottomStripExpanded) {
+          window.toggleBottomStrip();
+        }
+      };
+      
+      topTapZone.addEventListener('click', topTapZoneHandler);
+      topTapZone.addEventListener('touchend', topTapZoneHandler);
+      
+      topTapZone.addEventListener('touchstart', () => {
+        topTapZone.style.background = 'rgba(107, 70, 193, 0.1)';
+      });
+      
+      topTapZone.addEventListener('touchend', () => {
+        setTimeout(() => {
+          topTapZone.style.background = 'transparent';
+        }, 100);
+      });
+      
+      if (bottomStrip.style.position !== 'relative') {
+        bottomStrip.style.position = 'relative';
+      }
+      
+      bottomStrip.appendChild(topTapZone);
+      
+      console.log('✅ Wide top tap zone for chat closing added');
+    }
+
+    const escapeKeyHandler = async (e) => {
+      if (e.key === 'Escape' && this.isVisible && window.bottomStripExpanded) {
+        console.log('⌨️ Escape key pressed, closing chat');
+        if (window.toggleBottomStrip) {
+          window.toggleBottomStrip();
+        }
       }
     };
-    console.log('✅ Hooked into existing toggleBottomStrip function');
-  }
+    
+    document.addEventListener('keydown', escapeKeyHandler);
 
-  // UPDATED: Add escape key handler
-  document.addEventListener('keydown', async (e) => {
-    if (e.key === 'Escape' && this.isVisible) {
-      console.log('⌨️ Escape key pressed, closing chat');
-      // Close via the existing bottomStrip toggle
-      if (window.bottomStripExpanded && originalToggleBottomStrip) {
-        originalToggleBottomStrip();
-      }
-      await this.hideChat();
-    }
-  });
-
-  // Keep existing chat input/send functionality
-  if (chatSendBtn) {
-    chatSendBtn.addEventListener('click', () => this.sendMessage());
-    console.log('✅ Chat send button listener added');
-  }
-
-  if (chatInput) {
-    chatInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
+    if (chatSendBtn) {
+      const sendBtnHandler = (e) => {
+        e.stopPropagation();
         this.sendMessage();
-      }
-    });
+      };
+      
+      chatSendBtn.addEventListener('click', sendBtnHandler);
+      chatSendBtn.addEventListener('touchend', sendBtnHandler);
+      console.log('✅ Chat send button listeners added');
+    }
 
-    chatInput.addEventListener('input', () => {
-      const hasText = chatInput.value.trim().length > 0;
-      if (chatSendBtn) {
-        chatSendBtn.disabled = !hasText || !this.currentUser || this.isProcessing;
-      }
-    });
-    console.log('✅ Chat input listeners added');
+    if (chatInput) {
+      const inputFocusHandler = (e) => {
+        e.stopPropagation();
+        if (this.debugMode) {
+          console.log('💬 Chat input focused - preventing collapse');
+        }
+      };
+      
+      const inputClickHandler = (e) => {
+        e.stopPropagation();
+        if (this.debugMode) {
+          console.log('💬 Chat input clicked - preventing collapse');
+        }
+      };
+
+      chatInput.addEventListener('focus', inputFocusHandler);
+      chatInput.addEventListener('click', inputClickHandler);
+      chatInput.addEventListener('touchstart', inputClickHandler);
+
+      const inputKeyHandler = (e) => {
+        e.stopPropagation();
+        
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
+      };
+      
+      chatInput.addEventListener('keydown', inputKeyHandler);
+
+      const inputChangeHandler = (e) => {
+        e.stopPropagation();
+        
+        const hasText = chatInput.value.trim().length > 0;
+        const hasUser = !!this.currentUser;
+        const canSend = hasText && hasUser && !this.isProcessing;
+        
+        if (chatSendBtn) {
+          chatSendBtn.disabled = !canSend;
+          
+          if (canSend) {
+            chatSendBtn.style.opacity = '1';
+            chatSendBtn.style.cursor = 'pointer';
+          } else {
+            chatSendBtn.style.opacity = '0.5';
+            chatSendBtn.style.cursor = 'not-allowed';
+          }
+        }
+      };
+      
+      chatInput.addEventListener('input', inputChangeHandler);
+      chatInput.addEventListener('paste', inputChangeHandler);
+      
+      console.log('✅ Chat input listeners added with enhanced collapse prevention');
+    }
+    
+    this.listenersSetup = true;
+    console.log('🎧 ENHANCED Chat event listeners setup complete');
   }
-  
-  this.listenersSetup = true;
-  console.log('🎧 Chat event listeners setup complete - ADAPTED FOR EXISTING HTML');
-}
 
   updateInterfaceVisibility() {
     const chatToggle = document.getElementById('chatToggle');
     const chatInput = document.getElementById('chatInput');
     const chatSendBtn = document.getElementById('chatSendBtn');
+    const chatStatus = document.getElementById('chatStatus');
     
-    const canUseChat = this.userManager.canSendChatMessage();
+    const canUseChat = this.userManager && this.userManager.canSendChatMessage();
     
     console.log(`💬 updateInterfaceVisibility - canUseChat: ${canUseChat}`);
     
@@ -591,60 +808,93 @@ class ChatSystem {
     
     if (chatInput) {
       chatInput.disabled = !canUseChat;
+      if (canUseChat) {
+        chatInput.placeholder = "Type your trash talk...";
+        chatInput.style.backgroundColor = 'white';
+        chatInput.style.color = 'black';
+      } else {
+        chatInput.placeholder = "Select user to enable chat";
+        chatInput.style.backgroundColor = '#f5f5f5';
+        chatInput.style.color = '#999';
+      }
     }
     
     if (chatSendBtn) {
       chatSendBtn.disabled = !canUseChat;
+      if (canUseChat) {
+        chatSendBtn.style.opacity = '1';
+        chatSendBtn.style.cursor = 'pointer';
+      } else {
+        chatSendBtn.style.opacity = '0.5';
+        chatSendBtn.style.cursor = 'not-allowed';
+      }
+    }
+    
+    if (chatStatus) {
+      if (canUseChat) {
+        chatStatus.textContent = '🗑️ Trash Talk Central 🔥';
+        chatStatus.style.cursor = 'pointer';
+        chatStatus.style.opacity = '1';
+      } else {
+        chatStatus.textContent = 'Select user to enable chat';
+        chatStatus.style.cursor = 'default';
+        chatStatus.style.opacity = '0.6';
+      }
     }
     
     if (!canUseChat) {
       this.hideChat();
     }
     
-    console.log('💬 Chat interface visibility v2025.06.01.2:', canUseChat ? 'enabled' : 'disabled');
+    console.log('💬 Chat interface visibility updated');
   }
 
-  // CRITICAL FIX: Enhanced real-time update handling with proper markAsRead integration
   async handleRealtimeUpdate(payload) {
     if (this.debugMode) {
       console.log('🔄 Real-time chat update:', payload.eventType);
-      console.log('🔄 Payload details:', payload);
     }
     
     if (payload.eventType === "INSERT") {
       this.messages.push(payload.new);
       this.renderMessages();
       
-      // Only show as unread if from other user AND chat is not visible
-      if (payload.new.player !== this.currentUser && !this.isVisible) {
+      const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
+      
+      if (payload.new.player !== this.currentUser && !chatActuallyVisible) {
         console.log('💬 New message from other user - will show as unread');
         this.hasUnreadMessages = true;
-      } else if (payload.new.player !== this.currentUser && this.isVisible) {
+      } else if (payload.new.player !== this.currentUser && chatActuallyVisible) {
         console.log('💬 New message from other user but chat is visible - marking as read');
-        // If chat is visible when new message arrives, mark it as read immediately
         setTimeout(async () => {
           await this.markAsRead();
         }, 100);
       }
       
       await this.updateUnreadBadge();
+      
     } else if (payload.eventType === "UPDATE") {
       const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
       if (msgIndex !== -1) {
         this.messages[msgIndex] = payload.new;
         this.renderMessages();
         
-        // Check if this update affects read status
         if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
             payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
           console.log('💬 Read status updated in real-time');
           await this.updateUnreadBadge();
         }
       }
+    } else if (payload.eventType === "DELETE") {
+      const msgIndex = this.messages.findIndex(m => m.id === (payload.old?.id || payload.new?.id));
+      if (msgIndex !== -1) {
+        this.messages.splice(msgIndex, 1);
+        this.renderMessages();
+      }
     }
   }
 
   escapeHtml(text) {
+    if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -655,51 +905,221 @@ class ChatSystem {
   }
 
   getUnreadCount() {
-  console.log('⚠️ getUnreadCount() called - this should use database, not local calculation');
-  // This method should not be used for badge display - updateUnreadBadge should call database directly
-  return 0; // Return 0 to avoid confusion, use database calls for real count
-}
+    console.log('⚠️ getUnreadCount() called - use database instead');
+    return 0;
+  }
 
   getChatStatus() {
-  return {
-    messageCount: this.messages.length,
-    localUnreadCount: this.getUnreadCount(), // This is wrong/cached
-    unreadCount: 'USE_DATABASE_INSTEAD', // Reminder to use database
-    isVisible: this.isVisible,
-    currentUser: this.currentUser,
-    isProcessing: this.isProcessing,
-    hasUnreadMessages: this.hasUnreadMessages,
-    debugMode: this.debugMode,
-    markAsReadInProgress: this.markAsReadInProgress,
-    listenersSetup: this.listenersSetup,
-    version: 'v2025.06.01.3 - FIXED DATABASE REALITY',
-    note: 'Badge now uses database reality, not local calculation'
-  };
-}
+    return {
+      messageCount: this.messages.length,
+      isVisible: this.isVisible,
+      currentUser: this.currentUser,
+      isProcessing: this.isProcessing,
+      hasUnreadMessages: this.hasUnreadMessages,
+      debugMode: this.debugMode,
+      markAsReadInProgress: this.markAsReadInProgress,
+      listenersSetup: this.listenersSetup,
+      bottomStripExpanded: window.bottomStripExpanded || false,
+      chatActuallyVisible: this.isVisible && (window.bottomStripExpanded || false),
+      initializationTime: this.initializationTime,
+      messagesSentCount: this.messagesSentCount,
+      messagesDeletedCount: this.messagesDeletedCount,
+      badgeUpdateCount: this.badgeUpdateCount,
+      markAsReadCallCount: this.markAsReadCallCount,
+      version: 'v2025.06.02.4 - COMPLETE'
+    };
+  }
 
-  // DEBUG HELPER: Manual trigger for testing
   async debugMarkAsRead() {
     console.log('🛠️ DEBUG: Manual markAsRead trigger');
     await this.markAsRead();
   }
 
-  // DEBUG HELPER: Check current state
   debugState() {
     console.log('🔍 DEBUG: Current chat system state:', this.getChatStatus());
   }
 
-  // CRITICAL FIX: Force refresh method for testing
   async forceRefresh() {
     console.log('🔄 FORCE REFRESH called');
     await this.loadMessages();
     await this.updateUnreadBadge();
     console.log('✅ Force refresh completed');
   }
+
+  onUserChanged(newUser) {
+    console.log(`👤 User changed to: ${newUser}`);
+    this.currentUser = newUser;
+    this.updateInterfaceVisibility();
+    
+    if (newUser) {
+      this.loadMessages();
+    } else {
+      this.messages = [];
+      this.renderMessages();
+      this.hideChat();
+    }
+  }
+
+  async refreshBadge() {
+    console.log('🔄 Manual badge refresh triggered');
+    await this.updateUnreadBadge();
+  }
+
+  getDetailedDebugInfo() {
+    return {
+      ...this.getChatStatus(),
+      lastReadMessageId: this.lastReadMessageId,
+      lastReadTimestamp: this.lastReadTimestamp,
+      userManagerExists: !!this.userManager,
+      supabaseClientExists: !!this.supabaseClient,
+      dateHelpersExists: !!this.dateHelpers,
+      elementAvailability: {
+        bottomStripElement: !!document.getElementById('bottomStrip'),
+        chatInputElement: !!document.getElementById('chatInput'),
+        chatSendBtnElement: !!document.getElementById('chatSendBtn'),
+        unreadBadgeElement: !!document.getElementById('unreadBadge'),
+        chatMessagesElement: !!document.getElementById('chatMessages'),
+        chatInputContainerElement: !!document.querySelector('.chat-input-container'),
+        chatStatusElement: !!document.getElementById('chatStatus'),
+        chatExpandedElement: !!document.getElementById('chatExpanded'),
+        chatTopTapZoneElement: !!document.getElementById('chatTopTapZone')
+      }
+    };
+  }
+
+  isFullyInitialized() {
+    return !!(this.userManager && this.supabaseClient && this.dateHelpers && this.listenersSetup);
+  }
+
+  shutdown() {
+    console.log('🧹 ChatSystem shutdown called');
+    
+    const topTapZone = document.getElementById('chatTopTapZone');
+    if (topTapZone) {
+      topTapZone.remove();
+    }
+    
+    this.isVisible = false;
+    this.hasUnreadMessages = false;
+    this.markAsReadInProgress = false;
+    this.listenersSetup = false;
+    this.isProcessing = false;
+    this.messages = [];
+    this.messagesSentCount = 0;
+    this.messagesDeletedCount = 0;
+    this.badgeUpdateCount = 0;
+    this.markAsReadCallCount = 0;
+    
+    console.log('🧹 ChatSystem shutdown complete');
+  }
+
+  resetState() {
+    console.log('🔄 ChatSystem state reset called');
+    
+    this.isVisible = false;
+    this.hasUnreadMessages = false;
+    this.markAsReadInProgress = false;
+    this.isProcessing = false;
+    
+    const unreadBadge = document.getElementById('unreadBadge');
+    if (unreadBadge) {
+      unreadBadge.style.display = 'none';
+    }
+    
+    console.log('🔄 ChatSystem state reset complete');
+  }
+
+  async healthCheck() {
+    console.log('🏥 ChatSystem health check starting...');
+    
+    const health = {
+      timestamp: new Date().toISOString(),
+      initialized: this.isFullyInitialized(),
+      userSelected: !!this.currentUser,
+      canRenderTable: this.userManager?.canRenderTable() || false,
+      listenersSetup: this.listenersSetup,
+      statistics: {
+        messagesSent: this.messagesSentCount,
+        messagesDeleted: this.messagesDeletedCount,
+        badgeUpdates: this.badgeUpdateCount,
+        markAsReadCalls: this.markAsReadCallCount
+      }
+    };
+    
+    if (this.supabaseClient && this.currentUser) {
+      try {
+        const today = this.dateHelpers.getToday();
+        const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
+        health.databaseConnection = true;
+        health.currentUnreadCount = unreadCount;
+      } catch (error) {
+        health.databaseConnection = false;
+        health.databaseError = error.message;
+      }
+    } else {
+      health.databaseConnection = 'N/A';
+    }
+    
+    console.log('🏥 ChatSystem health check complete');
+    return health;
+  }
+
+  async runDiagnostics() {
+    console.log('🔬 Running complete ChatSystem diagnostics...');
+    
+    const diagnostics = {
+      timestamp: new Date().toISOString(),
+      version: 'v2025.06.02.4 - COMPLETE',
+      systemHealth: await this.healthCheck(),
+      recommendations: []
+    };
+    
+    if (!diagnostics.systemHealth.initialized) {
+      diagnostics.recommendations.push('System not fully initialized');
+    }
+    
+    if (!diagnostics.systemHealth.userSelected) {
+      diagnostics.recommendations.push('No user selected');
+    }
+    
+    if (!diagnostics.systemHealth.databaseConnection) {
+      diagnostics.recommendations.push('Database connection issues');
+    }
+    
+    if (diagnostics.recommendations.length === 0) {
+      diagnostics.recommendations.push('All systems operational! 🎉');
+    }
+    
+    console.log('🔬 Complete diagnostics complete');
+    return diagnostics;
+  }
 }
 
-// CRITICAL FIX: Ensure global exposure
 const chatSystem = new ChatSystem();
 window.chatSystem = chatSystem;
+
+window.debugChat = {
+  status: () => chatSystem.getChatStatus(),
+  health: () => chatSystem.healthCheck(),
+  diagnostics: () => chatSystem.runDiagnostics(),
+  markAsRead: () => chatSystem.debugMarkAsRead(),
+  refresh: () => chatSystem.forceRefresh(),
+  badge: () => chatSystem.refreshBadge(),
+  reset: () => chatSystem.resetState(),
+  shutdown: () => chatSystem.shutdown(),
+  show: () => chatSystem.showChat(),
+  hide: () => chatSystem.hideChat(),
+  send: (message) => {
+    const input = document.getElementById('chatInput');
+    if (input) {
+      input.value = message;
+      chatSystem.sendMessage();
+    }
+  }
+};
+
+console.log('💬 ChatSystem fully loaded and ready!');
+console.log('🛠️ Global debugging available via window.debugChat');
 
 export default chatSystem;
 export { ChatSystem };
