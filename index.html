@@ -69,35 +69,46 @@
     /* Replace your existing .bottom-strip rule with this enhanced version */
 .bottom-strip {
   position: fixed;
-  bottom: 0;
+  bottom: 0; /* Always anchored to bottom */
   left: 0;
   right: 0;
   background: var(--strip-bg);
   border-top: 1px solid var(--purple-medium);
   z-index: 1000;
-  transition: all 0.3s ease; /* Changed from just 'height' to 'all' */
+  transition: height 0.3s ease; /* Only animate height, not position */
   height: 70px;
   box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
   padding-top: 10px;
+  transform-origin: bottom; /* Ensure expansion origin is from bottom */
 }
 
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
   height: calc(100vh - 140px);
-  top: 140px; /* This should keep the top strip in place */
-  bottom: auto;
-  transition: all 0.3s ease;
-  position: fixed; /* Ensure it stays fixed */
-  z-index: 1000; /* Maintain z-index */
+  bottom: 0; /* Keep anchored to bottom */
+  transition: height 0.3s ease; /* Only animate height */
+  position: fixed;
+  z-index: 1000;
 }
 
 /* Also ensure the chat container doesn't push content */
-.bottom-strip.expanded .chat-container {
-  height: 100%;
-  max-height: calc(100vh - 140px);
-  overflow: hidden;
+/* Add smooth content reveal animation */
+.bottom-strip .chat-expanded {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+}
+
+.bottom-strip.expanded .chat-expanded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Ensure chat mini fades properly during transition */
+.bottom-strip.expanded .chat-mini {
+  transition: opacity 0.2s ease;
 }
 
     /* FIXED: Main Content Area with proper positioning */
@@ -1547,30 +1558,22 @@ chatSendBtn.addEventListener('touchstart', (e) => {
   chatSendBtn.disabled = true;
 
   try {
-    // Store message details before clearing
-    const messageData = {
-      player: userSelect.value,
-      message: message,
-      created_at: new Date().toISOString(),
-      id: 'temp-' + Date.now() // Temporary ID
-    };
-    
     // Clear input immediately
     chatInput.value = '';
     
-    // Add message to local display immediately
-    if (window.chatSystem && window.chatSystem.messages) {
-      window.chatSystem.messages.push(messageData);
-      window.chatSystem.renderMessages();
-    }
-    
-    // Send to database
+    // Send to database WITHOUT adding a temporary message
     console.log('💬 Send message:', message);
     
     // Call the actual supabase send function
     const today = new Date().toISOString().slice(0, 10);
-    await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
+    const result = await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
     
+    // The real-time subscription will handle adding the message to the display
+    // No need to manually add it
+    
+  } catch (error) {
+    console.error('Failed to send message:', error);
+    alert('Failed to send message. Please try again.');
   } finally {
     isProcessing = false;
     const hasText = chatInput.value.trim().length > 0;
@@ -1586,6 +1589,58 @@ chatSendBtn.addEventListener('touchstart', (e) => {
         window.appInstance.loadDataForDate(date);
       }
     }
+
+  // Add this RIGHT AFTER the initializeChatSystem() function (around line 1580-1600)
+// This ensures the send button NEVER triggers collapse
+setTimeout(() => {
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const chatInputContainer = document.querySelector('.chat-input-container');
+  const chatExpanded = document.getElementById('chatExpanded');
+  
+  if (chatSendBtn) {
+    // Remove ALL existing listeners
+    const newBtn = chatSendBtn.cloneNode(true);
+    chatSendBtn.parentNode.replaceChild(newBtn, chatSendBtn);
+    
+    // Add new listener with aggressive prevention
+    newBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      // Call sendChatMessage directly
+      if (typeof sendChatMessage === 'function') {
+        sendChatMessage();
+      } else if (window.chatSystem && window.chatSystem.sendMessage) {
+        window.chatSystem.sendMessage();
+      }
+      
+      return false;
+    }, true); // Use capture phase
+    
+    // Also prevent on mousedown/touchstart
+    newBtn.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+    }, true);
+    
+    newBtn.addEventListener('touchstart', (e) => {
+      e.stopPropagation();
+    }, true);
+  }
+  
+  // Prevent collapse on entire input area
+  [chatInputContainer, chatExpanded].forEach(element => {
+    if (element) {
+      element.addEventListener('click', (e) => {
+        e.stopPropagation();
+      }, true);
+      
+      element.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+      }, true);
+    }
+  });
+}, 500); // Delay to ensure DOM is ready
 
     // Global exports for compatibility
     window.createDNFCell = function() {

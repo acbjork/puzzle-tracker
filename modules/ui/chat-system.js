@@ -971,53 +971,57 @@ Someone needs to start the smack down! 🔥
   }
 
   async handleRealtimeUpdate(payload) {
-    if (this.debugMode) {
-      console.log('🔄 Real-time chat update v2025.06.03.2:', payload.eventType);
-    }
-    
-    if (payload.eventType === "INSERT") {
+  if (this.debugMode) {
+    console.log('🔄 Real-time chat update v2025.06.03.2:', payload.eventType);
+  }
+  
+  if (payload.eventType === "INSERT") {
+    // Check if message already exists (to prevent duplicates)
+    const existingMessage = this.messages.find(m => m.id === payload.new.id);
+    if (!existingMessage) {
       this.messages.push(payload.new);
       this.renderMessages();
+    }
+    
+    const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
+    
+    if (payload.new.player !== this.currentUser && !chatActuallyVisible) {
+      console.log('💬 New message from other user - will show as unread v2025.06.03.2');
+      this.hasUnreadMessages = true;
       
-      const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
-      
-      if (payload.new.player !== this.currentUser && !chatActuallyVisible) {
-        console.log('💬 New message from other user - will show as unread v2025.06.03.2');
-        this.hasUnreadMessages = true;
-        
-        // Vibrate on new message if supported
-        if ('vibrate' in navigator) {
-          navigator.vibrate(200);
-        }
-      } else if (payload.new.player !== this.currentUser && chatActuallyVisible) {
-        console.log('💬 New message from other user but chat is visible - marking as read v2025.06.03.2');
-        setTimeout(async () => {
-          await this.markAsRead();
-        }, 100);
+      // Vibrate on new message if supported
+      if ('vibrate' in navigator) {
+        navigator.vibrate(200);
       }
+    } else if (payload.new.player !== this.currentUser && chatActuallyVisible) {
+      console.log('💬 New message from other user but chat is visible - marking as read v2025.06.03.2');
+      setTimeout(async () => {
+        await this.markAsRead();
+      }, 100);
+    }
+    
+    await this.updateUnreadBadge();
+    
+  } else if (payload.eventType === "UPDATE") {
+    const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
+    if (msgIndex !== -1) {
+      this.messages[msgIndex] = payload.new;
+      this.renderMessages();
       
-      await this.updateUnreadBadge();
-      
-    } else if (payload.eventType === "UPDATE") {
-      const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
-      if (msgIndex !== -1) {
-        this.messages[msgIndex] = payload.new;
-        this.renderMessages();
-        
-        if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
-            payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
-          console.log('💬 Read status updated in real-time v2025.06.03.2');
-          await this.updateUnreadBadge();
-        }
-      }
-    } else if (payload.eventType === "DELETE") {
-      const msgIndex = this.messages.findIndex(m => m.id === (payload.old?.id || payload.new?.id));
-      if (msgIndex !== -1) {
-        this.messages.splice(msgIndex, 1);
-        this.renderMessages();
+      if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
+          payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
+        console.log('💬 Read status updated in real-time v2025.06.03.2');
+        await this.updateUnreadBadge();
       }
     }
+  } else if (payload.eventType === "DELETE") {
+    const msgIndex = this.messages.findIndex(m => m.id === (payload.old?.id || payload.new?.id));
+    if (msgIndex !== -1) {
+      this.messages.splice(msgIndex, 1);
+      this.renderMessages();
+    }
   }
+}
 
   escapeHtml(text) {
     if (!text) return '';
