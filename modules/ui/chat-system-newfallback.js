@@ -1,9 +1,9 @@
-// I'm Puzzled - Chat System Module v2025.06.03.2
-// PHASE 1 COMPLETE: All UI fixes, perfect unread badge sync, modern chat interface
+// I'm Puzzled - Chat System Module v2025.06.03.1
+// FIXED: Chat expansion rendering, improved content visibility, edge-to-edge integration
 
 class ChatSystem {
   constructor() {
-    console.log('🚨 ChatSystem constructor called! v2025.06.03.2');
+    console.log('🚨 ChatSystem constructor called! v2025.06.03.1');
     this.messages = [];
     this.isVisible = false;
     this.hasUnreadMessages = false;
@@ -11,8 +11,8 @@ class ChatSystem {
     this.lastReadTimestamp = 0;
     this.currentUser = null;
     this.isProcessing = false;
-    this.debugMode = true;
-    this.markAsReadInProgress = false;
+    this.debugMode = true; // Enhanced debugging
+    this.markAsReadInProgress = false; // Prevent duplicate calls
     this.listenersSetup = false;
     this.initializationTime = new Date().toISOString();
     this.messagesSentCount = 0;
@@ -20,11 +20,7 @@ class ChatSystem {
     this.badgeUpdateCount = 0;
     this.markAsReadCallCount = 0;
     
-    // Enhanced bubble animation tracking
-    this.lastMessageTimestamp = 0;
-    this.animationQueue = [];
-    
-    console.log('💬 Chat System initialized v2025.06.03.2 - PHASE 1 COMPLETE');
+    console.log('💬 Chat System initialized v2025.06.03.1 - ENHANCED RENDERING + EDGE-TO-EDGE');
   }
 
   async init(userManager, supabaseClient, dateHelpers) {
@@ -43,7 +39,7 @@ class ChatSystem {
     // Ensure we're properly exposed to global scope
     window.chatSystem = this;
     
-    console.log('💬 Chat System ready v2025.06.03.2 - PHASE 1 COMPLETE');
+    console.log('💬 Chat System ready v2025.06.03.1 - ENHANCED RENDERING');
   }
 
   async loadLastReadStatus() {
@@ -68,7 +64,7 @@ class ChatSystem {
   }
 
   async loadMessages() {
-    if (this.debugMode) console.log('📋 Loading chat messages v2025.06.03.2...');
+    if (this.debugMode) console.log('📋 Loading chat messages v2025.06.03.1...');
     
     try {
       const today = this.dateHelpers.getToday();
@@ -77,14 +73,14 @@ class ChatSystem {
       this.renderMessages();
       await this.updateUnreadBadge();
       
-      if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages v2025.06.03.2`);
+      if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages v2025.06.03.1`);
     } catch (error) {
       console.error("Failed to load chat messages:", error);
       this.messages = [];
     }
   }
 
-  // ENHANCED: Modern chat UI with gradient bubbles and animations
+  // ENHANCED: Improved message rendering with better content visibility
   renderMessages() {
     const container = document.getElementById('chatMessages');
     if (!container) {
@@ -93,25 +89,23 @@ class ChatSystem {
     }
 
     if (this.messages.length === 0) {
-      // ENHANCED: Beautiful empty state
+      // ENHANCED: Better empty state with improved styling
       container.innerHTML = `
-        
-
-          
-💬
-
-          
-No trash talk yet...
-
-          
-Someone needs to start the smack down! 🔥
-
-        
-
+        <div class="chat-empty" style="
+          text-align: center; 
+          padding: 3em 1em; 
+          color: #6b46c1; 
+          font-style: italic;
+          background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+          border-radius: 12px;
+          margin: 1em;
+          border: 2px dashed #c4b5fd;
+        ">
+          <div style="font-size: 2em; margin-bottom: 0.5em;">💬</div>
+          <div style="font-weight: 600; margin-bottom: 0.5em;">No trash talk yet...</div>
+          <div style="font-size: 0.9em; color: #64748b;">Someone needs to start the smack down! 🔥</div>
+        </div>
       `;
-      
-      // Add CSS animations if not already present
-      this.addChatAnimations();
       return;
     }
 
@@ -124,15 +118,6 @@ Someone needs to start the smack down! 🔥
       messageDiv.setAttribute('data-message-id', msg.id);
       messageDiv.setAttribute('data-message-index', index);
       
-      // Set flex alignment based on sender
-      messageDiv.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: ${isCurrentUser ? 'flex-end' : 'flex-start'};
-        margin-bottom: 1em;
-        animation: slideIn 0.3s ease;
-      `;
-      
       const senderEmoji = this.userManager ? this.userManager.getUserEmoji(msg.player) : '';
       const senderName = `${msg.player} ${senderEmoji}`;
       const timestamp = this.dateHelpers ? this.dateHelpers.formatChatTimestamp(msg.created_at) : msg.created_at;
@@ -140,112 +125,51 @@ Someone needs to start the smack down! 🔥
       const bubbleDiv = document.createElement('div');
       bubbleDiv.className = `message-bubble ${isCurrentUser ? 'current-user' : 'other-user'}`;
       
-      // Enhanced bubble styling
-      const baseStyle = `
-        max-width: 75%;
-        word-wrap: break-word;
-        padding: 0.75em 1em;
-        border-radius: 16px;
-        margin: 0.25em 0;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        transition: all 0.2s;
-        width: fit-content;
-        position: relative;
-      `;
-      
-      if (isCurrentUser) {
-        bubbleDiv.style.cssText = baseStyle + `
-          background: linear-gradient(135deg, #6b46c1, #8b5cf6);
-          color: white;
-          border-bottom-right-radius: 4px;
-        `;
-      } else {
-        bubbleDiv.style.cssText = baseStyle + `
-          background: #f8fafc;
-          color: #475569;
-          border: 1px solid #e2e8f0;
-          border-bottom-left-radius: 4px;
-        `;
-      }
-      
       if (msg.message === '[deleted]') {
+        bubbleDiv.classList.add('deleted');
         bubbleDiv.style.opacity = '0.6';
         bubbleDiv.style.fontStyle = 'italic';
         bubbleDiv.innerHTML = `
-          
-
+          <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
             ${senderName}
-          
-
-          
-
+          </div>
+          <div class="message-text" style="margin: 0.25em 0; color: #999;">
             This message was deleted
-          
-
-          
-
+          </div>
+          <div class="timestamp" style="font-size: 0.8em; opacity: 0.7; margin-top: 0.25em;">
             ${timestamp}
-          
-
+          </div>
         `;
       } else {
         bubbleDiv.innerHTML = `
-          
-
+          <div class="sender" style="font-weight: 600; margin-bottom: 0.25em;">
             ${senderName}
-          
-
-          
-
+          </div>
+          <div class="message-text" style="margin: 0.25em 0; word-wrap: break-word; white-space: pre-wrap;">
             ${this.escapeHtml(msg.message)}
-          
-
-          
-
+          </div>
+          <div class="timestamp" style="font-size: 0.8em; opacity: 0.7; margin-top: 0.25em;">
             ${timestamp}
-          
-
+          </div>
         `;
         
         if (isCurrentUser) {
           bubbleDiv.style.cursor = 'pointer';
-          bubbleDiv.title = 'Tap and hold to delete';
+          bubbleDiv.title = 'Click to delete this message';
           
-          // Enhanced hover effects
           bubbleDiv.addEventListener('mouseenter', () => {
-            bubbleDiv.style.transform = 'translateY(-2px)';
-            bubbleDiv.style.boxShadow = '0 4px 12px rgba(107, 70, 193, 0.3)';
-            bubbleDiv.querySelector('.message-timestamp').style.opacity = '0.7';
+            bubbleDiv.style.transform = 'translateY(-1px)';
+            bubbleDiv.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
           });
           
           bubbleDiv.addEventListener('mouseleave', () => {
             bubbleDiv.style.transform = 'translateY(0)';
-            bubbleDiv.style.boxShadow = '0 1px 3px rgba(0,0,0,0.1)';
-            bubbleDiv.querySelector('.message-timestamp').style.opacity = '0';
+            bubbleDiv.style.boxShadow = '';
           });
           
-          // Long press for mobile delete
-          let pressTimer;
-          bubbleDiv.addEventListener('touchstart', (e) => {
-            pressTimer = setTimeout(() => {
-              this.showDeleteConfirmation(bubbleDiv, msg.id);
-            }, 500);
-          });
-          
-          bubbleDiv.addEventListener('touchend', () => {
-            clearTimeout(pressTimer);
-          });
-          
-          // Click for desktop delete
           bubbleDiv.addEventListener('click', (e) => {
             e.stopPropagation();
             this.showDeleteConfirmation(bubbleDiv, msg.id);
-          });
-        } else {
-          // Show timestamp on tap for other user messages
-          bubbleDiv.addEventListener('click', () => {
-            const timestamp = bubbleDiv.querySelector('.message-timestamp');
-            timestamp.style.opacity = timestamp.style.opacity === '0.7' ? '0' : '0.7';
           });
         }
       }
@@ -254,61 +178,14 @@ Someone needs to start the smack down! 🔥
       container.appendChild(messageDiv);
     });
     
-    // Smooth scroll to bottom
-    requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight;
-    });
-    
-    // Add animations if needed
-    this.addChatAnimations();
+    // ENHANCED: Improved scroll behavior
+    container.scrollTop = container.scrollHeight;
     
     if (this.debugMode) {
-      console.log(`📋 Rendered ${this.messages.length} messages v2025.06.03.2`);
+      console.log(`📋 Rendered ${this.messages.length} messages v2025.06.03.1`);
     }
   }
 
-  // Add CSS animations for chat
-  addChatAnimations() {
-    if (!document.getElementById('chat-animations-v2')) {
-      const style = document.createElement('style');
-      style.id = 'chat-animations-v2';
-      style.textContent = `
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        
-        @keyframes slideIn {
-          from { 
-            opacity: 0;
-            transform: translateY(10px);
-          }
-          to { 
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        @keyframes bounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-10px); }
-        }
-        
-        @keyframes pulse {
-          0% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-          100% { transform: scale(1); }
-        }
-        
-        .message-bubble:active {
-          transform: scale(0.98);
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
-  // Enhanced delete confirmation with modern styling
   showDeleteConfirmation(bubbleElement, messageId) {
     // Remove any existing confirmations
     document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
@@ -321,53 +198,33 @@ Someone needs to start the smack down! 🔥
       right: 0;
       background: white;
       border: 2px solid #ef4444;
-      border-radius: 12px;
-      padding: 1em;
-      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.2);
+      border-radius: 8px;
+      padding: 0.75em;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       z-index: 1000;
       min-width: 200px;
       margin-top: 0.5em;
-      animation: fadeIn 0.2s ease;
     `;
     
     confirmDiv.innerHTML = `
-      
-
-        Delete this message? 🗑️
-      
-
-      
-
-          Delete
-        
-
-          Cancel
-        
-
+      <div style="margin-bottom: 0.5em; color: #374151; font-weight: 500;">
+        Delete this message?
+      </div>
+      <div style="display: flex; gap: 0.5em; justify-content: flex-end;">
+        <button class="delete-confirm-yes" 
+                style="background: #ef4444; color: white; border: none; padding: 0.4em 0.8em; border-radius: 6px; cursor: pointer; font-size: 0.8em; font-weight: 500;">
+          Yes
+        </button>
+        <button class="delete-confirm-no" 
+                style="background: #6b7280; color: white; border: none; padding: 0.4em 0.8em; border-radius: 6px; cursor: pointer; font-size: 0.8em; font-weight: 500;">
+          No
+        </button>
+      </div>
     `;
     
     // Add event listeners to buttons
     const yesBtn = confirmDiv.querySelector('.delete-confirm-yes');
     const noBtn = confirmDiv.querySelector('.delete-confirm-no');
-    
-    // Button hover effects
-    yesBtn.addEventListener('mouseenter', () => {
-      yesBtn.style.transform = 'scale(1.05)';
-      yesBtn.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
-    });
-    
-    yesBtn.addEventListener('mouseleave', () => {
-      yesBtn.style.transform = 'scale(1)';
-      yesBtn.style.boxShadow = 'none';
-    });
-    
-    noBtn.addEventListener('mouseenter', () => {
-      noBtn.style.background = '#d1d5db';
-    });
-    
-    noBtn.addEventListener('mouseleave', () => {
-      noBtn.style.background = '#e5e7eb';
-    });
     
     yesBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -376,29 +233,24 @@ Someone needs to start the smack down! 🔥
     
     noBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      confirmDiv.style.animation = 'fadeOut 0.2s ease';
-      setTimeout(() => confirmDiv.remove(), 200);
+      confirmDiv.remove();
     });
     
     // Position the confirmation
     bubbleElement.style.position = 'relative';
     bubbleElement.appendChild(confirmDiv);
     
-    // Auto-remove after 8 seconds
+    // Auto-remove after 10 seconds
     setTimeout(() => {
       if (confirmDiv.parentElement) {
-        confirmDiv.style.animation = 'fadeOut 0.2s ease';
-        setTimeout(() => confirmDiv.remove(), 200);
+        confirmDiv.remove();
       }
-    }, 8000);
+    }, 10000);
   }
 
   async deleteMessage(messageId) {
     try {
-      console.log(`🗑️ Deleting message ${messageId} v2025.06.03.2`);
-      
-      // Show toast notification
-      this.showToast('Deleting message...', 'info');
+      console.log(`🗑️ Deleting message ${messageId} v2025.06.03.1`);
       
       await this.supabaseClient.deleteChatMessage(messageId);
       
@@ -410,94 +262,19 @@ Someone needs to start the smack down! 🔥
         this.messagesDeletedCount++;
       }
       
-      this.showToast('Message deleted', 'success');
-      console.log(`✅ Message ${messageId} deleted successfully v2025.06.03.2`);
+      console.log(`✅ Message ${messageId} deleted successfully v2025.06.03.1`);
     } catch (error) {
       console.error("Error deleting message:", error);
-      this.showToast('Failed to delete message', 'error');
+      alert("Failed to delete message. Please try again.");
     } finally {
       // Remove any confirmation dialogs
       document.querySelectorAll('.delete-confirmation').forEach(el => el.remove());
     }
   }
 
-  // Toast notification system
-  showToast(message, type = 'info') {
-    // Remove existing toasts
-    document.querySelectorAll('.chat-toast').forEach(el => el.remove());
-    
-    const toast = document.createElement('div');
-    toast.className = 'chat-toast';
-    
-    const colors = {
-      info: '#6b46c1',
-      success: '#10b981',
-      error: '#ef4444'
-    };
-    
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 100px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: ${colors[type]};
-      color: white;
-      padding: 0.75em 1.5em;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 2000;
-      font-weight: 500;
-      animation: slideUp 0.3s ease;
-    `;
-    
-    toast.textContent = message;
-    document.body.appendChild(toast);
-    
-    // Auto-remove after 2 seconds
-    setTimeout(() => {
-      toast.style.animation = 'slideDown 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 2000);
-    
-    // Add animation if needed
-    if (!document.getElementById('toast-animations')) {
-      const style = document.createElement('style');
-      style.id = 'toast-animations';
-      style.textContent = `
-        @keyframes slideUp {
-          from { 
-            opacity: 0;
-            transform: translate(-50%, 20px);
-          }
-          to { 
-            opacity: 1;
-            transform: translate(-50%, 0);
-          }
-        }
-        
-        @keyframes slideDown {
-          from { 
-            opacity: 1;
-            transform: translate(-50%, 0);
-          }
-          to { 
-            opacity: 0;
-            transform: translate(-50%, 20px);
-          }
-        }
-        
-        @keyframes fadeOut {
-          from { opacity: 1; }
-          to { opacity: 0; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-  }
-
   async sendMessage() {
     if (this.isProcessing) {
-      console.log('💬 Message sending already in progress, ignoring duplicate request v2025.06.03.2');
+      console.log('💬 Message sending already in progress, ignoring duplicate request v2025.06.03.1');
       return;
     }
 
@@ -517,40 +294,31 @@ Someone needs to start the smack down! 🔥
     
     // Prevent very long messages
     if (message.length > 1000) {
-      this.showToast('Message too long! Keep it under 1000 characters', 'error');
+      alert('Message too long! Please keep it under 1000 characters.');
       return;
     }
     
     this.isProcessing = true;
-    sendBtn.disabled = true;
+    sendBtn.disabled = true
     sendBtn.textContent = '⏳';
-    
-    // Add sending animation
-    chatInput.style.opacity = '0.6';
     
     try {
       const today = this.dateHelpers.getToday();
-      console.log(`💬 Sending message v2025.06.03.2: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
+      console.log(`💬 Sending message v2025.06.03.1: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
       
       await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
       
       chatInput.value = '';
-      chatInput.style.opacity = '1';
       this.messagesSentCount++;
       
-      // Pulse animation on send button
-      sendBtn.style.animation = 'pulse 0.3s ease';
-      
-      console.log('✅ Message sent successfully v2025.06.03.2');
+      console.log('✅ Message sent successfully v2025.06.03.1');
     } catch (error) {
       console.error("Error sending message:", error);
-      this.showToast('Failed to send message', 'error');
-      chatInput.style.opacity = '1';
+      alert("Failed to send message. Please try again.");
     } finally {
       this.isProcessing = false;
       sendBtn.disabled = false;
       sendBtn.textContent = '🚮';
-      sendBtn.style.animation = '';
       
       // Update button state
       const hasText = chatInput.value.trim().length > 0;
@@ -593,7 +361,7 @@ Someone needs to start the smack down! 🔥
       const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
       
       if (this.debugMode) {
-        console.log(`🔍 BADGE UPDATE #${this.badgeUpdateCount} v2025.06.03.2:`);
+        console.log(`🔍 BADGE UPDATE #${this.badgeUpdateCount} v2025.06.03.1:`);
         console.log(`   Player: ${this.currentUser}`);
         console.log(`   Database unread count: ${unreadCount}`);
         console.log(`   Chat actually visible: ${chatActuallyVisible}`);
@@ -608,26 +376,25 @@ Someone needs to start the smack down! 🔥
         unreadBadge.style.position = 'absolute';
         unreadBadge.style.top = '-10px';
         unreadBadge.style.right = '10px';
-        unreadBadge.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+        unreadBadge.style.background = '#ef4444';
         unreadBadge.style.color = 'white';
         unreadBadge.style.borderRadius = '50%';
-        unreadBadge.style.minWidth = '22px';
-        unreadBadge.style.height = '22px';
-        unreadBadge.style.fontSize = '0.75em';
+        unreadBadge.style.minWidth = '20px';
+        unreadBadge.style.height = '20px';
+        unreadBadge.style.fontSize = '0.7em';
         unreadBadge.style.fontWeight = 'bold';
         unreadBadge.style.alignItems = 'center';
         unreadBadge.style.justifyContent = 'center';
         unreadBadge.style.zIndex = '1001';
-        unreadBadge.style.border = '2px solid white';
-        unreadBadge.style.boxShadow = '0 2px 8px rgba(239, 68, 68, 0.4)';
-        unreadBadge.style.animation = 'pulse 2s ease infinite';
+        unreadBadge.style.border = '1px solid white';
+        unreadBadge.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
         
-        if (this.debugMode) console.log(`✅ Badge shown with count: ${unreadCount} v2025.06.03.2`);
+        if (this.debugMode) console.log(`✅ Badge shown with count: ${unreadCount} v2025.06.03.1`);
       } else {
         unreadBadge.style.display = 'none';
         this.hasUnreadMessages = false;
         
-        if (this.debugMode) console.log('✅ Badge hidden - no unread messages v2025.06.03.2');
+        if (this.debugMode) console.log('✅ Badge hidden - no unread messages v2025.06.03.1');
       }
     } catch (error) {
       console.error("Failed to get unread count from database:", error);
@@ -640,7 +407,7 @@ Someone needs to start the smack down! 🔥
     this.markAsReadCallCount++;
     
     if (this.markAsReadInProgress) {
-      console.log(`🔄 markAsRead #${this.markAsReadCallCount} already in progress, skipping... v2025.06.03.2`);
+      console.log(`🔄 markAsRead #${this.markAsReadCallCount} already in progress, skipping... v2025.06.03.1`);
       return;
     }
 
@@ -651,14 +418,14 @@ Someone needs to start the smack down! 🔥
     
     this.markAsReadInProgress = true;
     
-    console.log(`🔄 MARK AS READ #${this.markAsReadCallCount} v2025.06.03.2 for ${this.currentUser}`);
+    console.log(`🔄 MARK AS READ #${this.markAsReadCallCount} v2025.06.03.1 for ${this.currentUser}`);
     
     try {
       const today = this.dateHelpers.getToday();
       console.log(`📅 Marking messages as read for ${this.currentUser} on ${today}`);
       
       const result = await this.supabaseClient.markChatMessagesAsRead(today, this.currentUser);
-      console.log(`✅ markChatMessagesAsRead returned v2025.06.03.2:`, result);
+      console.log(`✅ markChatMessagesAsRead returned v2025.06.03.1:`, result);
       
       // Update local state
       this.hasUnreadMessages = false;
@@ -668,24 +435,23 @@ Someone needs to start the smack down! 🔥
         await this.updateUnreadBadge();
       }, 100);
       
-      console.log(`✅ markAsRead #${this.markAsReadCallCount} completed v2025.06.03.2`);
+      console.log(`✅ markAsRead #${this.markAsReadCallCount} completed v2025.06.03.1`);
       
     } catch (error) {
-      console.error(`❌ markAsRead #${this.markAsReadCallCount} FAILED v2025.06.03.2:`, error);
+      console.error(`❌ markAsRead #${this.markAsReadCallCount} FAILED v2025.06.03.1:`, error);
     } finally {
       this.markAsReadInProgress = false;
     }
   }
 
-  // ENHANCED: Perfect chat visibility handling
+  // ENHANCED: Fixed showChat with proper content rendering
   async showChat() {
-    console.log('💬 SHOW CHAT CALLED v2025.06.03.2');
+    console.log('💬 SHOW CHAT CALLED v2025.06.03.1');
     console.log(`👤 Current user: ${this.currentUser}`);
     
     const bottomStrip = document.querySelector('.bottom-strip');
     const chatInput = document.getElementById('chatInput');
     const chatMessages = document.getElementById('chatMessages');
-    const chatExpanded = document.getElementById('chatExpanded');
     
     if (!bottomStrip) {
       console.error('❌ Bottom strip not found');
@@ -695,29 +461,17 @@ Someone needs to start the smack down! 🔥
     console.log('💬 Setting chat as visible...');
     this.isVisible = true;
     
-    // ENHANCED: Ensure perfect chat rendering
+    // ENHANCED: Ensure chat content is properly rendered when expanded
     if (chatMessages) {
-      // Force re-render messages to ensure visibility
+      // FIXED: Force re-render messages to ensure visibility
       this.renderMessages();
       
-      // Ensure proper styling for expanded state
+      // FIXED: Ensure proper styling for expanded state
       chatMessages.style.display = 'block';
       chatMessages.style.visibility = 'visible';
       chatMessages.style.opacity = '1';
-      chatMessages.style.minHeight = '200px';
       
-      // Smooth scroll to bottom
-      requestAnimationFrame(() => {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      });
-      
-      console.log('💬 Chat messages container properly initialized v2025.06.03.2');
-    }
-    
-    // Ensure chat expanded container is visible
-    if (chatExpanded) {
-      chatExpanded.style.display = 'flex';
-      chatExpanded.style.opacity = '1';
+      console.log('💬 Chat messages container properly initialized v2025.06.03.1');
     }
     
     console.log('💬 Chat opened - marking messages as read');
@@ -726,7 +480,7 @@ Someone needs to start the smack down! 🔥
       console.log('🚀 Calling markAsRead() from showChat...');
       try {
         await this.markAsRead();
-        console.log('✅ markAsRead() completed from showChat v2025.06.03.2');
+        console.log('✅ markAsRead() completed from showChat v2025.06.03.1');
       } catch (error) {
         console.error('❌ markAsRead() failed from showChat:', error);
       }
@@ -738,7 +492,7 @@ Someone needs to start the smack down! 🔥
       setTimeout(() => {
         try {
           chatInput.focus();
-          console.log('💬 Chat input focused with delay v2025.06.03.2');
+          console.log('💬 Chat input focused with delay v2025.06.03.1');
         } catch (error) {
           console.warn('⚠️ Could not focus chat input:', error);
         }
@@ -749,17 +503,17 @@ Someone needs to start the smack down! 🔥
       await this.updateUnreadBadge();
     }, 200);
     
-    console.log('💬 showChat completed v2025.06.03.2');
+    console.log('💬 showChat completed v2025.06.03.1');
   }
 
   async hideChat() {
-    console.log('💬 HIDE CHAT CALLED v2025.06.03.2');
+    console.log('💬 HIDE CHAT CALLED v2025.06.03.1');
     
     if (this.currentUser && this.userManager?.canRenderTable()) {
       console.log('🚀 Calling markAsRead() from hideChat...');
       try {
         await this.markAsRead();
-        console.log('✅ markAsRead() completed from hideChat v2025.06.03.2');
+        console.log('✅ markAsRead() completed from hideChat v2025.06.03.1');
       } catch (error) {
         console.error('❌ markAsRead() failed from hideChat:', error);
       }
@@ -773,16 +527,16 @@ Someone needs to start the smack down! 🔥
       await this.updateUnreadBadge();
     }, 300);
     
-    console.log('💬 hideChat completed v2025.06.03.2');
+    console.log('💬 hideChat completed v2025.06.03.1');
   }
 
   setupEventListeners() {
     if (this.listenersSetup) {
-      console.log('🎧 Event listeners already setup, skipping... v2025.06.03.2');
+      console.log('🎧 Event listeners already setup, skipping... v2025.06.03.1');
       return;
     }
     
-    console.log('🎧 Setting up ENHANCED event listeners v2025.06.03.2...');
+    console.log('🎧 Setting up ENHANCED event listeners v2025.06.03.1...');
     
     const chatStatus = document.getElementById('chatStatus');
     const chatInput = document.getElementById('chatInput');
@@ -796,7 +550,7 @@ Someone needs to start the smack down! 🔥
       const chatStatusClickHandler = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🖱️ Chat status clicked - opening chat v2025.06.03.2');
+        console.log('🖱️ Chat status clicked - opening chat v2025.06.03.1');
         if (window.toggleBottomStrip && !window.bottomStripExpanded) {
           window.toggleBottomStrip();
         }
@@ -806,17 +560,7 @@ Someone needs to start the smack down! 🔥
       chatStatus.addEventListener('touchend', chatStatusClickHandler);
       chatStatus.style.cursor = 'pointer';
       chatStatus.style.userSelect = 'none';
-      
-      // Add hover effect
-      chatStatus.addEventListener('mouseenter', () => {
-        chatStatus.style.transform = 'scale(1.05)';
-      });
-      
-      chatStatus.addEventListener('mouseleave', () => {
-        chatStatus.style.transform = 'scale(1)';
-      });
-      
-      console.log('✅ Chat status click listeners added v2025.06.03.2');
+      console.log('✅ Chat status click listeners added v2025.06.03.1');
     }
 
     // ENHANCED: Hook into strip toggle functions
@@ -827,18 +571,18 @@ Someone needs to start the smack down! 🔥
         originalToggleBottomStrip();
         
         if (window.bottomStripExpanded && !wasExpanded) {
-          console.log('🎧 Bottom strip expanded - calling chat showChat v2025.06.03.2');
+          console.log('🎧 Bottom strip expanded - calling chat showChat v2025.06.03.1');
           if (window.chatSystem) {
             await window.chatSystem.showChat();
           }
         } else if (!window.bottomStripExpanded && wasExpanded) {
-          console.log('🎧 Bottom strip collapsed - calling chat hideChat v2025.06.03.2');
+          console.log('🎧 Bottom strip collapsed - calling chat hideChat v2025.06.03.1');
           if (window.chatSystem) {
             await window.chatSystem.hideChat();
           }
         }
       };
-      console.log('✅ Hooked into existing toggleBottomStrip function v2025.06.03.2');
+      console.log('✅ Hooked into existing toggleBottomStrip function v2025.06.03.1');
     }
 
     // ENHANCED: Prevent collapse on chat interactions
@@ -853,7 +597,7 @@ Someone needs to start the smack down! 🔥
         const preventCollapseHandler = (e) => {
           e.stopPropagation();
           if (this.debugMode) {
-            console.log(`💬 Chat interaction - preventing collapse v2025.06.03.2`);
+            console.log(`💬 Chat interaction - preventing collapse v2025.06.03.1`);
           }
         };
         
@@ -863,7 +607,7 @@ Someone needs to start the smack down! 🔥
       }
     });
 
-    // ENHANCED: Chat input handling with better UX
+    // ENHANCED: Chat input handling
     if (chatInput && chatSendBtn) {
       const sendBtnHandler = (e) => {
         e.stopPropagation();
@@ -882,22 +626,15 @@ Someone needs to start the smack down! 🔥
         }
       };
       
-      const inputChangeHandler = () => {
-        const hasText = chatInput.value.trim().length > 0;
-        const hasUser = !!this.currentUser;
-        chatSendBtn.disabled = !hasText || !hasUser || this.isProcessing;
-      };
-      
       chatInput.addEventListener('keydown', inputKeyHandler);
-      chatInput.addEventListener('input', inputChangeHandler);
       chatInput.addEventListener('focus', (e) => e.stopPropagation());
       chatInput.addEventListener('click', (e) => e.stopPropagation());
 
-      console.log('✅ Chat input/send listeners added v2025.06.03.2');
+      console.log('✅ Chat input/send listeners added v2025.06.03.1');
     }
     
     this.listenersSetup = true;
-    console.log('🎧 ENHANCED Chat event listeners setup complete v2025.06.03.2');
+    console.log('🎧 ENHANCED Chat event listeners setup complete v2025.06.03.1');
   }
 
   updateInterfaceVisibility() {
@@ -907,7 +644,7 @@ Someone needs to start the smack down! 🔥
     
     const canUseChat = this.userManager && this.userManager.canSendChatMessage();
     
-    console.log(`💬 updateInterfaceVisibility v2025.06.03.2 - canUseChat: ${canUseChat}`);
+    console.log(`💬 updateInterfaceVisibility v2025.06.03.1 - canUseChat: ${canUseChat}`);
     
     if (chatInput) {
       chatInput.disabled = !canUseChat;
@@ -928,10 +665,9 @@ Someone needs to start the smack down! 🔥
     
     if (chatStatus) {
       if (canUseChat) {
-        chatStatus.textContent = '🗑️ Talkin\' Trash 🔥';
+        chatStatus.textContent = '🗑️ Trash Talk Central 🔥';
         chatStatus.style.cursor = 'pointer';
         chatStatus.style.opacity = '1';
-        chatStatus.style.transition = 'all 0.2s';
       } else {
         chatStatus.textContent = 'Select user to enable chat';
         chatStatus.style.cursor = 'default';
@@ -939,12 +675,12 @@ Someone needs to start the smack down! 🔥
       }
     }
     
-    console.log('💬 Chat interface visibility updated v2025.06.03.2');
+    console.log('💬 Chat interface visibility updated v2025.06.03.1');
   }
 
   async handleRealtimeUpdate(payload) {
     if (this.debugMode) {
-      console.log('🔄 Real-time chat update v2025.06.03.2:', payload.eventType);
+      console.log('🔄 Real-time chat update v2025.06.03.1:', payload.eventType);
     }
     
     if (payload.eventType === "INSERT") {
@@ -954,15 +690,10 @@ Someone needs to start the smack down! 🔥
       const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
       
       if (payload.new.player !== this.currentUser && !chatActuallyVisible) {
-        console.log('💬 New message from other user - will show as unread v2025.06.03.2');
+        console.log('💬 New message from other user - will show as unread v2025.06.03.1');
         this.hasUnreadMessages = true;
-        
-        // Vibrate on new message if supported
-        if ('vibrate' in navigator) {
-          navigator.vibrate(200);
-        }
       } else if (payload.new.player !== this.currentUser && chatActuallyVisible) {
-        console.log('💬 New message from other user but chat is visible - marking as read v2025.06.03.2');
+        console.log('💬 New message from other user but chat is visible - marking as read v2025.06.03.1');
         setTimeout(async () => {
           await this.markAsRead();
         }, 100);
@@ -978,7 +709,7 @@ Someone needs to start the smack down! 🔥
         
         if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
             payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
-          console.log('💬 Read status updated in real-time v2025.06.03.2');
+          console.log('💬 Read status updated in real-time v2025.06.03.1');
           await this.updateUnreadBadge();
         }
       }
@@ -999,7 +730,7 @@ Someone needs to start the smack down! 🔥
   }
 
   onUserChanged(newUser) {
-    console.log(`👤 User changed to: ${newUser} v2025.06.03.2`);
+    console.log(`👤 User changed to: ${newUser} v2025.06.03.1`);
     this.currentUser = newUser;
     this.updateInterfaceVisibility();
     
@@ -1019,58 +750,24 @@ Someone needs to start the smack down! 🔥
       currentUser: this.currentUser,
       isProcessing: this.isProcessing,
       hasUnreadMessages: this.hasUnreadMessages,
-      messagesSent: this.messagesSentCount,
-      messagesDeleted: this.messagesDeletedCount,
-      badgeUpdates: this.badgeUpdateCount,
-      markAsReadCalls: this.markAsReadCallCount,
-      version: 'v2025.06.03.2 - PHASE 1 COMPLETE'
+      version: 'v2025.06.03.1 - ENHANCED RENDERING'
     };
-  }
-
-  // Diagnostic function for debugging
-  async diagnoseChat() {
-    console.log('🩺 CHAT SYSTEM DIAGNOSIS v2025.06.03.2');
-    console.log('================================');
-    console.log('Status:', this.getChatStatus());
-    console.log('Current User:', this.currentUser);
-    console.log('Can Send Message:', this.userManager?.canSendChatMessage());
-    console.log('Strip Expanded:', window.bottomStripExpanded);
-    console.log('Chat Visible:', this.isVisible);
-    console.log('Messages:', this.messages.length);
-    console.log('Unread Badge Visible:', document.getElementById('unreadBadge')?.style.display !== 'none');
-    console.log('================================');
-    
-    if (this.currentUser) {
-      try {
-        const today = this.dateHelpers.getToday();
-        const unreadCount = await this.supabaseClient.getUnreadChatCount(today, this.currentUser);
-        console.log('Database Unread Count:', unreadCount);
-        
-        await this.supabaseClient.diagnoseChatMessages(today);
-      } catch (error) {
-        console.error('Diagnosis error:', error);
-      }
-    }
   }
 }
 
-// Create and initialize the chat system
 const chatSystem = new ChatSystem();
 window.chatSystem = chatSystem;
 
-// Enhanced debugging with diagnostic tools
+// Enhanced debugging
 window.debugChat = {
   status: () => chatSystem.getChatStatus(),
   show: () => chatSystem.showChat(),
   hide: () => chatSystem.hideChat(),
   refresh: () => chatSystem.loadMessages(),
-  badge: () => chatSystem.updateUnreadBadge(),
-  diagnose: () => chatSystem.diagnoseChat(),
-  markRead: () => chatSystem.markAsRead(),
-  toast: (msg, type) => chatSystem.showToast(msg, type)
+  badge: () => chatSystem.updateUnreadBadge()
 };
 
-console.log('💬 ChatSystem fully loaded v2025.06.03.2 - PHASE 1 COMPLETE!');
+console.log('💬 ChatSystem fully loaded v2025.06.03.1!');
 
 export default chatSystem;
 export { ChatSystem };
