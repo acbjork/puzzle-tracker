@@ -200,8 +200,19 @@
   font-size: 1.8em;
   font-weight: 900;
   color: var(--purple-dark);
-  font-family: -apple-system, 'SF Mono', 'Menlo', 'Monaco', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
-  letter-spacing: 0.05em; /* Optional: slight spacing for digital feel */
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace !important;
+  letter-spacing: 0.05em;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Add this new rule right after the .scoreboard-value rule */
+#acbCount, #jbbCount, #tieCount, #remainingCount {
+  font-family: 'SF Mono', 'Menlo', 'Monaco', 'Consolas', 'Courier New', monospace !important;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
     .crown {
