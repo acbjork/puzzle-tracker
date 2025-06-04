@@ -496,68 +496,96 @@ Someone needs to start the smack down! 🔥
   }
 
   async sendMessage() {
-    if (this.isProcessing) {
-      console.log('💬 Message sending already in progress, ignoring duplicate request v2025.06.03.2');
-      return;
-    }
-
-    const chatInput = document.getElementById('chatInput');
-    const sendBtn = document.getElementById('chatSendBtn');
-    
-    if (!chatInput || !sendBtn) {
-      console.warn('❌ Chat input elements not found');
-      return;
-    }
-    
-    const message = chatInput.value.trim();
-    if (!message || !this.currentUser) {
-      console.log('⚠️ No message content or user selected');
-      return;
-    }
-    
-    // Prevent very long messages
-    if (message.length > 1000) {
-      this.showToast('Message too long! Keep it under 1000 characters', 'error');
-      return;
-    }
-    
-    this.isProcessing = true;
-    sendBtn.disabled = true;
-    sendBtn.textContent = '⏳';
-    
-    // Add sending animation
-    chatInput.style.opacity = '0.6';
-    
-    try {
-      const today = this.dateHelpers.getToday();
-      console.log(`💬 Sending message v2025.06.03.2: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
-      
-      await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
-      
-      chatInput.value = '';
-      chatInput.style.opacity = '1';
-      this.messagesSentCount++;
-      
-      // Pulse animation on send button
-      sendBtn.style.animation = 'pulse 0.3s ease';
-      
-      console.log('✅ Message sent successfully v2025.06.03.2');
-    } catch (error) {
-      console.error("Error sending message:", error);
-      this.showToast('Failed to send message', 'error');
-      chatInput.style.opacity = '1';
-    } finally {
-      this.isProcessing = false;
-      sendBtn.disabled = false;
-      sendBtn.textContent = '🚮';
-      sendBtn.style.animation = '';
-      
-      // Update button state
-      const hasText = chatInput.value.trim().length > 0;
-      const hasUser = !!this.currentUser;
-      sendBtn.disabled = !hasText || !hasUser;
-    }
+  if (this.isProcessing) {
+    console.log('💬 Message sending already in progress, ignoring duplicate request v2025.06.03.2');
+    return;
   }
+
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  
+  if (!chatInput || !sendBtn) {
+    console.warn('❌ Chat input elements not found');
+    return;
+  }
+  
+  const message = chatInput.value.trim();
+  if (!message || !this.currentUser) {
+    console.log('⚠️ No message content or user selected');
+    return;
+  }
+  
+  // Prevent very long messages
+  if (message.length > 1000) {
+    this.showToast('Message too long! Keep it under 1000 characters', 'error');
+    return;
+  }
+  
+  this.isProcessing = true;
+  sendBtn.disabled = true;
+  sendBtn.textContent = '⏳';
+  
+  // Add sending animation
+  chatInput.style.opacity = '0.6';
+  
+  try {
+    const today = this.dateHelpers.getToday();
+    console.log(`💬 Sending message v2025.06.03.2: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
+    
+    // Create temporary message object for immediate display
+    const tempMessage = {
+      id: 'temp-' + Date.now(),
+      player: this.currentUser,
+      message: message,
+      created_at: new Date().toISOString(),
+      read_by_adam: this.currentUser === 'Adam',
+      read_by_jonathan: this.currentUser === 'Jonathan'
+    };
+    
+    // Clear input immediately
+    chatInput.value = '';
+    chatInput.style.opacity = '1';
+    
+    // Add to local messages and render immediately
+    this.messages.push(tempMessage);
+    this.renderMessages();
+    
+    // Send to database
+    const result = await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
+    
+    // Replace temp message with real one
+    const tempIndex = this.messages.findIndex(m => m.id === tempMessage.id);
+    if (tempIndex !== -1 && result) {
+      this.messages[tempIndex] = result;
+    }
+    
+    this.messagesSentCount++;
+    
+    // Pulse animation on send button
+    sendBtn.style.animation = 'pulse 0.3s ease';
+    
+    console.log('✅ Message sent successfully v2025.06.03.2');
+  } catch (error) {
+    console.error("Error sending message:", error);
+    this.showToast('Failed to send message', 'error');
+    
+    // Remove temp message on error
+    this.messages = this.messages.filter(m => !m.id.startsWith('temp-'));
+    this.renderMessages();
+    
+    chatInput.style.opacity = '1';
+  } finally {
+    this.isProcessing = false;
+    sendBtn.disabled = false;
+    sendBtn.textContent = '🚮';
+    sendBtn.style.animation = '';
+    
+    // Update button state
+    const hasText = chatInput.value.trim().length > 0;
+    const hasUser = !!this.currentUser;
+    sendBtn.disabled = !hasText || !hasUser;
+  }
+}
 
   async updateUnreadBadge() {
     this.badgeUpdateCount++;

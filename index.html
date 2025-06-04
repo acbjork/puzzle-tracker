@@ -1567,8 +1567,9 @@ chatSendBtn.addEventListener('touchstart', (e) => {
     // Send to database
     console.log('💬 Send message:', message);
     
-    // If you have the actual send function, call it here:
-    // await supabaseClient.sendChatMessage(today, currentUser, message);
+    // Call the actual supabase send function
+    const today = new Date().toISOString().slice(0, 10);
+    await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
     
   } finally {
     isProcessing = false;
