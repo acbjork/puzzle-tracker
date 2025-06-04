@@ -1489,72 +1489,21 @@ function loadChatMessages() {
   }
 }
 
-    function initializeChatSystem() {
-      const chatInput = document.getElementById('chatInput');
-      const chatSendBtn = document.getElementById('chatSendBtn');
-      const userSelect = document.getElementById('userSelect');
-
-      userSelect.addEventListener('change', (e) => {
-        const hasUser = !!e.target.value;
-        chatInput.disabled = !hasUser;
-        chatSendBtn.disabled = !hasUser;
-        
-        if (hasUser) {
-          document.getElementById('chatStatus').textContent = 'Ready to trash talk! 🔥';
-        } else {
-          document.getElementById('chatStatus').textContent = 'Select user to enable chat';
-        }
-
-        updateUIVisibility();
-      });
-
-      let isProcessing = false;
-      
-      chatInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey && !isProcessing) {
-          e.preventDefault();
-          sendChatMessage();
-        }
-      });
-
-      // Replace the existing click handler with this:
-chatSendBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  if (!isProcessing) {
-    sendChatMessage();
-  }
-});
-
-// Also add touchend handler for better mobile support
-chatSendBtn.addEventListener('touchend', (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  if (!isProcessing) {
-    sendChatMessage();
-  }
-});
-
-// Prevent any bubbling from the send button
-chatSendBtn.addEventListener('touchstart', (e) => {
-  e.stopPropagation();
-});
-
-      chatInput.addEventListener('input', () => {
-        const hasText = chatInput.value.trim().length > 0;
-        const hasUser = !!userSelect.value;
-        chatSendBtn.disabled = !hasText || !hasUser || isProcessing;
-      });
-
-      async function sendChatMessage() {
-  if (isProcessing) return;
+    // Move sendChatMessage to global scope
+window.sendChatMessage = async function() {
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const userSelect = document.getElementById('userSelect');
+  
+  if (!chatInput || !chatSendBtn || !userSelect) return;
   
   const message = chatInput.value.trim();
   if (!message) return;
 
-  isProcessing = true;
+  // Prevent duplicate processing
+  if (window.isSendingMessage) return;
+  window.isSendingMessage = true;
+  
   chatSendBtn.disabled = true;
 
   try {
@@ -1566,81 +1515,112 @@ chatSendBtn.addEventListener('touchstart', (e) => {
     
     // Call the actual supabase send function
     const today = new Date().toISOString().slice(0, 10);
-    const result = await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
+    await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
     
     // The real-time subscription will handle adding the message to the display
-    // No need to manually add it
     
   } catch (error) {
     console.error('Failed to send message:', error);
     alert('Failed to send message. Please try again.');
   } finally {
-    isProcessing = false;
+    window.isSendingMessage = false;
     const hasText = chatInput.value.trim().length > 0;
     const hasUser = !!userSelect.value;
     chatSendBtn.disabled = !hasText || !hasUser;
   }
+};
+
+function initializeChatSystem() {
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  const userSelect = document.getElementById('userSelect');
+
+  userSelect.addEventListener('change', (e) => {
+    const hasUser = !!e.target.value;
+    chatInput.disabled = !hasUser;
+    chatSendBtn.disabled = !hasUser;
+    
+    if (hasUser) {
+      document.getElementById('chatStatus').textContent = 'Ready to trash talk! 🔥';
+    } else {
+      document.getElementById('chatStatus').textContent = 'Select user to enable chat';
+    }
+
+    updateUIVisibility();
+  });
+  
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey && !window.isSendingMessage) {
+      e.preventDefault();
+      window.sendChatMessage();
+    }
+  });
+
+  chatInput.addEventListener('input', () => {
+    const hasText = chatInput.value.trim().length > 0;
+    const hasUser = !!userSelect.value;
+    chatSendBtn.disabled = !hasText || !hasUser || window.isSendingMessage;
+  });
+  
+  // Initial setup for send button
+  setupSendButton();
 }
-    }
 
-    function loadPuzzleDataForDate(date) {
-      console.log('📊 Loading puzzle data for:', date);
-      if (window.appInstance && window.appInstance.loadDataForDate) {
-        window.appInstance.loadDataForDate(date);
-      }
-    }
-
-  // Add this RIGHT AFTER the initializeChatSystem() function (around line 1580-1600)
-// This ensures the send button NEVER triggers collapse
-setTimeout(() => {
+// Separate function to set up the send button
+window.setupSendButton = function() {
   const chatSendBtn = document.getElementById('chatSendBtn');
   const chatInputContainer = document.querySelector('.chat-input-container');
   const chatExpanded = document.getElementById('chatExpanded');
+  const chatMessages = document.getElementById('chatMessages');
   
-  if (chatSendBtn) {
-    // Remove ALL existing listeners
-    const newBtn = chatSendBtn.cloneNode(true);
-    chatSendBtn.parentNode.replaceChild(newBtn, chatSendBtn);
-    
-    // Add new listener with aggressive prevention
-    newBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      
-      // Call sendChatMessage directly
-      if (typeof sendChatMessage === 'function') {
-        sendChatMessage();
-      } else if (window.chatSystem && window.chatSystem.sendMessage) {
-        window.chatSystem.sendMessage();
-      }
-      
-      return false;
-    }, true); // Use capture phase
-    
-    // Also prevent on mousedown/touchstart
-    newBtn.addEventListener('mousedown', (e) => {
-      e.stopPropagation();
-    }, true);
-    
-    newBtn.addEventListener('touchstart', (e) => {
-      e.stopPropagation();
-    }, true);
-  }
+  if (!chatSendBtn) return;
   
-  // Prevent collapse on entire input area
-  [chatInputContainer, chatExpanded].forEach(element => {
+  // Remove ALL existing listeners by cloning
+  const newBtn = chatSendBtn.cloneNode(true);
+  chatSendBtn.parentNode.replaceChild(newBtn, chatSendBtn);
+  
+  // Prevent all propagation on the button
+  const preventPropagation = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    return false;
+  };
+  
+  // Add click handler
+  newBtn.addEventListener('click', (e) => {
+    preventPropagation(e);
+    window.sendChatMessage();
+  }, true);
+  
+  // Add touch handlers
+  newBtn.addEventListener('touchstart', preventPropagation, true);
+  newBtn.addEventListener('touchend', (e) => {
+    preventPropagation(e);
+    window.sendChatMessage();
+  }, true);
+  
+  // Prevent mousedown as well
+  newBtn.addEventListener('mousedown', preventPropagation, true);
+  
+  // Prevent collapse on entire chat area
+  const elements = [chatInputContainer, chatExpanded, chatMessages];
+  elements.forEach(element => {
     if (element) {
-      element.addEventListener('click', (e) => {
-        e.stopPropagation();
-      }, true);
-      
-      element.addEventListener('touchstart', (e) => {
-        e.stopPropagation();
-      }, true);
+      element.addEventListener('click', preventPropagation, true);
+      element.addEventListener('touchstart', preventPropagation, true);
+      element.addEventListener('touchend', preventPropagation, true);
+      element.addEventListener('mousedown', preventPropagation, true);
     }
   });
-}, 500); // Delay to ensure DOM is ready
+  
+  console.log('✅ Send button setup complete with aggressive event prevention');
+};
+
+  // Re-setup send button after modules load
+setTimeout(() => {
+  window.setupSendButton();
+}, 1000);
 
     // Global exports for compatibility
     window.createDNFCell = function() {
