@@ -197,10 +197,12 @@
     }
 
     .scoreboard-value {
-      font-size: 1.8em;
-      font-weight: 900;
-      color: var(--purple-dark);
-    }
+  font-size: 1.8em;
+  font-weight: 900;
+  color: var(--purple-dark);
+  font-family: 'Menlo', 'Monaco', 'SF Mono', 'Consolas', 'Roboto Mono', 'Courier New', monospace;
+  letter-spacing: 0.05em; /* Optional: slight spacing for digital feel */
+}
 
     .crown {
       position: absolute;
@@ -216,13 +218,17 @@
       100% { transform: translateX(-50%) translateY(-3px); }
     }
 
-    /* EXPANDED HISTORY & STATS (Top Strip Expanded) */
-    .history-expanded {
-      display: none;
-      padding: 2em 1em;
-      height: calc(100% - 80px);
-      overflow-y: auto;
-    }
+    /* FIXED: History expansion with proper bottom constraint and visual divider */
+.history-expanded {
+  display: none;
+  padding: 2em 1em;
+  padding-bottom: 1em; /* Reduced bottom padding */
+  height: calc(100vh - 140px - 70px - 80px); /* Screen minus both strips minus scoreboard mini */
+  max-height: calc(100vh - 210px - 80px); /* Ensure it doesn't exceed bounds */
+  overflow-y: auto;
+  border-top: 1px solid var(--purple-dark); /* Visual divider at original strip bottom */
+  margin-top: 0; /* Ensure border sits at exact strip boundary */
+}
 
     .top-strip.expanded .history-expanded {
       display: block;
@@ -361,14 +367,15 @@
       color: #059669;
     }
 
-    /* ENHANCED: Chat System (Bottom Strip) with improved visibility */
-    .chat-container {
-      padding: 1em;
-      height: 100%;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }            
+    /* FIXED: Chat System with proper bottom padding */
+.chat-container {
+  padding: 1em;
+  padding-bottom: 1.5em; /* Added aesthetic bottom padding */
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}            
     
     .chat-mini {
       display: flex;
@@ -394,16 +401,17 @@
       text-align: center;
     }
 
-    /* FIXED: Chat expanded with proper height calculation */
+    /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
   display: none;
   padding: 1em;
   padding-top: 10px;
-  height: calc(100vh - 280px); /* Account for both strips */
-      flex-direction: column;
-      overflow: hidden;
-      justify-content: space-between;
-    }
+  padding-bottom: 1.5em; /* Aesthetic bottom spacing */
+  height: calc(100vh - 290px); /* Account for both strips plus padding */
+  flex-direction: column;
+  overflow: hidden;
+  justify-content: space-between;
+}
 
     .bottom-strip.expanded .chat-expanded {
       display: flex;
@@ -522,7 +530,7 @@
       text-align: center;
       font-size: 0.95em;
       color: #666;
-      margin: 0 0 1.5em 0;
+      margin: 0 0 0.75em 0;
     }
     
     /* iOS dropdown display fix */
@@ -544,9 +552,9 @@
     }
 
     .user-select-area {
-      text-align: center;
-      margin-bottom: 1.5em;
-    }
+  text-align: center;
+  margin: 1.125em 0 1.125em 0; /* Centered between subtitle and date */
+}
 
     .user-select-area select {
       padding: 0.5em 1em;
@@ -971,7 +979,7 @@
     <div class="chat-container">
       <!-- Mini Chat Status (Always Visible) -->
       <div class="chat-mini" id="chatMini"> 
-        <div class="chat-status" id="chatStatus">🗑️ Trash Talk Central 🔥</div>
+        <div class="chat-status" id="chatStatus">🗑️ Talkin' Trash 🔥</div>
         <div id="unreadBadge">0</div>
       </div>
 
@@ -1082,8 +1090,13 @@
       mainContent.classList.add('bottom-expanded');
       
       bottomStripExpanded = true;
-      showOverlay();
-      loadChatMessages();
+showOverlay();
+// ENHANCED: Proper chat system integration
+if (window.chatSystem) {
+  window.chatSystem.showChat();
+} else {
+  loadChatMessages(); // Fallback
+}
       
       console.log('💬 Bottom strip expanded - edge-to-edge to top strip');
     }
@@ -1206,13 +1219,13 @@
         });
       }
 
-      // Overlay tap-to-dismiss
-      if (overlay) {
-        overlay.addEventListener('click', () => {
-          if (topStripExpanded) toggleTopStrip();
-          if (bottomStripExpanded) toggleBottomStrip();
-        });
-      }
+      // ENHANCED: Overlay and cross-strip tap-to-dismiss
+if (overlay) {
+  overlay.addEventListener('click', () => {
+    if (topStripExpanded) toggleTopStrip();
+    if (bottomStripExpanded) toggleBottomStrip();
+  });
+}
     }
 
     // ENHANCED: Global strip state tracking for other modules
@@ -1374,35 +1387,15 @@
       });
     }
 
-    // ENHANCED: Fixed chat loading with proper content rendering
-    function loadChatMessages() {
-      const chatMessages = document.getElementById('chatMessages');
-      
-      // FIXED: Ensure chat messages container is properly initialized
-      if (!chatMessages) {
-        console.error('❌ Chat messages container not found');
-        return;
-      }
-      
-      // FIXED: Clear any existing content first
-      chatMessages.innerHTML = '';
-      
-      // FIXED: Add proper loading message with visible styling
-      const loadingDiv = document.createElement('div');
-      loadingDiv.style.cssText = `
-        text-align: center; 
-        color: #666; 
-        font-style: italic; 
-        padding: 2em;
-        background: #f8fafc;
-        border-radius: 8px;
-        margin: 1em;
-      `;
-      loadingDiv.textContent = 'Chat system loading... 💬';
-      chatMessages.appendChild(loadingDiv);
-      
-      console.log('💬 Chat messages container initialized and loading...');
-    }
+    // FIXED: Delegate to real chat system
+function loadChatMessages() {
+  if (window.chatSystem && window.chatSystem.loadMessages) {
+    console.log('💬 Using real chat system');
+    window.chatSystem.loadMessages();
+  } else {
+    console.log('⏳ Chat system not ready yet');
+  }
+}
 
     function initializeChatSystem() {
       const chatInput = document.getElementById('chatInput');

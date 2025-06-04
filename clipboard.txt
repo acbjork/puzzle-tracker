@@ -1,0 +1,7 @@
+// ENHANCED: Overlay and cross-strip tap-to-dismiss
+if (overlay) {
+  overlay.addEventListener('click', () => {
+    if (topStripExpanded) toggleTopStrip();
+    if (bottomStripExpanded) toggleBottomStrip();
+  });
+}
