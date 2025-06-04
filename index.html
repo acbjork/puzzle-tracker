@@ -46,19 +46,19 @@
       flex-direction: column;
     }
 
-    /* ENHANCED: Fixed Top Strip with edge-to-edge expansion */
-    .top-strip {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: var(--strip-bg);
-      border-bottom: 1px solid var(--purple-medium);
-      z-index: 1000;
-      transition: height 0.3s ease;
-      height: 140px;
-      box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
-    }
+    /* Update your .top-strip rule to ensure it doesn't move */
+.top-strip {
+  position: fixed;
+  top: 0 !important; /* Force it to stay at top */
+  left: 0;
+  right: 0;
+  background: var(--strip-bg);
+  border-bottom: 1px solid var(--purple-medium);
+  z-index: 1001; /* Higher than bottom strip */
+  transition: height 0.3s ease;
+  height: 140px;
+  box-shadow: 0 2px 8px rgba(107, 70, 193, 0.1);
+}
 
     /* FIXED: Edge-to-edge expansion - stops at top of bottom strip */
 .top-strip.expanded {
@@ -66,28 +66,38 @@
   bottom: 70px; /* Stop above bottom strip */
 }
 
-    /* ENHANCED: Fixed Bottom Strip with edge-to-edge expansion */
-    .bottom-strip {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--strip-bg);
-      border-top: 1px solid var(--purple-medium);
-      z-index: 1000;
-      transition: height 0.3s ease;
-      height: 70px;
-      box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
-      margin-bottom: 0 !important;
-      padding-bottom: 0 !important;
-      padding-top: 10px;
-    }
+    /* Replace your existing .bottom-strip rule with this enhanced version */
+.bottom-strip {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--strip-bg);
+  border-top: 1px solid var(--purple-medium);
+  z-index: 1000;
+  transition: all 0.3s ease; /* Changed from just 'height' to 'all' */
+  height: 70px;
+  box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  padding-top: 10px;
+}
 
-      /* FIXED: Edge-to-edge expansion - stops at bottom of top strip */
+/* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
   height: calc(100vh - 140px);
-  top: 140px; /* Start below top strip */
+  top: 140px; /* This should keep the top strip in place */
   bottom: auto;
+  transition: all 0.3s ease;
+  position: fixed; /* Ensure it stays fixed */
+  z-index: 1000; /* Maintain z-index */
+}
+
+/* Also ensure the chat container doesn't push content */
+.bottom-strip.expanded .chat-container {
+  height: 100%;
+  max-height: calc(100vh - 140px);
+  overflow: hidden;
 }
 
     /* FIXED: Main Content Area with proper positioning */
@@ -820,6 +830,13 @@
       margin-top: 2em;
       padding: 1em 0;
     }
+    /* Add this new rule to fix Safari viewport issues */
+@supports (-webkit-touch-callout: none) {
+  /* Safari only */
+  .bottom-strip.expanded {
+    height: calc(100vh - 140px - env(safe-area-inset-top));
+    top: calc(140px + env(safe-area-inset-top));
+  }
   </style>
 </head>
 <body>
@@ -1238,7 +1255,60 @@ if (overlay) {
   });
 }
     }
+      
+      // Add this function after initializeGestures()
+function setupCrossStripCollapse() {
+  const topStrip = document.getElementById('topStrip');
+  const bottomStrip = document.getElementById('bottomStrip');
+  
+  // Create a tap handler for the top strip
+  const handleTopStripTap = (e) => {
+    // Only work if bottom strip (chat) is expanded
+    if (window.bottomStripExpanded) {
+      // Check if the tap is on the strip itself, not on interactive elements
+      if (e.target === topStrip || 
+          e.target.closest('.scoreboard-container') || 
+          e.target.closest('.scoreboard-mini')) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Collapse the chat
+        window.toggleBottomStrip();
+      }
+    }
+  };
+  
+  // Add event listeners to top strip
+  topStrip.addEventListener('click', handleTopStripTap);
+  topStrip.addEventListener('touchend', handleTopStripTap);
+  
+  // Similarly for bottom strip when top is expanded
+  const handleBottomStripTap = (e) => {
+    if (window.topStripExpanded) {
+      if (e.target === bottomStrip || 
+          e.target.closest('.chat-mini')) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.toggleTopStrip();
+      }
+    }
+  };
+  
+  bottomStrip.addEventListener('click', handleBottomStripTap);
+  bottomStrip.addEventListener('touchend', handleBottomStripTap);
+}
 
+// Call this function in your initialize() function
+function initialize() {
+  updatePuzzleDateDisplay();
+  initializeGestures();
+  setupCrossStripCollapse(); // Add this line
+  initializeDatePicker();
+  initializeChatSystem();
+  updateUIVisibility();
+  
+  console.log('✅ ENHANCED UI initialized - Edge-to-edge expansion + Bug fixes v2025.06.03.1');
+}
+    
     // ENHANCED: Global strip state tracking for other modules
     window.topStripExpanded = false;
     window.bottomStripExpanded = false;
@@ -1436,11 +1506,30 @@ function loadChatMessages() {
         }
       });
 
-      chatSendBtn.addEventListener('click', (e) => {
-        if (!isProcessing) {
-          sendChatMessage();
-        }
-      });
+      // Replace the existing click handler with this:
+chatSendBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  if (!isProcessing) {
+    sendChatMessage();
+  }
+});
+
+// Also add touchend handler for better mobile support
+chatSendBtn.addEventListener('touchend', (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  if (!isProcessing) {
+    sendChatMessage();
+  }
+});
+
+// Prevent any bubbling from the send button
+chatSendBtn.addEventListener('touchstart', (e) => {
+  e.stopPropagation();
+});
 
       chatInput.addEventListener('input', () => {
         const hasText = chatInput.value.trim().length > 0;
@@ -1449,24 +1538,45 @@ function loadChatMessages() {
       });
 
       async function sendChatMessage() {
-        if (isProcessing) return;
-        
-        const message = chatInput.value.trim();
-        if (!message) return;
+  if (isProcessing) return;
+  
+  const message = chatInput.value.trim();
+  if (!message) return;
 
-        isProcessing = true;
-        chatSendBtn.disabled = true;
+  isProcessing = true;
+  chatSendBtn.disabled = true;
 
-        try {
-          console.log('💬 Send message:', message);
-          chatInput.value = '';
-        } finally {
-          isProcessing = false;
-          const hasText = chatInput.value.trim().length > 0;
-          const hasUser = !!userSelect.value;
-          chatSendBtn.disabled = !hasText || !hasUser;
-        }
-      }
+  try {
+    // Store message details before clearing
+    const messageData = {
+      player: userSelect.value,
+      message: message,
+      created_at: new Date().toISOString(),
+      id: 'temp-' + Date.now() // Temporary ID
+    };
+    
+    // Clear input immediately
+    chatInput.value = '';
+    
+    // Add message to local display immediately
+    if (window.chatSystem && window.chatSystem.messages) {
+      window.chatSystem.messages.push(messageData);
+      window.chatSystem.renderMessages();
+    }
+    
+    // Send to database
+    console.log('💬 Send message:', message);
+    
+    // If you have the actual send function, call it here:
+    // await supabaseClient.sendChatMessage(today, currentUser, message);
+    
+  } finally {
+    isProcessing = false;
+    const hasText = chatInput.value.trim().length > 0;
+    const hasUser = !!userSelect.value;
+    chatSendBtn.disabled = !hasText || !hasUser;
+  }
+}
     }
 
     function loadPuzzleDataForDate(date) {
