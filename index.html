@@ -1115,6 +1115,13 @@
       loadHistoryData();
       updateCurrentChampDisplay();
       
+      loadHistoryData();
+      updateCurrentChampDisplay();
+      
+      if (window.updateTapZones) window.updateTapZones();
+      console.log('📊 Top strip expanded - edge-to-edge to bottom strip');
+    }
+    
       console.log('📊 Top strip expanded - edge-to-edge to bottom strip');
     }
 
@@ -1134,6 +1141,13 @@
       topStripExpanded = false;
       hideOverlay();
       
+      topStripExpanded = false;
+      hideOverlay();
+      
+      if (window.updateTapZones) window.updateTapZones();
+      console.log('📊 Top strip collapsed');
+    }
+    
       console.log('📊 Top strip collapsed');
     }
 
@@ -1155,6 +1169,14 @@ if (window.chatSystem) {
   loadChatMessages(); // Fallback
 }
       
+      } else {
+  loadChatMessages(); // Fallback
+}
+      
+      if (window.updateTapZones) window.updateTapZones();
+      console.log('💬 Bottom strip expanded - edge-to-edge to top strip');
+    }
+    
       console.log('💬 Bottom strip expanded - edge-to-edge to top strip');
     }
 
@@ -1174,6 +1196,13 @@ if (window.chatSystem) {
       bottomStripExpanded = false;
       hideOverlay();
       
+      bottomStripExpanded = false;
+      hideOverlay();
+      
+      if (window.updateTapZones) window.updateTapZones();
+      console.log('💬 Bottom strip collapsed');
+    }
+    
       console.log('💬 Bottom strip collapsed');
     }
 
