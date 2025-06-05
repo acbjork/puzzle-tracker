@@ -1106,15 +1106,11 @@
       const mainContent = document.getElementById('mainContent');
       
       topStrip.classList.add('expanded');
-      // ENHANCED: Update main content class for proper edge-to-edge expansion
       mainContent.classList.remove('both-collapsed', 'bottom-expanded');
       mainContent.classList.add('top-expanded');
       
       topStripExpanded = true;
       showOverlay();
-      loadHistoryData();
-      updateCurrentChampDisplay();
-      
       loadHistoryData();
       updateCurrentChampDisplay();
       
@@ -1146,18 +1142,18 @@
       const mainContent = document.getElementById('mainContent');
       
       bottomStrip.classList.add('expanded');
-      // ENHANCED: Update main content class for proper edge-to-edge expansion
       mainContent.classList.remove('both-collapsed', 'top-expanded');
       mainContent.classList.add('bottom-expanded');
       
       bottomStripExpanded = true;
-showOverlay();
-// ENHANCED: Proper chat system integration
-if (window.chatSystem) {
-  window.chatSystem.showChat();
-} else {
-  loadChatMessages(); // Fallback
-}
+      showOverlay();
+      
+      // ENHANCED: Proper chat system integration
+      if (window.chatSystem) {
+        window.chatSystem.showChat();
+      } else {
+        loadChatMessages(); // Fallback
+      }
       
       if (window.updateTapZones) window.updateTapZones();
       console.log('💬 Bottom strip expanded - edge-to-edge to top strip');
@@ -1168,16 +1164,12 @@ if (window.chatSystem) {
       const mainContent = document.getElementById('mainContent');
       
       bottomStrip.classList.remove('expanded');
-      // ENHANCED: Restore proper main content class
       mainContent.classList.remove('bottom-expanded');
       if (topStripExpanded) {
         mainContent.classList.add('top-expanded');
       } else {
         mainContent.classList.add('both-collapsed');
       }
-      
-      bottomStripExpanded = false;
-      hideOverlay();
       
       bottomStripExpanded = false;
       hideOverlay();
@@ -1221,7 +1213,7 @@ if (window.chatSystem) {
       const topIndicator = document.getElementById('topSwipeIndicator');
       const bottomIndicator = document.getElementById('bottomSwipeIndicator');
 
-      // Create generous tap zones for better mobile experience
+      // Create tap zones that HIDE when strips expand
       const topTapZone = document.createElement('div');
       topTapZone.id = 'topTapZone';
       topTapZone.style.cssText = `
@@ -1233,6 +1225,7 @@ if (window.chatSystem) {
         z-index: 1002;
         cursor: pointer;
         background: transparent;
+        pointer-events: auto;
       `;
       
       const bottomTapZone = document.createElement('div');
@@ -1246,6 +1239,7 @@ if (window.chatSystem) {
         z-index: 1002;
         cursor: pointer;
         background: transparent;
+        pointer-events: auto;
       `;
 
       document.body.appendChild(topTapZone);
@@ -1285,82 +1279,85 @@ if (window.chatSystem) {
         });
       }
 
-      // ENHANCED: Overlay and cross-strip tap-to-dismiss
-if (overlay) {
-  overlay.addEventListener('click', () => {
-    if (topStripExpanded) toggleTopStrip();
-    if (bottomStripExpanded) toggleBottomStrip();
-  });
-}
-    }
-      
-      // Add this function after initializeGestures()
-function setupCrossStripCollapse() {
-  const topStrip = document.getElementById('topStrip');
-  const bottomStrip = document.getElementById('bottomStrip');
-  
-  // Create a tap handler for the top strip
-  const handleTopStripTap = (e) => {
-    // Only work if bottom strip (chat) is expanded
-    if (window.bottomStripExpanded) {
-      // CRITICAL: Exclude clicks on expanded history
-      if (e.target.closest('.history-expanded')) {
-        return; // Don't collapse if clicking in history
+      // Overlay for closing expanded strips
+      if (overlay) {
+        overlay.addEventListener('click', () => {
+          if (topStripExpanded) toggleTopStrip();
+          if (bottomStripExpanded) toggleBottomStrip();
+        });
       }
       
-      // Check if the tap is on the strip header area only
-      if (e.target.closest('.scoreboard-mini') || 
-          e.target.closest('.swipe-indicator') ||
-          (e.target.closest('.scoreboard-container') && !e.target.closest('.history-expanded'))) {
-        e.preventDefault();
-        e.stopPropagation();
-        // Collapse the chat
-        window.toggleBottomStrip();
-      }
+      // CRITICAL FIX: Hide/show tap zones based on strip state
+      window.updateTapZones = function() {
+        if (topStripExpanded) {
+          topTapZone.style.display = 'none';
+        } else {
+          topTapZone.style.display = 'block';
+        }
+        
+        if (bottomStripExpanded) {
+          bottomTapZone.style.display = 'none';
+        } else {
+          bottomTapZone.style.display = 'block';
+        }
+      };
     }
-  };
-  
-  // Add event listeners to top strip
-  topStrip.addEventListener('click', handleTopStripTap);
-  topStrip.addEventListener('touchend', handleTopStripTap);
-  
-  // Similarly for bottom strip when top is expanded
-  const handleBottomStripTap = (e) => {
-    if (window.topStripExpanded) {
-      // CRITICAL FIX: Exclude clicks on the expanded chat area
-      if (e.target.closest('.chat-expanded') || 
-          e.target.closest('.chat-input-container') ||
-          e.target.closest('.chat-messages') ||
-          e.target.closest('#chatInput') ||
-          e.target.closest('#chatSendBtn')) {
-        return; // Don't collapse if clicking in chat area
-      }
       
-      // Only collapse if clicking the mini chat status or swipe indicator
-      if (e.target.closest('.chat-mini') || 
-          e.target.closest('.swipe-indicator')) {
-        e.preventDefault();
-        e.stopPropagation();
-        window.toggleTopStrip();
-      }
+    // Add this function after initializeGestures()
+    function setupCrossStripCollapse() {
+      const topStrip = document.getElementById('topStrip');
+      const bottomStrip = document.getElementById('bottomStrip');
+      
+      // Create a tap handler for the top strip
+      const handleTopStripTap = (e) => {
+        // Only work if bottom strip (chat) is expanded
+        if (window.bottomStripExpanded) {
+          // CRITICAL: Exclude clicks on expanded history
+          if (e.target.closest('.history-expanded')) {
+            return; // Don't collapse if clicking in history
+          }
+          
+          // Check if the tap is on the strip header area only
+          if (e.target.closest('.scoreboard-mini') || 
+              e.target.closest('.swipe-indicator') ||
+              (e.target.closest('.scoreboard-container') && !e.target.closest('.history-expanded'))) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Collapse the chat
+            window.toggleBottomStrip();
+          }
+        }
+      };
+      
+      // Add event listeners to top strip
+      topStrip.addEventListener('click', handleTopStripTap);
+      topStrip.addEventListener('touchend', handleTopStripTap);
+      
+      // Similarly for bottom strip when top is expanded
+      const handleBottomStripTap = (e) => {
+        if (window.topStripExpanded) {
+          // CRITICAL FIX: Exclude clicks on the expanded chat area
+          if (e.target.closest('.chat-expanded') || 
+              e.target.closest('.chat-input-container') ||
+              e.target.closest('.chat-messages') ||
+              e.target.closest('#chatInput') ||
+              e.target.closest('#chatSendBtn')) {
+            return; // Don't collapse if clicking in chat area
+          }
+          
+          // Only collapse if clicking the mini chat status or swipe indicator
+          if (e.target.closest('.chat-mini') || 
+              e.target.closest('.swipe-indicator')) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.toggleTopStrip();
+          }
+        }
+      };
+      
+      bottomStrip.addEventListener('click', handleBottomStripTap);
+      bottomStrip.addEventListener('touchend', handleBottomStripTap);
     }
-  };
-  
-  bottomStrip.addEventListener('click', handleBottomStripTap);
-  bottomStrip.addEventListener('touchend', handleBottomStripTap);
-}
-
-// Call this function in your initialize() function
-function initializeUI() {
-  updatePuzzleDateDisplay();
-  initializeGestures();
-  setupCrossStripCollapse(); // Add this line
-  initializeDatePicker();
-  initializeChatSystem();
-  updateUIVisibility();
-  
-  console.log('✅ ENHANCED UI initialized - Edge-to-edge expansion + Bug fixes v2025.06.03.1');
-}
     
     // ENHANCED: Global strip state tracking for other modules
     window.topStripExpanded = false;
@@ -1522,147 +1519,122 @@ function initializeUI() {
     }
 
     // FIXED: Delegate to real chat system
-function loadChatMessages() {
-  if (window.chatSystem && window.chatSystem.loadMessages) {
-    console.log('💬 Using real chat system');
-    window.chatSystem.loadMessages();
-  } else {
-    console.log('⏳ Chat system not ready yet');
-  }
-}
+    function loadChatMessages() {
+      if (window.chatSystem && window.chatSystem.loadMessages) {
+        console.log('💬 Using real chat system');
+        window.chatSystem.loadMessages();
+      } else {
+        console.log('⏳ Chat system not ready yet');
+      }
+    }
 
     // Move sendChatMessage to global scope
-window.sendChatMessage = async function() {
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  const userSelect = document.getElementById('userSelect');
-  
-  if (!chatInput || !chatSendBtn || !userSelect) return;
-  
-  const message = chatInput.value.trim();
-  if (!message) return;
+    window.sendChatMessage = async function() {
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
+      const userSelect = document.getElementById('userSelect');
+      
+      if (!chatInput || !chatSendBtn || !userSelect) return;
+      
+      const message = chatInput.value.trim();
+      if (!message) return;
 
-  // Prevent duplicate processing
-  if (window.isSendingMessage) return;
-  window.isSendingMessage = true;
-  
-  chatSendBtn.disabled = true;
+      // Prevent duplicate processing
+      if (window.isSendingMessage) return;
+      window.isSendingMessage = true;
+      
+      chatSendBtn.disabled = true;
 
-  try {
-    // Clear input immediately
-    chatInput.value = '';
-    
-    // Send to database WITHOUT adding a temporary message
-    console.log('💬 Send message:', message);
-    
-    // Call the actual supabase send function
-    const today = new Date().toISOString().slice(0, 10);
-    await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
-    
-    // The real-time subscription will handle adding the message to the display
-    
-  } catch (error) {
-    console.error('Failed to send message:', error);
-    alert('Failed to send message. Please try again.');
-  } finally {
-    window.isSendingMessage = false;
-    const hasText = chatInput.value.trim().length > 0;
-    const hasUser = !!userSelect.value;
-    chatSendBtn.disabled = !hasText || !hasUser;
-  }
-};
+      try {
+        // Clear input immediately
+        chatInput.value = '';
+        
+        // Send to database WITHOUT adding a temporary message
+        console.log('💬 Send message:', message);
+        
+        // Call the actual supabase send function
+        const today = new Date().toISOString().slice(0, 10);
+        await window.supabaseClient.sendChatMessage(today, userSelect.value, message);
+        
+        // The real-time subscription will handle adding the message to the display
+        
+      } catch (error) {
+        console.error('Failed to send message:', error);
+        alert('Failed to send message. Please try again.');
+      } finally {
+        window.isSendingMessage = false;
+        const hasText = chatInput.value.trim().length > 0;
+        const hasUser = !!userSelect.value;
+        chatSendBtn.disabled = !hasText || !hasUser;
+      }
+    };
 
-function initializeChatSystem() {
-  const chatInput = document.getElementById('chatInput');
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  const userSelect = document.getElementById('userSelect');
+    function initializeChatSystem() {
+      const chatInput = document.getElementById('chatInput');
+      const chatSendBtn = document.getElementById('chatSendBtn');
+      const userSelect = document.getElementById('userSelect');
 
-  userSelect.addEventListener('change', (e) => {
-    const hasUser = !!e.target.value;
-    chatInput.disabled = !hasUser;
-    chatSendBtn.disabled = !hasUser;
-    
-    if (hasUser) {
-      document.getElementById('chatStatus').textContent = 'Ready to trash talk! 🔥';
-    } else {
-      document.getElementById('chatStatus').textContent = 'Select user to enable chat';
+      userSelect.addEventListener('change', (e) => {
+        const hasUser = !!e.target.value;
+        chatInput.disabled = !hasUser;
+        chatSendBtn.disabled = !hasUser;
+        
+        if (hasUser) {
+          document.getElementById('chatStatus').textContent = 'Ready to trash talk! 🔥';
+        } else {
+          document.getElementById('chatStatus').textContent = 'Select user to enable chat';
+        }
+
+        updateUIVisibility();
+      });
+      
+      chatInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey && !window.isSendingMessage) {
+          e.preventDefault();
+          window.sendChatMessage();
+        }
+      });
+
+      chatInput.addEventListener('input', () => {
+        const hasText = chatInput.value.trim().length > 0;
+        const hasUser = !!userSelect.value;
+        chatSendBtn.disabled = !hasText || !hasUser || window.isSendingMessage;
+      });
+      
+      // Initial setup for send button
+      setupSendButton();
     }
 
-    updateUIVisibility();
-  });
-  
-  chatInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey && !window.isSendingMessage) {
-      e.preventDefault();
-      window.sendChatMessage();
+    // Separate function to set up the send button
+    window.setupSendButton = function() {
+      const chatSendBtn = document.getElementById('chatSendBtn');
+      
+      if (!chatSendBtn) return;
+      
+      // Remove ALL existing listeners by cloning
+      const newBtn = chatSendBtn.cloneNode(true);
+      chatSendBtn.parentNode.replaceChild(newBtn, chatSendBtn);
+      
+      // Simple click handler - no aggressive prevention
+      newBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.sendChatMessage();
+      });
+      
+      console.log('✅ Send button setup complete');
+    };
+
+    // Re-setup send button after modules load
+    setTimeout(() => {
+      window.setupSendButton();
+    }, 1000);
+
+    function loadPuzzleDataForDate(date) {
+      console.log('📊 Loading puzzle data for:', date);
+      if (window.appInstance && window.appInstance.loadDataForDate) {
+        window.appInstance.loadDataForDate(date);
+      }
     }
-  });
-
-  chatInput.addEventListener('input', () => {
-    const hasText = chatInput.value.trim().length > 0;
-    const hasUser = !!userSelect.value;
-    chatSendBtn.disabled = !hasText || !hasUser || window.isSendingMessage;
-  });
-  
-  // Initial setup for send button
-  setupSendButton();
-}
-
-// Separate function to set up the send button
-window.setupSendButton = function() {
-  const chatSendBtn = document.getElementById('chatSendBtn');
-  const chatInputContainer = document.querySelector('.chat-input-container');
-  const chatExpanded = document.getElementById('chatExpanded');
-  const chatMessages = document.getElementById('chatMessages');
-  
-  if (!chatSendBtn) return;
-  
-  // Remove ALL existing listeners by cloning
-  const newBtn = chatSendBtn.cloneNode(true);
-  chatSendBtn.parentNode.replaceChild(newBtn, chatSendBtn);
-  
-  // Prevent all propagation on the button
-  const preventPropagation = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    e.stopImmediatePropagation();
-    return false;
-  };
-  
-  // Add click handler
-  newBtn.addEventListener('click', (e) => {
-    preventPropagation(e);
-    window.sendChatMessage();
-  }, true);
-  
-  // Add touch handlers
-  newBtn.addEventListener('touchstart', preventPropagation, true);
-  newBtn.addEventListener('touchend', (e) => {
-    preventPropagation(e);
-    window.sendChatMessage();
-  }, true);
-  
-  // Prevent mousedown as well
-  newBtn.addEventListener('mousedown', preventPropagation, true);
-  
-  // Prevent collapse on entire chat area
-  const elements = [chatInputContainer, chatExpanded, chatMessages];
-  elements.forEach(element => {
-    if (element) {
-      element.addEventListener('click', preventPropagation, true);
-      element.addEventListener('touchstart', preventPropagation, true);
-      element.addEventListener('touchend', preventPropagation, true);
-      element.addEventListener('mousedown', preventPropagation, true);
-    }
-  });
-  
-  console.log('✅ Send button setup complete with aggressive event prevention');
-};
-
-  // Re-setup send button after modules load
-setTimeout(() => {
-  window.setupSendButton();
-}, 1000);
 
     // Global exports for compatibility
     window.createDNFCell = function() {
@@ -1684,16 +1656,22 @@ setTimeout(() => {
       'Wordle': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 },
       'Tightrope': { resetTime: '00:00', timezone: 'ET', gracePeriod: 15 }
     };
- 
-    // Initialize everything
-    function initialize() {
+
+    // Call this function in your initialize() function
+    function initializeUI() {
       updatePuzzleDateDisplay();
       initializeGestures();
+      setupCrossStripCollapse();
       initializeDatePicker();
       initializeChatSystem();
       updateUIVisibility();
       
       console.log('✅ ENHANCED UI initialized - Edge-to-edge expansion + Bug fixes v2025.06.03.1');
+    }
+ 
+    // Initialize everything
+    function initialize() {
+      initializeUI();
     }
 
     // Start the app
