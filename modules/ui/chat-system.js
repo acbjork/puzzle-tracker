@@ -587,7 +587,7 @@ Someone needs to start the smack down! 🔥
         btn.removeChild(btn.firstChild);
       }
       const emojiSpan = document.createElement('span');
-      emojiSpan.style.cssText = 'color: initial !important; filter: none !important; opacity: 1 !important;';
+      emojiSpan.style.cssText = 'color: initial !important; filter: none !important; opacity: 1 !important; -webkit-text-fill-color: initial !important;';
       emojiSpan.textContent = '🚮';
       btn.appendChild(emojiSpan);
       
