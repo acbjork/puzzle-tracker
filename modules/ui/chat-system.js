@@ -605,6 +605,7 @@ Someone needs to start the smack down! 🔥
       }, 50);
     }
   }
+} 
 
   async updateUnreadBadge() {
     this.badgeUpdateCount++;
