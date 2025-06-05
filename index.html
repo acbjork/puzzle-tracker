@@ -567,6 +567,23 @@
       background: #ccc;
       cursor: not-allowed;
     }
+    
+    /* Fix for stuck button states */
+    .chat-send-btn:focus {
+      outline: none;
+      box-shadow: none;
+    }
+    
+    .chat-send-btn:active {
+      transform: scale(0.98);
+    }
+    
+    /* Force normal state when not disabled */
+    .chat-send-btn:not(:disabled) {
+      opacity: 1;
+      background: transparent;
+      box-shadow: none;
+    }
 
     /* MAIN CONTENT STYLING */
     h1 {
@@ -1568,21 +1585,34 @@
         chatInput.value = message;
       } finally {
         window.isSendingMessage = false;
-        chatSendBtn.textContent = originalBtnText;
         
-        // Force focus back to input to trigger proper state update
-        chatInput.focus();
-        
-        // Update button state based on current input
-        setTimeout(() => {
-          const hasText = chatInput.value.trim().length > 0;
-          const hasUser = !!userSelect.value;
-          chatSendBtn.disabled = !hasText || !hasUser;
+        // Get fresh reference to button
+        const btn = document.getElementById('chatSendBtn');
+        if (btn) {
+          btn.textContent = originalBtnText;
           
-          // Remove any stuck styles
-          chatSendBtn.style.opacity = '';
-          chatSendBtn.style.transform = '';
-        }, 100);
+          // Force remove focus and active states
+          btn.blur();
+          
+          // Remove all inline styles
+          btn.style.opacity = '';
+          btn.style.transform = '';
+          btn.style.boxShadow = '';
+          btn.style.background = '';
+          
+          // Force repaint
+          btn.offsetHeight;
+          
+          // Update disabled state
+          setTimeout(() => {
+            const hasText = chatInput.value.trim().length > 0;
+            const hasUser = !!userSelect.value;
+            btn.disabled = !hasText || !hasUser;
+            
+            // Focus back on input
+            chatInput.focus();
+          }, 50);
+        }
       }
     };
 
