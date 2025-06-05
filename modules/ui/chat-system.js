@@ -574,45 +574,28 @@ Someone needs to start the smack down! 🔥
     this.renderMessages();
     
     chatInput.style.opacity = '1';
+  
   } finally {
     this.isProcessing = false;
     
-    // Get fresh reference to button to ensure we're updating the right element
+    // Get fresh reference to button
     const btn = document.getElementById('chatSendBtn');
     if (btn) {
       // Reset button to normal state
       btn.disabled = false;
-      // Create a completely new button to avoid Safari's persistent styling
-      const newBtn = document.createElement('button');
-      newBtn.id = 'chatSendBtn';
-      newBtn.className = 'chat-send-btn';
-      newBtn.textContent = '🚮';
-      newBtn.disabled = false;
+      btn.textContent = '🚮';
       
-      // Copy event listeners from old button
-      const oldBtn = btn;
-      btn.parentNode.replaceChild(newBtn, btn);
+      // Force remove ALL styling that might affect the emoji
+      btn.style.cssText = '';
+      btn.className = 'chat-send-btn';
       
-      // Re-attach the click handler
-      newBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        this.sendMessage();
-      });
-      
-      newBtn.addEventListener('touchend', (e) => {
-        e.stopPropagation();
-        this.sendMessage();
-      });
-      
-      // Remove any classes that might affect appearance
-      btn.classList.remove('sending', 'disabled', 'processing');
-      
-      // Force repaint
-      btn.offsetHeight;
+      // Remove animation
+      btn.style.animation = '';
       
       // Update button state based on input
       setTimeout(() => {
-        const hasText = chatInput.value.trim().length > 0;
+        const chatInput = document.getElementById('chatInput');
+        const hasText = chatInput && chatInput.value.trim().length > 0;
         const hasUser = !!this.currentUser;
         btn.disabled = !hasText || !hasUser;
       }, 50);
