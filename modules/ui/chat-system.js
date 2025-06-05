@@ -585,12 +585,18 @@ Someone needs to start the smack down! 🔥
       btn.disabled = false;
       btn.textContent = '🚮';
       
-      // Force remove ALL styling that might affect the emoji
-      btn.style.cssText = '';
-      btn.className = 'chat-send-btn';
-      
-      // Remove animation
+      // Keep the button's class but remove only specific problem styles
       btn.style.animation = '';
+      btn.style.transform = '';
+      btn.style.opacity = '1';
+      btn.style.background = 'transparent';
+      btn.style.boxShadow = 'none';
+      
+      // Force emoji to render in color
+      btn.style.color = 'initial';
+      btn.style.filter = 'none';
+      btn.style.webkitTextFillColor = 'initial';
+      btn.style.webkitFilter = 'none';
       
       // Update button state based on input
       setTimeout(() => {
