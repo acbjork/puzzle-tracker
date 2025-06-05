@@ -582,7 +582,14 @@ Someone needs to start the smack down! 🔥
     if (btn) {
       // Reset button to normal state
       btn.disabled = false;
-      btn.innerHTML = '🚮';
+      // Completely recreate the button content
+      while (btn.firstChild) {
+        btn.removeChild(btn.firstChild);
+      }
+      const emojiSpan = document.createElement('span');
+      emojiSpan.style.cssText = 'color: initial !important; filter: none !important; opacity: 1 !important;';
+      emojiSpan.textContent = '🚮';
+      btn.appendChild(emojiSpan);
       
       // Force remove all styling that might be affecting color
       btn.style.color = '';
