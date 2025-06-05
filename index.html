@@ -518,6 +518,24 @@
       flex-shrink: 0;
       margin-top: auto;
     }
+    
+    /* Prevent chat area from triggering collapse */
+    .chat-expanded,
+    .chat-input-container,
+    .chat-messages,
+    .chat-input,
+    .chat-send-btn {
+      pointer-events: auto !important;
+      position: relative;
+      z-index: 1005; /* Higher than strip */
+    }
+    
+    /* Ensure input area is always interactive */
+    .bottom-strip.expanded .chat-input-container {
+      position: relative;
+      z-index: 1006;
+      pointer-events: auto !important;
+    }
 
     .chat-input {
       flex: 1;
@@ -1276,10 +1294,15 @@ function setupCrossStripCollapse() {
   const handleTopStripTap = (e) => {
     // Only work if bottom strip (chat) is expanded
     if (window.bottomStripExpanded) {
-      // Check if the tap is on the strip itself, not on interactive elements
-      if (e.target === topStrip || 
-          e.target.closest('.scoreboard-container') || 
-          e.target.closest('.scoreboard-mini')) {
+      // CRITICAL: Exclude clicks on expanded history
+      if (e.target.closest('.history-expanded')) {
+        return; // Don't collapse if clicking in history
+      }
+      
+      // Check if the tap is on the strip header area only
+      if (e.target.closest('.scoreboard-mini') || 
+          e.target.closest('.swipe-indicator') ||
+          (e.target.closest('.scoreboard-container') && !e.target.closest('.history-expanded'))) {
         e.preventDefault();
         e.stopPropagation();
         // Collapse the chat
@@ -1295,8 +1318,18 @@ function setupCrossStripCollapse() {
   // Similarly for bottom strip when top is expanded
   const handleBottomStripTap = (e) => {
     if (window.topStripExpanded) {
-      if (e.target === bottomStrip || 
-          e.target.closest('.chat-mini')) {
+      // CRITICAL FIX: Exclude clicks on the expanded chat area
+      if (e.target.closest('.chat-expanded') || 
+          e.target.closest('.chat-input-container') ||
+          e.target.closest('.chat-messages') ||
+          e.target.closest('#chatInput') ||
+          e.target.closest('#chatSendBtn')) {
+        return; // Don't collapse if clicking in chat area
+      }
+      
+      // Only collapse if clicking the mini chat status or swipe indicator
+      if (e.target.closest('.chat-mini') || 
+          e.target.closest('.swipe-indicator')) {
         e.preventDefault();
         e.stopPropagation();
         window.toggleTopStrip();
