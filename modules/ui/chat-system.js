@@ -574,6 +574,7 @@ Someone needs to start the smack down! 🔥
     this.renderMessages();
     
     chatInput.style.opacity = '1';
+    }
   } finally {
     this.isProcessing = false;
     
