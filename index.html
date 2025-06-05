@@ -1127,16 +1127,12 @@
       const mainContent = document.getElementById('mainContent');
       
       topStrip.classList.remove('expanded');
-      // ENHANCED: Restore proper main content class
       mainContent.classList.remove('top-expanded');
       if (bottomStripExpanded) {
         mainContent.classList.add('bottom-expanded');
       } else {
         mainContent.classList.add('both-collapsed');
       }
-      
-      topStripExpanded = false;
-      hideOverlay();
       
       topStripExpanded = false;
       hideOverlay();
