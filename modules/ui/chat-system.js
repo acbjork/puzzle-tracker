@@ -590,6 +590,11 @@ Someone needs to start the smack down! 🔥
       btn.style.filter = '';
       btn.style.transform = '';
       btn.style.animation = '';
+      // Force proper text rendering
+      btn.style.fontFamily = 'initial';
+      btn.style.webkitFontSmoothing = 'initial';
+      btn.style.textRendering = 'auto';
+      btn.style.webkitTextFillColor = 'initial';
       
       // Remove any classes that might affect appearance
       btn.classList.remove('sending', 'disabled', 'processing');
