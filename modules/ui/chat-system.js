@@ -582,7 +582,7 @@ Someone needs to start the smack down! 🔥
     if (btn) {
       // Reset button to normal state
       btn.disabled = false;
-      btn.textContent = '🚮';
+      btn.innerHTML = '🚮';
       
       // Force remove all styling that might be affecting color
       btn.style.color = '';
