@@ -576,16 +576,35 @@ Someone needs to start the smack down! 🔥
     chatInput.style.opacity = '1';
   } finally {
     this.isProcessing = false;
-    sendBtn.disabled = false;
-    sendBtn.textContent = '🚮';
-    sendBtn.style.animation = '';
     
-    // Update button state
-    const hasText = chatInput.value.trim().length > 0;
-    const hasUser = !!this.currentUser;
-    sendBtn.disabled = !hasText || !hasUser;
+    // Get fresh reference to button to ensure we're updating the right element
+    const btn = document.getElementById('chatSendBtn');
+    if (btn) {
+      // Reset button to normal state
+      btn.disabled = false;
+      btn.textContent = '🚮';
+      
+      // Force remove all styling that might be affecting color
+      btn.style.color = '';
+      btn.style.opacity = '';
+      btn.style.filter = '';
+      btn.style.transform = '';
+      btn.style.animation = '';
+      
+      // Remove any classes that might affect appearance
+      btn.classList.remove('sending', 'disabled', 'processing');
+      
+      // Force repaint
+      btn.offsetHeight;
+      
+      // Update button state based on input
+      setTimeout(() => {
+        const hasText = chatInput.value.trim().length > 0;
+        const hasUser = !!this.currentUser;
+        btn.disabled = !hasText || !hasUser;
+      }, 50);
+    }
   }
-}
 
   async updateUnreadBadge() {
     this.badgeUpdateCount++;

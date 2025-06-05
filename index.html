@@ -558,33 +558,35 @@
       min-width: 50px;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
-      /* Remove color property - let emoji be natural */
+      color: inherit !important;
+      filter: none !important;
+      opacity: 1 !important;
     }
 
     .chat-send-btn:hover {
-      background: rgba(107, 70, 193, 0.1);
+      background: rgba(107, 70, 193, 0.1) !important;
+      transform: scale(1.05);
     }
 
     .chat-send-btn:disabled {
       cursor: not-allowed;
-      filter: grayscale(100%) opacity(50%);
+      filter: grayscale(100%) opacity(50%) !important;
     }
     
-    /* Fix for stuck button states */
     .chat-send-btn:focus {
       outline: none;
       box-shadow: none;
     }
     
     .chat-send-btn:active {
-      transform: scale(0.98);
+      transform: scale(0.95);
     }
     
-    /* Force normal state when not disabled */
+    /* Ensure emoji stays colorful when not disabled */
     .chat-send-btn:not(:disabled) {
-      opacity: 1;
-      background: transparent;
-      box-shadow: none;
+      filter: none !important;
+      opacity: 1 !important;
+      color: inherit !important;
     }
 
     /* MAIN CONTENT STYLING */
