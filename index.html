@@ -1543,7 +1543,10 @@
       if (window.isSendingMessage) return;
       window.isSendingMessage = true;
       
+      // Store original button text
+      const originalBtnText = chatSendBtn.textContent;
       chatSendBtn.disabled = true;
+      chatSendBtn.textContent = '⏳';
 
       try {
         // Clear input immediately
@@ -1561,11 +1564,25 @@
       } catch (error) {
         console.error('Failed to send message:', error);
         alert('Failed to send message. Please try again.');
+        // Restore the message on error
+        chatInput.value = message;
       } finally {
         window.isSendingMessage = false;
-        const hasText = chatInput.value.trim().length > 0;
-        const hasUser = !!userSelect.value;
-        chatSendBtn.disabled = !hasText || !hasUser;
+        chatSendBtn.textContent = originalBtnText;
+        
+        // Force focus back to input to trigger proper state update
+        chatInput.focus();
+        
+        // Update button state based on current input
+        setTimeout(() => {
+          const hasText = chatInput.value.trim().length > 0;
+          const hasUser = !!userSelect.value;
+          chatSendBtn.disabled = !hasText || !hasUser;
+          
+          // Remove any stuck styles
+          chatSendBtn.style.opacity = '';
+          chatSendBtn.style.transform = '';
+        }, 100);
       }
     };
 
@@ -1615,8 +1632,21 @@
       const newBtn = chatSendBtn.cloneNode(true);
       chatSendBtn.parentNode.replaceChild(newBtn, chatSendBtn);
       
-      // Simple click handler - no aggressive prevention
+      // Add click handler
       newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        window.sendChatMessage();
+      });
+      
+      // Prevent touch highlighting
+      newBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      
+      newBtn.addEventListener('touchend', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         window.sendChatMessage();
       });
