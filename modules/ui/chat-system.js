@@ -582,26 +582,27 @@ Someone needs to start the smack down! 🔥
     if (btn) {
       // Reset button to normal state
       btn.disabled = false;
-      // Completely recreate the button content
-      while (btn.firstChild) {
-        btn.removeChild(btn.firstChild);
-      }
-      const emojiSpan = document.createElement('span');
-      emojiSpan.style.cssText = 'color: initial !important; filter: none !important; opacity: 1 !important; -webkit-text-fill-color: initial !important;';
-      emojiSpan.textContent = '🚮';
-      btn.appendChild(emojiSpan);
+      // Create a completely new button to avoid Safari's persistent styling
+      const newBtn = document.createElement('button');
+      newBtn.id = 'chatSendBtn';
+      newBtn.className = 'chat-send-btn';
+      newBtn.textContent = '🚮';
+      newBtn.disabled = false;
       
-      // Force remove all styling that might be affecting color
-      btn.style.color = '';
-      btn.style.opacity = '';
-      btn.style.filter = '';
-      btn.style.transform = '';
-      btn.style.animation = '';
-      // Force proper text rendering
-      btn.style.fontFamily = 'initial';
-      btn.style.webkitFontSmoothing = 'initial';
-      btn.style.textRendering = 'auto';
-      btn.style.webkitTextFillColor = 'initial';
+      // Copy event listeners from old button
+      const oldBtn = btn;
+      btn.parentNode.replaceChild(newBtn, btn);
+      
+      // Re-attach the click handler
+      newBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.sendMessage();
+      });
+      
+      newBtn.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        this.sendMessage();
+      });
       
       // Remove any classes that might affect appearance
       btn.classList.remove('sending', 'disabled', 'processing');
