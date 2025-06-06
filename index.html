@@ -461,6 +461,65 @@
       height: 50px;
       flex-shrink: 0;
     }
+    
+    /* Chat expanded header - MINIMAL changes */
+    .chat-expanded-header {
+      height: 70px;
+      background: var(--strip-bg);
+      border-bottom: 1px solid var(--purple-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex-shrink: 0;
+      padding-top: 20px; /* Add padding to move content down */
+    }
+
+    .chat-expanded-header .swipe-indicator {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 4px;
+      background: var(--swipe-indicator);
+      border-radius: 2px;
+      opacity: 0.6;
+      cursor: pointer;
+    }
+
+    .chat-expanded-header .swipe-indicator:hover {
+      opacity: 1;
+      transform: translateX(-50%) scale(1.1);
+    }
+
+    .chat-header-text {
+      font-weight: 600;
+      color: var(--accent-dark);
+      font-size: 1.1em;
+    }
+
+    /* Hide chat-mini when expanded */
+    .bottom-strip.expanded .chat-mini {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    /* Ensure chat-expanded fills properly without breaking layout */
+    .bottom-strip.expanded .chat-expanded {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: var(--strip-bg); /* Ensure background covers everything */
+    }
 
     /* ENHANCED: Chat messages with proper scrolling */
     .chat-messages {
