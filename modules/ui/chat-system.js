@@ -583,20 +583,24 @@ Someone needs to start the smack down! 🔥
     if (btn) {
       // Reset button to normal state
       btn.disabled = false;
-      btn.textContent = '🚮';
       
-      // Keep the button's class but remove only specific problem styles
+      // Clear the button completely
+      btn.innerHTML = '';
+      
+      // Create a span to hold the emoji with forced color
+      const emojiSpan = document.createElement('span');
+      emojiSpan.style.cssText = 'color: inherit !important; filter: none !important; opacity: 1 !important; -webkit-text-fill-color: initial !important; font-family: system-ui, -apple-system, sans-serif !important;';
+      emojiSpan.textContent = '🚮';
+      btn.appendChild(emojiSpan);
+      
+      // Reset button styles but keep it minimal
       btn.style.animation = '';
       btn.style.transform = '';
       btn.style.opacity = '1';
       btn.style.background = 'transparent';
       btn.style.boxShadow = 'none';
-      
-      // Force emoji to render in color
-      btn.style.color = 'initial';
+      btn.style.border = 'none';
       btn.style.filter = 'none';
-      btn.style.webkitTextFillColor = 'initial';
-      btn.style.webkitFilter = 'none';
       
       // Update button state based on input
       setTimeout(() => {
