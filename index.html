@@ -249,7 +249,7 @@
   background: white;
   border-radius: 8px;
   padding: 1.5em;
-  margin-bottom: 1em;
+  margin-bottom: 40px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
@@ -585,6 +585,13 @@
   opacity: 1 !important;
   height: 70px !important;
   position: relative !important;
+}
+
+/* Ensure chat-status text is visible when history is expanded */
+.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-status {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
     /* Ensure chat-expanded fills properly without breaking layout */
