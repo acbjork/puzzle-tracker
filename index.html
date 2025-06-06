@@ -232,8 +232,8 @@
 /* FIXED: History expansion with proper bottom constraint and visual divider */
 .history-expanded {
   display: none;
-  padding: 2em 1em;
-  padding-bottom: 60px; /* Space for swipe indicator area */
+  padding: 1em;
+  padding-bottom: 30px; /* Space for swipe indicator */
   overflow-y: auto;
   position: absolute;
   top: 140px;
@@ -241,26 +241,23 @@
   right: 0;
   bottom: 70px; /* STOP EXACTLY AT TOP OF CHAT STRIP */
   -webkit-overflow-scrolling: touch;
-  background: white;
+  background: var(--strip-bg); /* Purple wallpaper background */
 }
 
-/* Purple bottom area with swipe indicator */
+/* Make all direct children have white background */
+.history-expanded > div {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5em;
+  margin-bottom: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Swipe indicator at bottom of history */
 .history-expanded::after {
   content: '';
   position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 50px;
-  background: var(--strip-bg);
-  pointer-events: none;
-}
-
-/* Swipe indicator on purple area */
-.history-expanded::before {
-  content: '';
-  position: absolute;
-  bottom: 20px;
+  bottom: 8px;
   left: 50%;
   transform: translateX(-50%);
   width: 40px;
@@ -268,10 +265,10 @@
   background: var(--purple-dark);
   border-radius: 2px;
   opacity: 0.6;
-  z-index: 10;
-  pointer-events: auto;
   cursor: pointer;
+  z-index: 10;
 }
+
 
     .top-strip.expanded .history-expanded {
   display: block;
@@ -580,6 +577,15 @@
       height: 0 !important;
       overflow: hidden !important;
     }
+    
+    /* ENSURE chat-mini is visible when history is expanded but chat is not */
+.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: 70px !important;
+  position: relative !important;
+}
 
     /* Ensure chat-expanded fills properly without breaking layout */
     .bottom-strip.expanded .chat-expanded {
