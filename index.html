@@ -588,7 +588,16 @@
     .chat-send-btn:not(:disabled) {
       filter: none !important;
       opacity: 1 !important;
+      -webkit-text-fill-color: initial !important;
+      color: initial !important;
+    }
+    
+    /* Force colorful emoji in span */
+    .chat-send-btn span {
       color: inherit !important;
+      filter: none !important;
+      opacity: 1 !important;
+      -webkit-text-fill-color: initial !important;
     }
 
     /* MAIN CONTENT STYLING */
