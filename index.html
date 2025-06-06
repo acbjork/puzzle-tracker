@@ -466,7 +466,7 @@
     .chat-expanded-header {
       height: 70px;
       background: var(--strip-bg);
-      border-bottom: 1px solid var(--purple-medium);
+      border-bottom: none;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1032,24 +1032,6 @@
   right: 0;
   bottom: 0;
   padding-top: 70px; /* Space for the header */
-}
-
-/* Add a header inside chat-expanded that matches chat-mini */
-.chat-expanded::before {
-  content: '🗑️ Talkin\' Trash 🔥';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 70px;
-  background: var(--strip-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: var(--accent-dark);
-  font-size: 1.1em;
-  border-bottom: 1px solid var(--purple-medium);
 }
 
   </style>
