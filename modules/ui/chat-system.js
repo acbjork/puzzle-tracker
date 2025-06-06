@@ -262,6 +262,15 @@ Someone needs to start the smack down! 🔥
     // Add animations if needed
     this.addChatAnimations();
     
+    // FIX: Ensure send button stays normal after any chat interaction
+    const sendBtn = document.getElementById('chatSendBtn');
+    if (sendBtn && sendBtn.innerHTML.includes('span')) {
+      const span = sendBtn.querySelector('span');
+      if (span) {
+        span.style.cssText = 'color: inherit !important; filter: none !important; opacity: 1 !important; -webkit-text-fill-color: initial !important;';
+      }
+    }
+    
     if (this.debugMode) {
       console.log(`📋 Rendered ${this.messages.length} messages v2025.06.03.2`);
     }

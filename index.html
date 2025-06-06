@@ -593,6 +593,21 @@
       opacity: 1 !important;
     }
     
+    /* Force emoji to ALWAYS stay colorful no matter what */
+    #chatSendBtn {
+      color: initial !important;
+      -webkit-text-fill-color: initial !important;
+      filter: none !important;
+      opacity: 1 !important;
+    }
+    
+    #chatSendBtn * {
+      color: inherit !important;
+      -webkit-text-fill-color: initial !important;
+      filter: none !important;
+      opacity: 1 !important;
+    }
+    
     /* Ensure emoji stays colorful when not disabled */
     .chat-send-btn:not(:disabled) {
       filter: none !important;
