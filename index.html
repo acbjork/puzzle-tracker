@@ -75,11 +75,12 @@
   background: var(--strip-bg);
   border-top: 1px solid var(--purple-medium);
   z-index: 1000;
-  height: calc(100vh - 140px); /* Full expanded height */
+  height: 70px;
+  max-height: 70px;
   box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
   padding-top: 10px;
-  transform: translateY(calc(100% - 70px)); /* Show only 70px */
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Force webkit to use GPU acceleration for the transition */
@@ -91,7 +92,8 @@
 
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
-  transform: translateY(0); /* Slide up to show full height */
+  height: calc(100vh - 140px);
+  max-height: calc(100vh - 140px);
 }
 
 
@@ -421,14 +423,14 @@
 .chat-expanded {
   display: flex;
   padding: 1em;
-  padding-top: 60px; /* Space for the mini bar */
+  padding-top: 10px;
   padding-bottom: 1.5em;
-  height: 100%;
+  height: calc(100% - 70px);
   flex-direction: column;
   overflow: hidden;
   justify-content: space-between;
   opacity: 0;
-  transition: opacity 0.3s ease 0.15s;
+  transition: opacity 0.2s ease 0.1s;
 }
 
     .bottom-strip.expanded .chat-expanded {
