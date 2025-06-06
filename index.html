@@ -75,31 +75,16 @@
   background: var(--strip-bg);
   border-top: 1px solid var(--purple-medium);
   z-index: 1000;
-  height: 70px;
-  max-height: 70px;
+  height: calc(100vh - 140px); /* Always full height */
   box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
   padding-top: 10px;
-  overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  clip-path: polygon(0 calc(100% - 70px), 100% calc(100% - 70px), 100% 100%, 0 100%);
+  transition: clip-path 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Ensure smooth height animation */
-.bottom-strip * {
-  transition: none !important;
-}
-
-.bottom-strip {
-  will-change: height, max-height;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transform: translateZ(0);
-  -webkit-transform: translateZ(0);
-}
-
-/* Replace your existing .bottom-strip.expanded rule with this */
+/* Smooth expansion using clip-path */
 .bottom-strip.expanded {
-  height: calc(100vh - 140px);
-  max-height: calc(100vh - 140px);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
 }
 
 
@@ -427,7 +412,7 @@
 
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
-  display: flex;
+  display: flex !important; /* Always display */
   padding: 1em;
   padding-top: 10px;
   padding-bottom: 1.5em;
@@ -436,15 +421,11 @@
   overflow: hidden;
   justify-content: space-between;
   opacity: 0;
-  transition: opacity 0.2s ease 0.1s;
+  transition: opacity 0.3s ease 0.1s;
 }
 
     .bottom-strip.expanded .chat-expanded {
       opacity: 1;
-    }
-    
-    .bottom-strip:not(.expanded) .chat-expanded {
-      display: none !important;
     }
     
     /* Override chat-system.js inline styles */
@@ -949,11 +930,25 @@
     }
     /* Add this new rule to fix Safari viewport issues */
 @supports (-webkit-touch-callout: none) {
-  /* Safari only */
-  .bottom-strip.expanded {
-    height: calc(100vh - 140px - env(safe-area-inset-top));
-    top: calc(140px + env(safe-area-inset-top));
-  }
+  /* Safari only - removed height rules since we're using clip-path */
+}
+
+/* Ensure chat-mini is always at the top of the visible area */
+.chat-mini {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  right: 0;
+}
+
+/* Position chat-expanded below chat-mini */
+.chat-expanded {
+  position: absolute;
+  top: 70px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
   </style>
 </head>
 <body>
