@@ -758,6 +758,11 @@ Someone needs to start the smack down! 🔥
     console.log('💬 Setting chat as visible...');
     this.isVisible = true;
     
+    // Prevent body scroll when chat is open
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    
     // ENHANCED: Ensure perfect chat rendering
     if (chatMessages) {
       // Force re-render messages to ensure visibility
@@ -830,6 +835,11 @@ Someone needs to start the smack down! 🔥
     
     console.log('💬 Setting chat as hidden...');
     this.isVisible = false;
+    
+    // Restore body scroll when chat is closed
+    document.body.style.overflow = '';
+    document.body.style.position = '';
+    document.body.style.width = '';
     
     console.log('🔄 Updating badge after closing chat...');
     setTimeout(async () => {

@@ -469,6 +469,30 @@
       /* FIXED: Ensure chat content is visible */
       min-height: 200px;
     }
+    
+    /* Fix iOS scrolling issues */
+    .chat-messages {
+      -webkit-overflow-scrolling: touch;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+    }
+    
+    /* Apply to all scrollable containers */
+    .history-expanded,
+    .chat-expanded,
+    .main-content {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-y;
+    }
+    
+    /* Prevent body scroll when modals are open */
+    body.modal-open {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+    }
 
     /* Modern chat bubbles */
     .chat-message {
