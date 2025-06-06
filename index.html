@@ -232,8 +232,6 @@
   display: none;
   padding: 2em 1em;
   padding-bottom: 1em; /* Reduced bottom padding */
-  height: calc(100vh - 140px - 70px); /* Screen minus top strip (140px) minus bottom strip (70px) */
-  max-height: calc(100vh - 210px); /* Ensure it doesn't exceed bounds */
   overflow-y: auto;
   border-top: 1px solid var(--purple-dark); /* Visual divider at original strip bottom */
   margin-top: 0; /* Ensure border sits at exact strip boundary */
@@ -241,7 +239,7 @@
   top: 80px; /* Position below the mini scoreboard */
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: 70px; /* Stop 70px from bottom to leave room for chat strip */
 }
 
     .top-strip.expanded .history-expanded {
