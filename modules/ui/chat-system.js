@@ -769,10 +769,10 @@ Someone needs to start the smack down! 🔥
       this.renderMessages();
       
       // Ensure proper styling for expanded state
-      chatMessages.style.display = 'block';
-      chatMessages.style.visibility = 'visible';
-      chatMessages.style.opacity = '1';
-      chatMessages.style.minHeight = '200px';
+      chatMessages.style.display = '';
+chatMessages.style.visibility = '';
+chatMessages.style.opacity = '';
+chatMessages.style.minHeight = '';
       
       // Smooth scroll to bottom
       requestAnimationFrame(() => {
@@ -782,11 +782,11 @@ Someone needs to start the smack down! 🔥
       console.log('💬 Chat messages container properly initialized v2025.06.03.2');
     }
     
-    // Ensure chat expanded container is visible
-    if (chatExpanded) {
-      chatExpanded.style.display = 'flex';
-      chatExpanded.style.opacity = '1';
-    }
+    // Let CSS handle the visibility
+if (chatExpanded) {
+  chatExpanded.style.display = '';
+  chatExpanded.style.opacity = '';
+}
     
     console.log('💬 Chat opened - marking messages as read');
     

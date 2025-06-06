@@ -83,6 +83,18 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Ensure smooth height animation */
+.bottom-strip * {
+  transition: none !important;
+}
+
+.bottom-strip {
+  will-change: height, max-height;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
 
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
