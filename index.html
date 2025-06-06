@@ -62,8 +62,9 @@
 
     /* FIXED: Edge-to-edge expansion - stops at top of bottom strip */
 .top-strip.expanded {
-  height: calc(100vh - 70px);
-  bottom: 70px; /* Stop above bottom strip */
+  height: calc(100vh - 70px - env(safe-area-inset-bottom));
+  bottom: auto;
+  max-height: calc(100vh - 70px);
 }
 
     /* Replace your existing .bottom-strip rule with this enhanced version */
@@ -230,41 +231,12 @@
     /* FIXED: History expansion with proper bottom constraint and visual divider */
 .history-expanded {
   display: none;
-  padding: 1em;
-  padding-top: 0.5em;
-  padding-bottom: 25px; /* Just enough for swipe indicator */
+  padding: 2em 1em;
+  padding-bottom: 1em;
   overflow-y: auto;
-  position: absolute;
-  top: 140px; /* Start below the entire top strip (140px) */
-  left: 0;
-  right: 0;
-  bottom: calc(70px + env(safe-area-inset-bottom)); /* Back to 70px - exactly at chat-mini */
+  position: relative; /* Changed from absolute */
+  height: calc(100vh - 140px - 70px - env(safe-area-inset-bottom)); /* Exact height calculation */
   -webkit-overflow-scrolling: touch; /* Better iOS scrolling */
-  background: var(--strip-bg); /* Purple background for padding area */
-}
-
-/* White background for history content */
-.history-expanded > * {
-  background: white;
-  border-radius: 8px;
-  padding: 1em;
-  margin-bottom: 0.5em;
-}
-
-/* Swipe indicator at bottom of history panel */
-.history-expanded::after {
-  content: '';
-  position: fixed;
-  bottom: calc(78px + env(safe-area-inset-bottom)); /* Just above chat-mini */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 4px;
-  background: var(--purple-dark);
-  border-radius: 2px;
-  opacity: 0.6;
-  cursor: pointer;
-  z-index: 10;
 }
 
     .top-strip.expanded .history-expanded {
