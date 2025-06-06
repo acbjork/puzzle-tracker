@@ -87,9 +87,6 @@
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
   height: calc(100vh - 140px);
-  bottom: 0; /* Keep anchored to bottom */
-  position: fixed;
-  z-index: 1000;
 }
 
 .bottom-strip .chat-expanded {
@@ -1218,12 +1215,7 @@
       const bottomStrip = document.getElementById('bottomStrip');
       const mainContent = document.getElementById('mainContent');
       
-      // Ensure transition will work by forcing initial state
-    bottomStrip.style.height = '70px';
-    setTimeout(() => {
       bottomStrip.classList.add('expanded');
-      bottomStrip.style.height = '';
-    }, 10);
     
       mainContent.classList.remove('both-collapsed', 'top-expanded');
       mainContent.classList.add('bottom-expanded');
