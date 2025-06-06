@@ -228,15 +228,49 @@
       100% { transform: translateX(-50%) translateY(-3px); }
     }
 
-    /* FIXED: History expansion with proper bottom constraint and visual divider */
+    
+/* FIXED: History expansion with proper bottom constraint and visual divider */
 .history-expanded {
   display: none;
   padding: 2em 1em;
-  padding-bottom: 1em;
+  padding-bottom: 60px; /* Space for swipe indicator area */
   overflow-y: auto;
-  position: relative; /* Changed from absolute */
-  height: calc(100vh - 140px - 70px - env(safe-area-inset-bottom)); /* Exact height calculation */
-  -webkit-overflow-scrolling: touch; /* Better iOS scrolling */
+  position: absolute;
+  top: 140px;
+  left: 0;
+  right: 0;
+  bottom: 70px; /* STOP EXACTLY AT TOP OF CHAT STRIP */
+  -webkit-overflow-scrolling: touch;
+  background: white;
+}
+
+/* Purple bottom area with swipe indicator */
+.history-expanded::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: var(--strip-bg);
+  pointer-events: none;
+}
+
+/* Swipe indicator on purple area */
+.history-expanded::before {
+  content: '';
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--purple-dark);
+  border-radius: 2px;
+  opacity: 0.6;
+  z-index: 10;
+  pointer-events: auto;
+  cursor: pointer;
 }
 
     .top-strip.expanded .history-expanded {
