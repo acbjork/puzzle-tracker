@@ -83,12 +83,6 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Force webkit to use GPU acceleration for the transition */
-.bottom-strip {
-  will-change: height;
-  -webkit-transform: translateZ(0);
-  transform: translateZ(0);
-}
 
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
@@ -435,6 +429,20 @@
 
     .bottom-strip.expanded .chat-expanded {
       opacity: 1;
+    }
+    
+    .bottom-strip:not(.expanded) .chat-expanded {
+      display: none !important;
+    }
+    
+    /* Override chat-system.js inline styles */
+    .chat-messages {
+      transition: none !important;
+    }
+    
+    .bottom-strip:not(.expanded) .chat-messages {
+      opacity: 0 !important;
+      visibility: hidden !important;
     }
 
     .bottom-strip.expanded .chat-mini {
@@ -1217,9 +1225,11 @@
       bottomStripExpanded = true;
       showOverlay();
       
-      // ENHANCED: Proper chat system integration
+      // ENHANCED: Delay chat system call to let CSS animation work
       if (window.chatSystem) {
-        window.chatSystem.showChat();
+        setTimeout(() => {
+          window.chatSystem.showChat();
+        }, 50); // Small delay to let container animation start
       } else {
         loadChatMessages(); // Fallback
       }
