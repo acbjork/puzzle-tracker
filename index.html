@@ -69,20 +69,17 @@
     /* Replace your existing .bottom-strip rule with this enhanced version */
 .bottom-strip {
   position: fixed;
-  bottom: 0; /* Always anchored to bottom */
+  bottom: 0;
   left: 0;
   right: 0;
   background: var(--strip-bg);
   border-top: 1px solid var(--purple-medium);
   z-index: 1000;
-  transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  height: 70px;
+  height: calc(100vh - 140px); /* Full expanded height */
   box-shadow: 0 -2px 8px rgba(107, 70, 193, 0.1);
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
   padding-top: 10px;
-  transform-origin: bottom; /* Ensure expansion origin is from bottom */
-}
+  transform: translateY(calc(100% - 70px)); /* Show only 70px */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Force webkit to use GPU acceleration for the transition */
@@ -94,24 +91,9 @@
 
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
-  height: calc(100vh - 140px);
+  transform: translateY(0); /* Slide up to show full height */
 }
 
-.bottom-strip .chat-expanded {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
-}
-
-.bottom-strip.expanded .chat-expanded {
-  opacity: 1;
-  transform: translateY(0);      
-}
-
-/* Ensure chat mini fades properly during transition */
-.bottom-strip.expanded .chat-mini {
-  transition: opacity 0.2s ease;
-}
 
     /* FIXED: Main Content Area with proper positioning */
     .main-content {
@@ -437,18 +419,20 @@
 
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
-  display: none;
+  display: flex;
   padding: 1em;
-  padding-top: 10px;
-  padding-bottom: 1.5em; /* Aesthetic bottom spacing */
-  height: calc(100vh - 290px); /* Account for both strips plus padding */
+  padding-top: 60px; /* Space for the mini bar */
+  padding-bottom: 1.5em;
+  height: 100%;
   flex-direction: column;
   overflow: hidden;
   justify-content: space-between;
+  opacity: 0;
+  transition: opacity 0.3s ease 0.15s;
 }
 
     .bottom-strip.expanded .chat-expanded {
-      display: flex;
+      opacity: 1;
     }
 
     .bottom-strip.expanded .chat-mini {
