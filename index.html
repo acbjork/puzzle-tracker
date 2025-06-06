@@ -237,16 +237,9 @@
   top: 140px; /* Start below the entire top strip (140px) */
   left: 0;
   right: 0;
-  bottom: 80px; /* Increased to 80px for Safari */
-  -webkit-overflow-scrolling: touch; /* Better iOS scrolling */
-}
-
-/* Safari-specific fix for proper bottom spacing */
-@supports (-webkit-touch-callout: none) {
-  .history-expanded {
-    bottom: 85px; /* Extra padding for Safari */
-    padding-bottom: 10px;
-  }
+  bottom: calc(90px + env(safe-area-inset-bottom)); /* Increased to 90px + safe areas */
+-webkit-overflow-scrolling: touch; /* Better iOS scrolling */
+max-height: calc(100vh - 140px - 90px - env(safe-area-inset-bottom)); /* Updated with 90px */
 }
 
     .top-strip.expanded .history-expanded {
@@ -261,7 +254,7 @@
   left: 0;
   right: 0;
   height: 1px;
-  background: var(--purple-dark);
+  background: var(--purple-medium); /* Changed from purple-dark to purple-medium */
   z-index: 5;
 }
     
