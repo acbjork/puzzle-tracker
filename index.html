@@ -237,12 +237,33 @@
   top: 140px; /* Start below the entire top strip (140px) */
   left: 0;
   right: 0;
-  bottom: 70px; /* Stop 70px from bottom to leave room for chat strip */
+  bottom: 80px; /* Increased to 80px for Safari */
+  -webkit-overflow-scrolling: touch; /* Better iOS scrolling */
+}
+
+/* Safari-specific fix for proper bottom spacing */
+@supports (-webkit-touch-callout: none) {
+  .history-expanded {
+    bottom: 85px; /* Extra padding for Safari */
+    padding-bottom: 10px;
+  }
 }
 
     .top-strip.expanded .history-expanded {
-      display: block;
-    }
+  display: block;
+}
+
+/* Add purple divider line at 140px (same as collapsed strip height) */
+.top-strip.expanded::after {
+  content: '';
+  position: absolute;
+  top: 140px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--purple-dark);
+  z-index: 5;
+}
     
     /* Ensure scoreboard stays at top when history is expanded */
 .top-strip.expanded .scoreboard-mini {
