@@ -413,13 +413,9 @@
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
   display: flex !important; /* Always display */
-  padding: 1em;
-  padding-top: 80px; /* Space for the header */
-  padding-bottom: 1.5em;
   height: 100%;
   flex-direction: column;
   overflow: hidden;
-  justify-content: space-between;
   opacity: 0;
   transition: opacity 0.3s ease 0.1s;
 }
@@ -452,12 +448,8 @@
       padding: 1em;
       background: white;
       border-radius: 8px;
-      margin-top: 10px;
-      margin-bottom: 10px;
+      margin: 10px 1em;
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-      /* FIXED: Ensure chat content is visible */
-      min-height: 200px;
-    }
     
     /* Fix iOS scrolling issues */
     .chat-messages {
@@ -933,16 +925,18 @@
   /* Safari only - removed height rules since we're using clip-path */
 }
 
-/* Ensure chat-mini is always at the bottom of the strip when collapsed */
+/* Keep chat-mini visible when collapsed */
 .chat-mini {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Hide chat-mini when expanded */
+.bottom-strip.expanded .chat-mini {
+  display: none;
 }
 
 /* Position chat-expanded to fill the entire strip */
@@ -952,16 +946,10 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding-top: 70px; /* Space for the header */
 }
 
-/* Add a header inside chat-expanded that matches chat-mini */
-.chat-expanded::before {
-  content: '🗑️ Talkin\' Trash 🔥';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+/* Add a header for expanded chat */
+.chat-expanded-header {
   height: 70px;
   background: var(--strip-bg);
   display: flex;
@@ -970,7 +958,22 @@
   font-weight: 600;
   color: var(--accent-dark);
   font-size: 1.1em;
-  border-bottom: 1px solid var(--purple-medium);
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Swipe indicator positioning */
+.bottom-strip .swipe-indicator {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+}
+
+/* Move swipe indicator when expanded */
+.bottom-strip.expanded .swipe-indicator {
+  top: 78px; /* Below the header */
 }
 
   </style>
@@ -1149,6 +1152,7 @@
 
       <!-- ENHANCED: Chat expanded with proper content rendering -->
       <div class="chat-expanded" id="chatExpanded">
+        <div class="chat-expanded-header">🗑️ Talkin' Trash 🔥</div>
         <div class="chat-messages" id="chatMessages">
           <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
             Select a user to start trash talking! 🔥
