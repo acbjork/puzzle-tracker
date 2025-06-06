@@ -409,12 +409,31 @@
       position: relative;
       text-align: center;
     }
+    
+    /* Swipe indicator for chat-mini */
+.chat-mini .swipe-indicator {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--swipe-indicator);
+  border-radius: 2px;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+.chat-mini .swipe-indicator:hover {
+  opacity: 1;
+  transform: translateX(-50%) scale(1.1);
+}
 
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
   display: flex !important; /* Always display */
   padding: 1em;
-  padding-top: 80px; /* Space for the header */
+  padding-top: 1em; /* Normal padding since we have a real header now */
   padding-bottom: 1.5em;
   height: 100%;
   flex-direction: column;
@@ -1143,17 +1162,25 @@
     <div class="chat-container">
       <!-- Mini Chat Status (Always Visible) -->
       <div class="chat-mini" id="chatMini"> 
+        <div class="swipe-indicator"></div>  <!-- ADD THIS LINE ONLY -->
         <div class="chat-status" id="chatStatus">🗑️ Talkin' Trash 🔥</div>
         <div id="unreadBadge">0</div>
       </div>
 
       <!-- ENHANCED: Chat expanded with proper content rendering -->
-      <div class="chat-expanded" id="chatExpanded">
-        <div class="chat-messages" id="chatMessages">
-          <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
-            Select a user to start trash talking! 🔥
-          </div>
+    <div class="chat-expanded" id="chatExpanded">
+      <!-- ADD THIS HEADER SECTION -->
+      <div class="chat-expanded-header">
+        <div class="swipe-indicator"></div>
+        <div class="chat-header-text">🗑️ Talkin' Trash 🔥</div>
+      </div>
+      <!-- END OF ADDED SECTION -->
+      
+      <div class="chat-messages" id="chatMessages">
+        <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
+          Select a user to start trash talking! 🔥
         </div>
+      </div>
         
         <div class="chat-input-container">
           <textarea class="chat-input" id="chatInput" placeholder="Type your trash talk..." rows="2" disabled></textarea>
