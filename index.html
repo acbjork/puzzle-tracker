@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>🧠 I'm Puzzled ‼️</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <style>
     :root {
       /* Phase 3C Color Palette */
@@ -104,6 +104,28 @@
 .bottom-strip.expanded .chat-expanded {
   opacity: 1;
   transform: translateY(0);
+}
+
+.bottom-strip:not(.expanded) .chat-expanded {
+  display: none;
+}
+
+.bottom-strip.expanded .chat-expanded {
+  display: flex;
+  opacity: 1;
+  transform: translateY(0);
+  animation: smoothReveal 0.3s ease forwards;
+}
+
+@keyframes smoothReveal {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Ensure chat mini fades properly during transition */
