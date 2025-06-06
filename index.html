@@ -1219,6 +1219,10 @@
       const mainContent = document.getElementById('mainContent');
       
       bottomStrip.classList.add('expanded');
+      
+    // Force browser to recognize the height change for animation
+    bottomStrip.offsetHeight; // Force reflow
+    
       mainContent.classList.remove('both-collapsed', 'top-expanded');
       mainContent.classList.add('bottom-expanded');
       
