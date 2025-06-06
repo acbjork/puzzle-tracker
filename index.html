@@ -232,14 +232,39 @@
   display: none;
   padding: 1em;
   padding-top: 0.5em;
+  padding-bottom: 25px; /* Just enough for swipe indicator */
   overflow-y: auto;
   position: absolute;
   top: 140px; /* Start below the entire top strip (140px) */
   left: 0;
   right: 0;
-  bottom: calc(90px + env(safe-area-inset-bottom)); /* Increased to 90px + safe areas */
--webkit-overflow-scrolling: touch; /* Better iOS scrolling */
-max-height: calc(100vh - 140px - 90px - env(safe-area-inset-bottom)); /* Updated with 90px */
+  bottom: calc(70px + env(safe-area-inset-bottom)); /* Back to 70px - exactly at chat-mini */
+  -webkit-overflow-scrolling: touch; /* Better iOS scrolling */
+  background: var(--strip-bg); /* Purple background for padding area */
+}
+
+/* White background for history content */
+.history-expanded > * {
+  background: white;
+  border-radius: 8px;
+  padding: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* Swipe indicator at bottom of history panel */
+.history-expanded::after {
+  content: '';
+  position: fixed;
+  bottom: calc(78px + env(safe-area-inset-bottom)); /* Just above chat-mini */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--purple-dark);
+  border-radius: 2px;
+  opacity: 0.6;
+  cursor: pointer;
+  z-index: 10;
 }
 
     .top-strip.expanded .history-expanded {
