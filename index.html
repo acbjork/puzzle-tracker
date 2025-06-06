@@ -412,16 +412,19 @@
 
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
-  display: none;
+  display: flex !important; /* Always display */
+  padding: 1em;
+  padding-top: 80px; /* Space for the header */
+  padding-bottom: 1.5em;
   height: 100%;
   flex-direction: column;
   overflow: hidden;
+  justify-content: space-between;
   opacity: 0;
   transition: opacity 0.3s ease 0.1s;
 }
 
     .bottom-strip.expanded .chat-expanded {
-      display: flex;
       opacity: 1;
     }
     
@@ -449,8 +452,12 @@
       padding: 1em;
       background: white;
       border-radius: 8px;
-      margin: 10px 1em;
+      margin-top: 10px;
+      margin-bottom: 10px;
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+      /* FIXED: Ensure chat content is visible */
+      min-height: 200px;
+    }
     
     /* Fix iOS scrolling issues */
     .chat-messages {
@@ -926,15 +933,17 @@
   /* Safari only - removed height rules since we're using clip-path */
 }
 
-/* Keep chat-mini visible when collapsed */
+/* Ensure chat-mini is always at the bottom of the strip when collapsed */
 .chat-mini {
-  position: relative;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   height: 70px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 
 /* Position chat-expanded to fill the entire strip */
 .chat-expanded {
@@ -943,10 +952,16 @@
   left: 0;
   right: 0;
   bottom: 0;
+  padding-top: 70px; /* Space for the header */
 }
 
-/* Add a header for expanded chat */
-.chat-expanded-header {
+/* Add a header inside chat-expanded that matches chat-mini */
+.chat-expanded::before {
+  content: '🗑️ Talkin\' Trash 🔥';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 70px;
   background: var(--strip-bg);
   display: flex;
@@ -955,22 +970,9 @@
   font-weight: 600;
   color: var(--accent-dark);
   font-size: 1.1em;
-  position: relative;
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--purple-medium);
 }
 
-/* Swipe indicator already styled earlier in the CSS */
-
-/* TEMPORARY DEBUG */
-.bottom-strip {
-  background: red !important;
-}
-.chat-container {
-  background: blue !important;
-}
-.chat-mini {
-  background: green !important;
-}
   </style>
 </head>
 <body>
@@ -1147,7 +1149,6 @@
 
       <!-- ENHANCED: Chat expanded with proper content rendering -->
       <div class="chat-expanded" id="chatExpanded">
-        <div class="chat-expanded-header">🗑️ Talkin' Trash 🔥</div>
         <div class="chat-messages" id="chatMessages">
           <div style="text-align: center; color: #666; font-style: italic; padding: 2em;">
             Select a user to start trash talking! 🔥
