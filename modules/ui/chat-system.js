@@ -669,7 +669,7 @@ Someone needs to start the smack down! 🔥
         unreadBadge.textContent = unreadCount;
         unreadBadge.style.display = 'flex';
         unreadBadge.style.position = 'absolute';
-        unreadBadge.style.top = '5px';
+        unreadBadge.style.top = '2px';
         unreadBadge.style.right = '10px';
         unreadBadge.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
         unreadBadge.style.color = 'white';
