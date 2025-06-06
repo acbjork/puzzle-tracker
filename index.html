@@ -230,13 +230,11 @@
     /* FIXED: History expansion with proper bottom constraint and visual divider */
 .history-expanded {
   display: none;
-  padding: 2em 1em;
-  padding-bottom: 1em; /* Reduced bottom padding */
+  padding: 1em;
+  padding-top: 0.5em;
   overflow-y: auto;
-  border-top: 1px solid var(--purple-dark); /* Visual divider at original strip bottom */
-  margin-top: 0; /* Ensure border sits at exact strip boundary */
   position: absolute;
-  top: 80px; /* Position below the mini scoreboard */
+  top: 140px; /* Start below the entire top strip (140px) */
   left: 0;
   right: 0;
   bottom: 70px; /* Stop 70px from bottom to leave room for chat strip */
@@ -245,6 +243,12 @@
     .top-strip.expanded .history-expanded {
       display: block;
     }
+    
+    /* Ensure scoreboard stays at top when history is expanded */
+.top-strip.expanded .scoreboard-mini {
+  position: relative;
+  z-index: 10;
+}
 
     .top-strip.expanded .scoreboard-mini {
       height: 80px;
