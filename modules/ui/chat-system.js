@@ -919,13 +919,12 @@ Someone needs to start the smack down! 🔥
 
     // ENHANCED: Chat input handling with better UX
     if (chatInput && chatSendBtn) {
-      const sendBtnHandler = (e) => {
+      // Only use click event - it works for both touch and mouse
+      chatSendBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
         this.sendMessage();
-      };
-      
-      chatSendBtn.addEventListener('click', sendBtnHandler);
-      chatSendBtn.addEventListener('touchend', sendBtnHandler);
+      });
 
       const inputKeyHandler = (e) => {
         e.stopPropagation();
