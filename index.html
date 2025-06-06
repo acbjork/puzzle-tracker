@@ -95,31 +95,19 @@
 
 /* Also ensure the chat container doesn't push content */
 /* Add smooth content reveal animation */
+.bottom-strip:not(.expanded) .chat-expanded {
+  display: none;
+}
+
 .bottom-strip .chat-expanded {
   opacity: 0;
   transform: translateY(20px);
-  transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.1s;
 }
 
 .bottom-strip.expanded .chat-expanded {
   opacity: 1;
   transform: translateY(0);
-}
-
-.bottom-strip:not(.expanded) .chat-expanded {
-  display: none;
-}
-
-
-@keyframes smoothReveal {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 /* Ensure chat mini fades properly during transition */
