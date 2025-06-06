@@ -412,7 +412,7 @@
 
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
-  display: flex !important; /* Always display */
+  display: none;
   height: 100%;
   flex-direction: column;
   overflow: hidden;
@@ -421,6 +421,7 @@
 }
 
     .bottom-strip.expanded .chat-expanded {
+      display: flex;
       opacity: 1;
     }
     
@@ -934,10 +935,6 @@
   justify-content: center;
 }
 
-/* Hide chat-mini when expanded */
-.bottom-strip.expanded .chat-mini {
-  display: none;
-}
 
 /* Position chat-expanded to fill the entire strip */
 .chat-expanded {
@@ -962,19 +959,7 @@
   flex-shrink: 0;
 }
 
-/* Swipe indicator positioning */
-.bottom-strip .swipe-indicator {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1002;
-}
-
-/* Move swipe indicator when expanded */
-.bottom-strip.expanded .swipe-indicator {
-  top: 78px; /* Below the header */
-}
+/* Swipe indicator already styled earlier in the CSS */
 
   </style>
 </head>
