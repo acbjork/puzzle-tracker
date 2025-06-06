@@ -83,10 +83,18 @@
   padding-top: 10px;
   transform-origin: bottom; /* Ensure expansion origin is from bottom */
 }
+}
+
+/* Force webkit to use GPU acceleration for the transition */
+.bottom-strip {
+  will-change: height;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
 
 /* Replace your existing .bottom-strip.expanded rule with this */
 .bottom-strip.expanded {
-  height: 85vh;
+  height: calc(100vh - 140px);
 }
 
 .bottom-strip .chat-expanded {
