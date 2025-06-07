@@ -147,6 +147,11 @@
     .top-strip .swipe-indicator {
       bottom: 10px;
     }
+    
+    /* Hide swipe indicator when history is expanded */
+    .top-strip.expanded .swipe-indicator {
+      display: none !important;
+    }
 
     .bottom-strip .swipe-indicator {
       top: 10px;
@@ -258,7 +263,6 @@
     
 /* FIXED: History expansion stops at chat-mini with proper padding */
 .history-expanded {
-  display: none;
   padding: 1em;
   padding-bottom: 1em; /* Match left/right padding */
   overflow-y: auto;
@@ -269,10 +273,11 @@
   bottom: 70px; /* Stop at chat-mini */
   -webkit-overflow-scrolling: touch;
   background: var(--strip-bg);
-  /* Remove max-height as it conflicts with bottom positioning */
+  /* Animation setup */
   opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateY(20px);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
 
 /* Make all direct children have white background */
@@ -284,9 +289,16 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-/* Special case for last child - no bottom margin */
+/* Ensure history expanded fills completely to bottom */
+.top-strip.expanded .history-expanded {
+  background: var(--strip-bg);
+  min-height: calc(100vh - 210px); /* Full height minus top and bottom strips */
+}
+
+/* Special case for last child - no bottom margin but add padding */
 .history-expanded > div:last-child {
   margin-bottom: 0;
+  padding-bottom: 2em; /* Extra padding at bottom */
 }
 
 /* Remove any swipe indicators inside history content */
@@ -295,9 +307,9 @@
 }
 
     .top-strip.expanded .history-expanded {
-  display: block;
   opacity: 1;
   transform: translateY(0);
+  pointer-events: auto;
 }
     
     /* Ensure scoreboard stays at top when history is expanded */
@@ -1416,7 +1428,7 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       </tbody>
     </table>
 
-    <div class="version">v2025.06.07.2 Updated tap targets 🎯</div>
+    <div class="version">v2025.06.07.3 Updated tap targets 🎯</div>
   </div>
 
   <!-- ENHANCED: Bottom Strip with edge-to-edge expansion -->
@@ -1503,13 +1515,17 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       const mainContent = document.getElementById('mainContent');
       
       topStrip.classList.add('expanded');
-      mainContent.classList.remove('both-collapsed', 'bottom-expanded');
-      mainContent.classList.add('top-expanded');
-      
-      topStripExpanded = true;
-      showOverlay();
-      loadHistoryData();
-      updateCurrentChampDisplay();
+  mainContent.classList.remove('both-collapsed', 'bottom-expanded');
+  mainContent.classList.add('top-expanded');
+  
+  topStripExpanded = true;
+  showOverlay();
+  
+  // Trigger animation after a frame
+  requestAnimationFrame(() => {
+    loadHistoryData();
+    updateCurrentChampDisplay();
+  });
       
       console.log('📊 Top strip expanded - edge-to-edge to bottom strip');
     }
@@ -1696,7 +1712,25 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
     handleBottomStripTap(e);
   });
 }
-    
+ 
+    // CRITICAL FIX: Make chat-mini itself tappable
+  const chatMini = document.getElementById('chatMini');
+  if (chatMini) {
+    chatMini.addEventListener('click', (e) => {
+      if (!window.bottomStripExpanded && !e.target.closest('.swipe-indicator')) {
+        e.stopPropagation();
+        window.toggleBottomStrip();
+      }
+    });
+    chatMini.addEventListener('touchend', (e) => {
+      if (!window.bottomStripExpanded && !e.target.closest('.swipe-indicator')) {
+        e.preventDefault();
+        e.stopPropagation();
+        window.toggleBottomStrip();
+      }
+    });
+  }
+       
     // ENHANCED: Global strip state tracking for other modules
     window.topStripExpanded = false;
     window.bottomStripExpanded = false;
