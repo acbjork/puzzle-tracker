@@ -1649,16 +1649,17 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
   
   // Handle taps on BOTTOM strip
   const handleBottomStripTap = (e) => {
+    // Don't trigger on interactions with expanded content
+    if (e.target.closest('.chat-expanded') || 
+        e.target.closest('.chat-input-container') ||
+        e.target.closest('.chat-messages') ||
+        e.target.closest('#chatInput') ||
+        e.target.closest('#chatSendBtn')) {
+      return;
+    }
+    
     // If history is expanded, collapse it
     if (window.topStripExpanded) {
-      // Don't trigger if clicking inside expanded chat content
-      if (e.target.closest('.chat-expanded') || 
-          e.target.closest('.chat-input-container') ||
-          e.target.closest('.chat-messages') ||
-          e.target.closest('#chatInput') ||
-          e.target.closest('#chatSendBtn')) {
-        return;
-      }
       e.preventDefault();
       e.stopPropagation();
       window.toggleTopStrip();
