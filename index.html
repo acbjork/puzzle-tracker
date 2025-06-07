@@ -155,6 +155,42 @@
       opacity: 1;
       transform: translateX(-50%) scale(1.1);
     }
+    
+    /* Enhanced tap behavior for strips */
+.top-strip {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.bottom-strip {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* Visual feedback on tap/hover */
+.top-strip:active {
+  opacity: 0.95;
+}
+
+.bottom-strip:active {
+  opacity: 0.95;
+}
+
+/* Ensure chat-mini strip is fully tappable */
+.chat-mini {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+/* Ensure scoreboard container is fully tappable */
+.scoreboard-container {
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
 
     /* ENHANCED SCOREBOARD (Top Strip Content) */
     .scoreboard-container {
@@ -522,25 +558,7 @@
       padding-top: 15px; /* Reduced padding to show sipe indicator better */
     }
 
-    .chat-expanded-header .swipe-indicator {
-      position: absolute;
-      top: 23px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40px !important;
-      height: 4px !important;
-      background: var(--purple-dark) !important;
-      border-radius: 2px;
-      opacity: 0.6;
-      cursor: pointer;
-      z-index: 10;
-    }
-
-    .chat-expanded-header .swipe-indicator:hover {
-      opacity: 1;
-      transform: translateX(-50%) scale(1.1);
-    }
-
+    
     .chat-header-text {
       font-weight: 600;
       color: var(--accent-dark);
@@ -1387,7 +1405,7 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       </tbody>
     </table>
 
-    <div class="version">v2025.06.03.1 - UI Bug Fixes + Edge-to-Edge Expansion! ✅</div>
+    <div class="version">v2025.06.07.1 Updated tap targets 🎯</div>
   </div>
 
   <!-- ENHANCED: Bottom Strip with edge-to-edge expansion -->
@@ -1406,9 +1424,8 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
     <div class="chat-expanded" id="chatExpanded">
       <!-- ADD THIS HEADER SECTION -->
       <div class="chat-expanded-header">
-        <div class="swipe-indicator"></div>
-        <div class="chat-header-text">🗑️ Talkin' Trash 🔥</div>
-      </div>
+  <div class="chat-header-text">🗑️ Talkin' Trash 🔥</div>
+</div>
       <!-- END OF ADDED SECTION -->
       
       <div class="chat-messages" id="chatMessages">
@@ -1483,7 +1500,6 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       loadHistoryData();
       updateCurrentChampDisplay();
       
-      if (window.updateTapZones) window.updateTapZones();
       console.log('📊 Top strip expanded - edge-to-edge to bottom strip');
     }
 
@@ -1502,7 +1518,6 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       topStripExpanded = false;
       hideOverlay();
       
-      if (window.updateTapZones) window.updateTapZones();
       console.log('📊 Top strip collapsed');
     }
 
@@ -1527,7 +1542,6 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
         loadChatMessages(); // Fallback
       }
       
-      if (window.updateTapZones) window.updateTapZones();
       console.log('💬 Bottom strip expanded - edge-to-edge to top strip');
     }
 
@@ -1546,7 +1560,6 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       bottomStripExpanded = false;
       hideOverlay();
       
-      if (window.updateTapZones) window.updateTapZones();
       console.log('💬 Bottom strip collapsed');
     }
 
@@ -1585,57 +1598,6 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       const topIndicator = document.getElementById('topSwipeIndicator');
       const bottomIndicator = document.getElementById('bottomSwipeIndicator');
 
-      // Create tap zones that HIDE when strips expand
-      const topTapZone = document.createElement('div');
-      topTapZone.id = 'topTapZone';
-      topTapZone.style.cssText = `
-        position: fixed;
-        top: 120px;
-        left: 0;
-        right: 0;
-        height: 40px;
-        z-index: 1002;
-        cursor: pointer;
-        background: transparent;
-        pointer-events: auto;
-      `;
-      
-      const bottomTapZone = document.createElement('div');
-      bottomTapZone.id = 'bottomTapZone';
-      bottomTapZone.style.cssText = `
-        position: fixed;
-        bottom: 40px;
-        left: 0;
-        right: 0;
-        height: 40px;
-        z-index: 1002;
-        cursor: pointer;
-        background: transparent;
-        pointer-events: auto;
-      `;
-
-      document.body.appendChild(topTapZone);
-      document.body.appendChild(bottomTapZone);
-
-      // Event handlers
-      function handleTopTap(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleTopStrip();
-      }
-
-      function handleBottomTap(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        toggleBottomStrip();
-      }
-
-      // Attach event listeners
-      topTapZone.addEventListener('click', handleTopTap);
-      topTapZone.addEventListener('touchend', handleTopTap);
-      bottomTapZone.addEventListener('click', handleBottomTap);
-      bottomTapZone.addEventListener('touchend', handleBottomTap);
-
       // Purple indicator events
       if (topIndicator) {
         topIndicator.addEventListener('click', (e) => {
@@ -1658,78 +1620,70 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
           if (bottomStripExpanded) toggleBottomStrip();
         });
       }
-      
-      // CRITICAL FIX: Hide/show tap zones based on strip state
-      window.updateTapZones = function() {
-        if (topStripExpanded) {
-          topTapZone.style.display = 'none';
-        } else {
-          topTapZone.style.display = 'block';
-        }
-        
-        if (bottomStripExpanded) {
-          bottomTapZone.style.display = 'none';
-        } else {
-          bottomTapZone.style.display = 'block';
-        }
-      };
     }
       
     // Add this function after initializeGestures()
     function setupCrossStripCollapse() {
-      const topStrip = document.getElementById('topStrip');
-      const bottomStrip = document.getElementById('bottomStrip');
-      
-      // Create a tap handler for the top strip
-      const handleTopStripTap = (e) => {
-        // Only work if bottom strip (chat) is expanded
-        if (window.bottomStripExpanded) {
-          // CRITICAL: Exclude clicks on expanded history
-          if (e.target.closest('.history-expanded')) {
-            return; // Don't collapse if clicking in history
-          }
-          
-          // Check if the tap is on the strip header area only
-          if (e.target.closest('.scoreboard-mini') || 
-              e.target.closest('.swipe-indicator') ||
-              (e.target.closest('.scoreboard-container') && !e.target.closest('.history-expanded'))) {
-            e.preventDefault();
-            e.stopPropagation();
-            // Collapse the chat
-            window.toggleBottomStrip();
-          }
-        }
-      };
-      
-      // Add event listeners to top strip
-      topStrip.addEventListener('click', handleTopStripTap);
-      topStrip.addEventListener('touchend', handleTopStripTap);
-      
-      // Similarly for bottom strip when top is expanded
-      const handleBottomStripTap = (e) => {
-        if (window.topStripExpanded) {
-          // CRITICAL FIX: Exclude clicks on the expanded chat area
-          if (e.target.closest('.chat-expanded') || 
-              e.target.closest('.chat-input-container') ||
-              e.target.closest('.chat-messages') ||
-              e.target.closest('#chatInput') ||
-              e.target.closest('#chatSendBtn')) {
-            return; // Don't collapse if clicking in chat area
-          }
-          
-          // Only collapse if clicking the mini chat status or swipe indicator
-          if (e.target.closest('.chat-mini') || 
-              e.target.closest('.swipe-indicator')) {
-            e.preventDefault();
-            e.stopPropagation();
-            window.toggleTopStrip();
-          }
-        }
-      };
-      
-      bottomStrip.addEventListener('click', handleBottomStripTap);
-      bottomStrip.addEventListener('touchend', handleBottomStripTap);
+  const topStrip = document.getElementById('topStrip');
+  const bottomStrip = document.getElementById('bottomStrip');
+  
+  // Handle taps on TOP strip
+  const handleTopStripTap = (e) => {
+    // If chat is expanded, collapse it
+    if (window.bottomStripExpanded) {
+      // Don't trigger if clicking inside expanded history content
+      if (e.target.closest('.history-expanded')) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleBottomStrip();
+    } 
+    // If nothing expanded, expand history
+    else if (!window.topStripExpanded) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleTopStrip();
     }
+  };
+  
+  // Handle taps on BOTTOM strip
+  const handleBottomStripTap = (e) => {
+    // If history is expanded, collapse it
+    if (window.topStripExpanded) {
+      // Don't trigger if clicking inside expanded chat content
+      if (e.target.closest('.chat-expanded') || 
+          e.target.closest('.chat-input-container') ||
+          e.target.closest('.chat-messages') ||
+          e.target.closest('#chatInput') ||
+          e.target.closest('#chatSendBtn')) {
+        return;
+      }
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleTopStrip();
+    }
+    // If nothing expanded, expand chat
+    else if (!window.bottomStripExpanded) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleBottomStrip();
+    }
+  };
+  
+  // Add event listeners
+  topStrip.addEventListener('click', handleTopStripTap);
+  topStrip.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleTopStripTap(e);
+  });
+  
+  bottomStrip.addEventListener('click', handleBottomStripTap);
+  bottomStrip.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    handleBottomStripTap(e);
+  });
+}
     
     // ENHANCED: Global strip state tracking for other modules
     window.topStripExpanded = false;
