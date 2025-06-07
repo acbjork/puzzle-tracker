@@ -56,16 +56,13 @@
   border-bottom: none !important; /* Prevent thin purple line */
   /* Remove env() for now to debug Safari issue */
 }
-/* Purple divider at exactly 140px when history expanded */
-.top-strip.expanded::before {
-  content: '';
-  position: absolute;
-  top: 139px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--purple-medium);
-  z-index: 10;
+
+/* Purple divider at bottom of scoreboard when history expanded */
+.top-strip.expanded .scoreboard-mini {
+  position: relative;
+  border-bottom: 1px solid var(--purple-medium);
+  padding-bottom: 10px;
+  margin-bottom: 0;
 }
 
     /* Replace your existing .bottom-strip rule with this enhanced version */
@@ -1192,13 +1189,38 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status 
   pointer-events: none !important;
 }
 
-/* Show unread badge positioning when history is expanded */
-body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge {
+/* Handle unread badge visibility properly */
+#unreadBadge {
+  display: none !important;
+}
+
+/* Only show badge when it has content AND it's not "0" */
+#unreadBadge:not(:empty):not([data-count="0"]) {
+  display: flex !important;
+  position: absolute;
+  top: 5px;
+  right: 20px;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: 50%;
+  min-width: 22px;
+  height: 22px;
+  font-size: 0.75em;
+  font-weight: bold;
+  align-items: center;
+  justify-content: center;
+  z-index: 1003;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  animation: pulse 2s ease infinite;
+}
+
+/* Specific positioning when history is expanded */
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge:not(:empty):not([data-count="0"]) {
   position: absolute !important;
   top: 5px !important;
   right: 20px !important;
   z-index: 10001 !important;
-  /* Let the existing badge logic handle visibility */
 }
 
 /* Add this CSS to hide badge when it's "0" */
@@ -2095,12 +2117,16 @@ function initialize() {
   initializeUI();
   
   // Hide unread badge when it's "0"
-  setInterval(() => {
-    const badge = document.getElementById('unreadBadge');
-    if (badge && badge.textContent === '0') {
-      badge.style.display = 'none';
+setInterval(() => {
+  const badge = document.getElementById('unreadBadge');
+  if (badge) {
+    const count = badge.textContent.trim();
+    badge.setAttribute('data-count', count);
+    if (count === '0' || count === '') {
+      badge.style.display = 'none !important';
     }
-  }, 100);
+  }
+}, 100);
 }
 
 // Start the app
