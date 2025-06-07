@@ -19,18 +19,6 @@
     }
 
     /* Remove the thin line when top strip is expanded */
-    .top-strip.expanded {
-      border-bottom: none !important;
-    }
-
-    .top-strip.expanded .scoreboard-mini {
-      border-bottom: none !important;
-    }
-
-    .top-strip.expanded .scoreboard-container {
-      border-bottom: none !important;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
@@ -61,10 +49,12 @@
 }
 
     /* FIXED: Edge-to-edge expansion - stops at top of bottom strip */
+/* FIXED: Top strip expansion for Safari compatibility */
 .top-strip.expanded {
-  height: calc(100vh - 70px - env(safe-area-inset-bottom));
+  height: calc(100vh - 70px);
   bottom: auto;
-  max-height: calc(100vh - 70px - env(safe-area-inset-bottom));
+  border-bottom: none !important; /* Prevent thin purple line */
+  /* Remove env() for now to debug Safari issue */
 }
 
     /* Replace your existing .bottom-strip rule with this enhanced version */
@@ -228,20 +218,20 @@
       100% { transform: translateX(-50%) translateY(-3px); }
     }
     
-/* FIXED: History expansion stops exactly at chat-mini strip */
+/* FIXED: History expansion stops at chat-mini with proper padding */
 .history-expanded {
   display: none;
   padding: 1em;
-  padding-bottom: 20px;
+  padding-bottom: 1em; /* Match left/right padding */
   overflow-y: auto;
   position: absolute;
   top: 140px;
   left: 0;
   right: 0;
-  bottom: calc(70px + env(safe-area-inset-bottom));
+  bottom: 70px; /* Stop at chat-mini */
   -webkit-overflow-scrolling: touch;
   background: var(--strip-bg);
-  max-height: calc(100vh - 140px - 70px - env(safe-area-inset-bottom));
+  /* Remove max-height as it conflicts with bottom positioning */
 }
 
 /* Make all direct children have white background */
@@ -249,8 +239,13 @@
   background: white;
   border-radius: 8px;
   padding: 1.5em;
-  margin-bottom: 40px;
+  margin-bottom: 1em; /* Reduced from 40px */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Special case for last child - no bottom margin */
+.history-expanded > div:last-child {
+  margin-bottom: 0;
 }
 
 
@@ -1132,6 +1127,33 @@
   padding-top: 70px; /* Space for the header */
 }
 
+/* Safari-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Safari only */
+  .top-strip.expanded {
+    height: calc(100vh - 70px);
+    height: calc(100dvh - 70px); /* Dynamic viewport height for iOS */
+  }
+  
+  .history-expanded {
+    bottom: 70px;
+    height: calc(100vh - 210px); /* 140px top + 70px bottom */
+    height: calc(100dvh - 210px); /* Dynamic viewport for iOS */
+  }
+
+/* Force chat-mini visibility when history expanded */
+.top-strip.expanded ~ .bottom-strip .chat-mini {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: var(--strip-bg);
+  z-index: 1001;
+}
   </style>
 </head>
 <body>
