@@ -252,18 +252,6 @@
     .top-strip.expanded .history-expanded {
   display: block;
 }
-
-/* Add purple divider line at 140px (same as collapsed strip height) */
-.top-strip.expanded::after {
-  content: '';
-  position: absolute;
-  top: 140px;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: var(--purple-medium); /* Changed from purple-dark to purple-medium */
-  z-index: 5;
-}
     
     /* Ensure scoreboard stays at top when history is expanded */
 .top-strip.expanded .scoreboard-mini {
@@ -1142,6 +1130,7 @@
   }
 
 /* Force chat-mini visibility when history expanded */
+/* Force chat-mini visibility when history expanded */
 .top-strip.expanded ~ .bottom-strip .chat-mini {
   position: absolute;
   bottom: 0;
@@ -1153,7 +1142,48 @@
   opacity: 1 !important;
   background: var(--strip-bg);
   z-index: 1001;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
 }
+
+/* Ensure all chat-mini children are visible */
+.top-strip.expanded ~ .bottom-strip .chat-mini * {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Position swipe indicator correctly */
+.top-strip.expanded ~ .bottom-strip .chat-mini .swipe-indicator {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--swipe-indicator);
+  border-radius: 2px;
+  opacity: 0.6;
+}
+
+/* Ensure chat status text is centered and visible */
+.top-strip.expanded ~ .bottom-strip .chat-mini .chat-status {
+  position: relative;
+  font-weight: 600;
+  color: var(--accent-dark);
+  font-size: 1.1em;
+  text-align: center;
+  margin-top: 10px;
+}
+
+/* Handle unread badge positioning */
+.top-strip.expanded ~ .bottom-strip .chat-mini #unreadBadge {
+  position: absolute;
+  top: 5px;
+  right: 20px;
+}
+
   </style>
 </head>
 <body>
