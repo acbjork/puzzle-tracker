@@ -262,16 +262,18 @@
   margin-bottom: 0;
 }
 
-/* Add purple line that won't affect layout */
-.top-strip.expanded .scoreboard-mini::after {
+/* Purple line at exact bottom of 140px scoreboard */
+.top-strip.expanded .scoreboard-container::after {
   content: '';
   position: absolute;
-  bottom: -1px;
+  top: 140px;
   left: 0;
   right: 0;
   height: 1px;
   background: var(--purple-medium);
-  width: 100%;
+  width: 100vw;
+  margin-left: -1em; /* Compensate for container padding */
+  z-index: 20;
 }
 
     .history-title {
@@ -1215,13 +1217,6 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status 
   animation: pulse 2s ease infinite;
 }
 
-/* Specific positioning when history is expanded */
-body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge:not(:empty) {
-  position: absolute !important;
-  top: 5px !important;
-  right: 20px !important;
-  z-index: 10001 !important;
-}
 
 /* Use JavaScript to handle the "0" case since CSS can't check text content */
 
