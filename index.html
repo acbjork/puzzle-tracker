@@ -64,7 +64,7 @@
 .top-strip.expanded {
   height: calc(100vh - 70px - env(safe-area-inset-bottom));
   bottom: auto;
-  max-height: calc(100vh - 70px);
+  max-height: calc(100vh - 70px - env(safe-area-inset-bottom));
 }
 
     /* Replace your existing .bottom-strip rule with this enhanced version */
@@ -227,21 +227,21 @@
       0% { transform: translateX(-50%) translateY(0px); }
       100% { transform: translateX(-50%) translateY(-3px); }
     }
-
     
-/* FIXED: History expansion with proper bottom constraint and visual divider */
+/* FIXED: History expansion stops exactly at chat-mini strip */
 .history-expanded {
   display: none;
   padding: 1em;
-  padding-bottom: 30px; /* Space for swipe indicator */
+  padding-bottom: 20px;
   overflow-y: auto;
   position: absolute;
   top: 140px;
   left: 0;
   right: 0;
-  bottom: 70px; /* STOP EXACTLY AT TOP OF CHAT STRIP */
+  bottom: calc(70px + env(safe-area-inset-bottom));
   -webkit-overflow-scrolling: touch;
-  background: var(--strip-bg); /* Purple wallpaper background */
+  background: var(--strip-bg);
+  max-height: calc(100vh - 140px - 70px - env(safe-area-inset-bottom));
 }
 
 /* Make all direct children have white background */
