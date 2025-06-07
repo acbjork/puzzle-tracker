@@ -77,6 +77,7 @@
 /* Smooth expansion using clip-path */
 .bottom-strip.expanded {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  transition: clip-path 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 
@@ -269,6 +270,9 @@
   -webkit-overflow-scrolling: touch;
   background: var(--strip-bg);
   /* Remove max-height as it conflicts with bottom positioning */
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 /* Make all direct children have white background */
@@ -285,9 +289,15 @@
   margin-bottom: 0;
 }
 
+/* Remove any swipe indicators inside history content */
+.history-expanded .swipe-indicator {
+  display: none !important;
+}
 
     .top-strip.expanded .history-expanded {
   display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
     
     /* Ensure scoreboard stays at top when history is expanded */
@@ -471,6 +481,7 @@
       font-size: 1.1em;
       position: relative;
       text-align: center;
+      padding-top: 5px;
     }
     
     #unreadBadge {
@@ -1205,7 +1216,7 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status 
   color: var(--accent-dark) !important;
   font-size: 1.1em !important;
   text-align: center !important;
-  margin-top: 20px !important;
+  margin-top: 25px !important;
   z-index: 10000 !important;
   pointer-events: none !important;
 }
@@ -1405,7 +1416,7 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       </tbody>
     </table>
 
-    <div class="version">v2025.06.07.1 Updated tap targets 🎯</div>
+    <div class="version">v2025.06.07.2 Updated tap targets 🎯</div>
   </div>
 
   <!-- ENHANCED: Bottom Strip with edge-to-edge expansion -->
