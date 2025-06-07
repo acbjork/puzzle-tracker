@@ -57,13 +57,6 @@
   /* Remove env() for now to debug Safari issue */
 }
 
-/* Purple divider at bottom of scoreboard when history expanded */
-.top-strip.expanded .scoreboard-mini {
-  position: relative;
-  border-bottom: 1px solid var(--purple-medium);
-  padding-bottom: 10px;
-  margin-bottom: 0;
-}
 
     /* Replace your existing .bottom-strip rule with this enhanced version */
 .bottom-strip {
@@ -213,13 +206,13 @@
 }
 
     .crown {
-      position: absolute;
-      top: -60px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 2.5em;
-      animation: crownBounce 1s ease-in-out infinite alternate;
-    }
+  position: absolute;
+  top: -55px; /* Lowered from -60px */
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2.5em;
+  animation: crownBounce 1s ease-in-out infinite alternate;
+}
 
     @keyframes crownBounce {
       0% { transform: translateX(-50%) translateY(0px); }
@@ -265,13 +258,21 @@
 .top-strip.expanded .scoreboard-mini {
   position: relative;
   z-index: 10;
+  height: 80px;
+  margin-bottom: 0;
 }
 
-    .top-strip.expanded .scoreboard-mini {
-      height: 80px;
-      border-bottom: 1px solid var(--purple-medium);
-      margin-bottom: 1em;
-    }
+/* Add purple line that won't affect layout */
+.top-strip.expanded .scoreboard-mini::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--purple-medium);
+  width: 100%;
+}
 
     .history-title {
       text-align: center;
@@ -1189,13 +1190,12 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status 
   pointer-events: none !important;
 }
 
-/* Handle unread badge visibility properly */
+/* Clean badge handling - hide when "0" or empty */
 #unreadBadge {
   display: none !important;
 }
 
-/* Only show badge when it has content AND it's not "0" */
-#unreadBadge:not(:empty):not([data-count="0"]) {
+#unreadBadge:not(:empty) {
   display: flex !important;
   position: absolute;
   top: 5px;
@@ -1216,37 +1216,14 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status 
 }
 
 /* Specific positioning when history is expanded */
-body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge:not(:empty):not([data-count="0"]) {
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge:not(:empty) {
   position: absolute !important;
   top: 5px !important;
   right: 20px !important;
   z-index: 10001 !important;
 }
 
-/* Add this CSS to hide badge when it's "0" */
-#unreadBadge {
-  display: none;
-}
-
-#unreadBadge:not(:empty) {
-  display: flex;
-}
-
-/* Hide badge specifically when it contains "0" */
-#unreadBadge:not(:empty) {
-  display: flex;
-}
-
-#unreadBadge[textContent="0"],
-#unreadBadge:contains("0") {
-  display: none !important;
-}
-
-/* Override any conflicting rules */
-body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini * {
-  visibility: visible !important;
-  opacity: 1 !important;
-}
+/* Use JavaScript to handle the "0" case since CSS can't check text content */
 
 /* Ensure chat-expanded is hidden when history is open */
 body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
@@ -2116,17 +2093,30 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
 function initialize() {
   initializeUI();
   
-  // Hide unread badge when it's "0"
-setInterval(() => {
+  // Enhanced badge hiding that actually works
+  const hideBadgeIfZero = () => {
+    const badge = document.getElementById('unreadBadge');
+    if (badge) {
+      const text = badge.textContent.trim();
+      if (text === '0' || text === '') {
+        badge.style.setProperty('display', 'none', 'important');
+      } else if (text !== '0' && text !== '') {
+        // Only show if not zero
+        badge.style.display = '';
+      }
+    }
+  };
+  
+  // Run immediately and repeatedly
+  hideBadgeIfZero();
+  setInterval(hideBadgeIfZero, 50);
+  
+  // Also run on any DOM changes
+  const observer = new MutationObserver(hideBadgeIfZero);
   const badge = document.getElementById('unreadBadge');
   if (badge) {
-    const count = badge.textContent.trim();
-    badge.setAttribute('data-count', count);
-    if (count === '0' || count === '') {
-      badge.style.display = 'none !important';
-    }
+    observer.observe(badge, { childList: true, characterData: true, subtree: true });
   }
-}, 100);
 }
 
 // Start the app
