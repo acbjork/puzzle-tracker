@@ -571,11 +571,40 @@
   position: relative !important;
 }
 
-/* Ensure chat-status text is visible when history is expanded */
-.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-status {
+/* FIXED: Ensure chat-mini AND its content are visible when history is expanded but chat is not */
+.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: 70px !important;
+  position: relative !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .swipe-indicator {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 0.6 !important;
+}
+
+.top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge {
+  display: flex !important;
+  visibility: visible !important;
+}
+
+/* Ensure unread badge only shows when there are unread messages */
+#unreadBadge:empty,
+#unreadBadge:not(.has-unread) {
+  display: none !important;
 }
 
     /* Ensure chat-expanded fills properly without breaking layout */
