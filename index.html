@@ -56,6 +56,10 @@
   border-bottom: none !important; /* Prevent thin purple line */
   /* Remove env() for now to debug Safari issue */
 }
+/* Purple divider at bottom of scoreboard when history expanded */
+.top-strip.expanded .scoreboard-container {
+  border-bottom: 1px solid var(--purple-medium);
+}
 
     /* Replace your existing .bottom-strip rule with this enhanced version */
 .bottom-strip {
@@ -1129,59 +1133,76 @@
     height: calc(100dvh - 210px); /* Dynamic viewport for iOS */
   }
 
-/* Force chat-mini visibility when history expanded */
-/* Force chat-mini visibility when history expanded */
-.top-strip.expanded ~ .bottom-strip .chat-mini {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 70px;
+/* NUCLEAR FIX: Force chat-mini visibility when history expanded */
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) {
+  height: 70px !important;
+  clip-path: none !important;
+}
+
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 70px !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
-  background: var(--strip-bg);
-  z-index: 1001;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+  background: var(--strip-bg) !important;
+  z-index: 9999 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-direction: column !important;
+  pointer-events: auto !important;
 }
 
-/* Ensure all chat-mini children are visible */
-.top-strip.expanded ~ .bottom-strip .chat-mini * {
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .swipe-indicator {
+  position: absolute !important;
+  top: 10px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 40px !important;
+  height: 4px !important;
+  background: var(--swipe-indicator) !important;
+  border-radius: 2px !important;
+  opacity: 0.6 !important;
   display: block !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini .chat-status {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  font-weight: 600 !important;
+  color: var(--accent-dark) !important;
+  font-size: 1.1em !important;
+  text-align: center !important;
+  margin-top: 20px !important;
+  z-index: 10000 !important;
+  pointer-events: none !important;
+}
+
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini #unreadBadge {
+  position: absolute !important;
+  top: 5px !important;
+  right: 20px !important;
+  z-index: 10001 !important;
+}
+
+/* Override any conflicting rules */
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-mini * {
   visibility: visible !important;
   opacity: 1 !important;
 }
 
-/* Position swipe indicator correctly */
-.top-strip.expanded ~ .bottom-strip .chat-mini .swipe-indicator {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 4px;
-  background: var(--swipe-indicator);
-  border-radius: 2px;
-  opacity: 0.6;
-}
-
-/* Ensure chat status text is centered and visible */
-.top-strip.expanded ~ .bottom-strip .chat-mini .chat-status {
-  position: relative;
-  font-weight: 600;
-  color: var(--accent-dark);
-  font-size: 1.1em;
-  text-align: center;
-  margin-top: 10px;
-}
-
-/* Handle unread badge positioning */
-.top-strip.expanded ~ .bottom-strip .chat-mini #unreadBadge {
-  position: absolute;
-  top: 5px;
-  right: 20px;
+/* Ensure chat-expanded is hidden when history is open */
+body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
 }
 
   </style>
