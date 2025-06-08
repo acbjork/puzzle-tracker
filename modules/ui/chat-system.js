@@ -1033,13 +1033,7 @@ if (chatExpanded) {
   }
   
   if (payload.eventType === "INSERT") {
-    // Check if message already exists (to prevent duplicates)
-    const existingMessage = this.messages.find(m => m.id === payload.new.id);
-    if (!existingMessage) {
-      this.messages.push(payload.new);
-      this.renderMessages();
-    }
-    // Check if message already exists (to prevent duplicates)
+      // Check if message already exists (to prevent duplicates)
       const existingMessage = this.messages.find(m => m.id === payload.new.id);
       if (!existingMessage) {
         // Only add if message is within our 30-day window
