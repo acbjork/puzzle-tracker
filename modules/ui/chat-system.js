@@ -1043,7 +1043,8 @@ if (chatExpanded) {
           this.messages.push(payload.new);
           this.renderMessages();
         }
-      } 
+      }
+    }
     
     const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
     
