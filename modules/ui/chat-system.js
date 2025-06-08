@@ -70,8 +70,9 @@ class ChatSystem {
   async loadMessages() {
     if (this.debugMode) console.log('📋 Loading chat messages v2025.06.03.2...');
     
+    const today = this.dateHelpers.getToday();
+    
     try {
-      const today = this.dateHelpers.getToday();
       // Load last 30 days of messages
       const thirtyDaysAgo = this.dateHelpers.getDaysAgo(30);
       
@@ -108,19 +109,20 @@ class ChatSystem {
     if (this.messages.length === 0) {
       // ENHANCED: Beautiful empty state
       container.innerHTML = `
-        
-
-          
-💬
-
-          
-No trash talk yet...
-
-          
-Someone needs to start the smack down! 🔥
-
-        
-
+        <div style="
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 200px;
+          text-align: center;
+          color: #64748b;
+          padding: 2em;
+        ">
+          <div style="font-size: 3em; margin-bottom: 0.5em; opacity: 0.3;">💬</div>
+          <div style="font-size: 1.2em; font-weight: 600; margin-bottom: 0.5em;">No trash talk yet...</div>
+          <div style="font-size: 0.9em; opacity: 0.8;">Someone needs to start the smack down! 🔥</div>
+        </div>
       `;
       
       // Add CSS animations if not already present
@@ -185,39 +187,27 @@ Someone needs to start the smack down! 🔥
         bubbleDiv.style.opacity = '0.6';
         bubbleDiv.style.fontStyle = 'italic';
         bubbleDiv.innerHTML = `
-          
-
+          <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 0.3em;">
             ${senderName}
-          
-
-          
-
+          </div>
+          <div style="margin: 0.3em 0;">
             This message was deleted
-          
-
-          
-
+          </div>
+          <div style="font-size: 0.7em; opacity: 0; margin-top: 0.3em;" class="message-timestamp">
             ${timestamp}
-          
-
+          </div>
         `;
       } else {
         bubbleDiv.innerHTML = `
-          
-
+          <div style="font-size: 0.8em; opacity: 0.7; margin-bottom: 0.3em;">
             ${senderName}
-          
-
-          
-
+          </div>
+          <div style="margin: 0.3em 0;">
             ${this.escapeHtml(msg.message)}
-          
-
-          
-
+          </div>
+          <div style="font-size: 0.7em; opacity: 0; margin-top: 0.3em; transition: opacity 0.2s;" class="message-timestamp">
             ${timestamp}
-          
-
+          </div>
         `;
         
         if (isCurrentUser) {
@@ -353,19 +343,40 @@ Someone needs to start the smack down! 🔥
     `;
     
     confirmDiv.innerHTML = `
-      
-
+      <div style="
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 1em;
+        color: #333;
+      ">
         Delete this message? 🗑️
-      
-
-      
-
-          Delete
-        
-
-          Cancel
-        
-
+      </div>
+      <div style="
+        display: flex;
+        gap: 0.5em;
+        justify-content: center;
+      ">
+        <button class="delete-confirm-yes" style="
+          background: #ef4444;
+          color: white;
+          border: none;
+          padding: 0.5em 1em;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.2s;
+        ">Delete</button>
+        <button class="delete-confirm-no" style="
+          background: #e5e7eb;
+          color: #333;
+          border: none;
+          padding: 0.5em 1em;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.2s;
+        ">Cancel</button>
+      </div>
     `;
     
     // Add event listeners to buttons
@@ -518,122 +529,122 @@ Someone needs to start the smack down! 🔥
   }
 
   async sendMessage() {
-  if (this.isProcessing) {
-    console.log('💬 Message sending already in progress, ignoring duplicate request v2025.06.03.2');
-    return;
-  }
+    if (this.isProcessing) {
+      console.log('💬 Message sending already in progress, ignoring duplicate request v2025.06.03.2');
+      return;
+    }
 
-  const chatInput = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSendBtn');
-  
-  if (!chatInput || !sendBtn) {
-    console.warn('❌ Chat input elements not found');
-    return;
-  }
-  
-  const message = chatInput.value.trim();
-  if (!message || !this.currentUser) {
-    console.log('⚠️ No message content or user selected');
-    return;
-  }
-  
-  // Prevent very long messages
-  if (message.length > 1000) {
-    this.showToast('Message too long! Keep it under 1000 characters', 'error');
-    return;
-  }
-  
-  this.isProcessing = true;
-  sendBtn.disabled = true;
-  sendBtn.textContent = '⏳';
-  
-  // Add sending animation
-  chatInput.style.opacity = '0.6';
-  
-  try {
-    const today = this.dateHelpers.getToday();
-    console.log(`💬 Sending message v2025.06.03.2: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('chatSendBtn');
     
-    // Create temporary message object for immediate display
-    const tempMessage = {
-      id: 'temp-' + Date.now(),
-      player: this.currentUser,
-      message: message,
-      created_at: new Date().toISOString(),
-      read_by_adam: this.currentUser === 'Adam',
-      read_by_jonathan: this.currentUser === 'Jonathan'
-    };
-    
-    // Clear input immediately
-    chatInput.value = '';
-    chatInput.style.opacity = '1';
-    
-    // Add to local messages and render immediately
-    this.messages.push(tempMessage);
-    this.renderMessages();
-    
-    // Send to database
-    const result = await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
-    
-    // Replace temp message with real one
-    const tempIndex = this.messages.findIndex(m => m.id === tempMessage.id);
-    if (tempIndex !== -1 && result) {
-      this.messages[tempIndex] = result;
+    if (!chatInput || !sendBtn) {
+      console.warn('❌ Chat input elements not found');
+      return;
     }
     
-    this.messagesSentCount++;
+    const message = chatInput.value.trim();
+    if (!message || !this.currentUser) {
+      console.log('⚠️ No message content or user selected');
+      return;
+    }
     
-    // Pulse animation on send button
-    sendBtn.style.animation = 'pulse 0.3s ease';
+    // Prevent very long messages
+    if (message.length > 1000) {
+      this.showToast('Message too long! Keep it under 1000 characters', 'error');
+      return;
+    }
     
-    console.log('✅ Message sent successfully v2025.06.03.2');
-  } catch (error) {
-    console.error("Error sending message:", error);
-    this.showToast('Failed to send message', 'error');
+    this.isProcessing = true;
+    sendBtn.disabled = true;
+    sendBtn.textContent = '⏳';
     
-    // Remove temp message on error
-    this.messages = this.messages.filter(m => !m.id.startsWith('temp-'));
-    this.renderMessages();
+    // Add sending animation
+    chatInput.style.opacity = '0.6';
     
-    chatInput.style.opacity = '1';
-  
-  } finally {
-    this.isProcessing = false;
-    
-    // Get fresh reference to button
-    const btn = document.getElementById('chatSendBtn');
-    if (btn) {
-      // Reset button to normal state
-      btn.disabled = false;
+    try {
+      const today = this.dateHelpers.getToday();
+      console.log(`💬 Sending message v2025.06.03.2: "${message.substring(0, 50)}${message.length > 50 ? '...' : ''}"`);
       
-      // Clear the button completely
-      btn.innerHTML = '';
+      // Create temporary message object for immediate display
+      const tempMessage = {
+        id: 'temp-' + Date.now(),
+        player: this.currentUser,
+        message: message,
+        created_at: new Date().toISOString(),
+        read_by_adam: this.currentUser === 'Adam',
+        read_by_jonathan: this.currentUser === 'Jonathan'
+      };
       
-      // Create a span to hold the emoji with forced color
-      const emojiSpan = document.createElement('span');
-      emojiSpan.style.cssText = 'color: inherit !important; filter: none !important; opacity: 1 !important; -webkit-text-fill-color: initial !important; font-family: system-ui, -apple-system, sans-serif !important;';
-      emojiSpan.textContent = '🚮';
-      btn.appendChild(emojiSpan);
+      // Clear input immediately
+      chatInput.value = '';
+      chatInput.style.opacity = '1';
       
-      // Reset button styles but keep it minimal
-      btn.style.animation = '';
-      btn.style.transform = '';
-      btn.style.opacity = '1';
-      btn.style.background = 'transparent';
-      btn.style.boxShadow = 'none';
-      btn.style.border = 'none';
-      btn.style.filter = 'none';
+      // Add to local messages and render immediately
+      this.messages.push(tempMessage);
+      this.renderMessages();
       
-      // Update button state based on input
-      setTimeout(() => {
-        const chatInput = document.getElementById('chatInput');
-        const hasText = chatInput && chatInput.value.trim().length > 0;
-        const hasUser = !!this.currentUser;
-        btn.disabled = !hasText || !hasUser;
-      }, 50);
+      // Send to database
+      const result = await this.supabaseClient.sendChatMessage(today, this.currentUser, message);
+      
+      // Replace temp message with real one
+      const tempIndex = this.messages.findIndex(m => m.id === tempMessage.id);
+      if (tempIndex !== -1 && result) {
+        this.messages[tempIndex] = result;
+      }
+      
+      this.messagesSentCount++;
+      
+      // Pulse animation on send button
+      sendBtn.style.animation = 'pulse 0.3s ease';
+      
+      console.log('✅ Message sent successfully v2025.06.03.2');
+    } catch (error) {
+      console.error("Error sending message:", error);
+      this.showToast('Failed to send message', 'error');
+      
+      // Remove temp message on error
+      this.messages = this.messages.filter(m => !m.id.startsWith('temp-'));
+      this.renderMessages();
+      
+      chatInput.style.opacity = '1';
+    
+    } finally {
+      this.isProcessing = false;
+      
+      // Get fresh reference to button
+      const btn = document.getElementById('chatSendBtn');
+      if (btn) {
+        // Reset button to normal state
+        btn.disabled = false;
+        
+        // Clear the button completely
+        btn.innerHTML = '';
+        
+        // Create a span to hold the emoji with forced color
+        const emojiSpan = document.createElement('span');
+        emojiSpan.style.cssText = 'color: inherit !important; filter: none !important; opacity: 1 !important; -webkit-text-fill-color: initial !important; font-family: system-ui, -apple-system, sans-serif !important;';
+        emojiSpan.textContent = '🚮';
+        btn.appendChild(emojiSpan);
+        
+        // Reset button styles but keep it minimal
+        btn.style.animation = '';
+        btn.style.transform = '';
+        btn.style.opacity = '1';
+        btn.style.background = 'transparent';
+        btn.style.boxShadow = 'none';
+        btn.style.border = 'none';
+        btn.style.filter = 'none';
+        
+        // Update button state based on input
+        setTimeout(() => {
+          const chatInput = document.getElementById('chatInput');
+          const hasText = chatInput && chatInput.value.trim().length > 0;
+          const hasUser = !!this.currentUser;
+          btn.disabled = !hasText || !hasUser;
+        }, 50);
+      }
     }
   }
-} 
 
   async updateUnreadBadge() {
     this.badgeUpdateCount++;
@@ -783,9 +794,9 @@ Someone needs to start the smack down! 🔥
       
       // Ensure proper styling for expanded state
       chatMessages.style.display = '';
-chatMessages.style.visibility = '';
-chatMessages.style.opacity = '';
-chatMessages.style.minHeight = '';
+      chatMessages.style.visibility = '';
+      chatMessages.style.opacity = '';
+      chatMessages.style.minHeight = '';
       
       // Smooth scroll to bottom
       requestAnimationFrame(() => {
@@ -796,10 +807,10 @@ chatMessages.style.minHeight = '';
     }
     
     // Let CSS handle the visibility
-if (chatExpanded) {
-  chatExpanded.style.display = '';
-  chatExpanded.style.opacity = '';
-}
+    if (chatExpanded) {
+      chatExpanded.style.display = '';
+      chatExpanded.style.opacity = '';
+    }
     
     console.log('💬 Chat opened - marking messages as read');
     
@@ -1028,11 +1039,11 @@ if (chatExpanded) {
   }
 
   async handleRealtimeUpdate(payload) {
-  if (this.debugMode) {
-    console.log('🔄 Real-time chat update v2025.06.03.2:', payload.eventType);
-  }
-  
-  if (payload.eventType === "INSERT") {
+    if (this.debugMode) {
+      console.log('🔄 Real-time chat update v2025.06.03.2:', payload.eventType);
+    }
+    
+    if (payload.eventType === "INSERT") {
       // Check if message already exists (to prevent duplicates)
       const existingMessage = this.messages.find(m => m.id === payload.new.id);
       if (!existingMessage) {
@@ -1050,47 +1061,46 @@ if (chatExpanded) {
           this.renderMessages();
         }
       }
-    }
-    
-    const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
-    
-    if (payload.new.player !== this.currentUser && !chatActuallyVisible) {
-      console.log('💬 New message from other user - will show as unread v2025.06.03.2');
-      this.hasUnreadMessages = true;
       
-      // Vibrate on new message if supported
-      if ('vibrate' in navigator) {
-        navigator.vibrate(200);
-      }
-    } else if (payload.new.player !== this.currentUser && chatActuallyVisible) {
-      console.log('💬 New message from other user but chat is visible - marking as read v2025.06.03.2');
-      setTimeout(async () => {
-        await this.markAsRead();
-      }, 100);
-    }
-    
-    await this.updateUnreadBadge();
-    
-  } else if (payload.eventType === "UPDATE") {
-    const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
-    if (msgIndex !== -1) {
-      this.messages[msgIndex] = payload.new;
-      this.renderMessages();
+      const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
       
-      if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
-          payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
-        console.log('💬 Read status updated in real-time v2025.06.03.2');
-        await this.updateUnreadBadge();
+      if (payload.new.player !== this.currentUser && !chatActuallyVisible) {
+        console.log('💬 New message from other user - will show as unread v2025.06.03.2');
+        this.hasUnreadMessages = true;
+        
+        // Vibrate on new message if supported
+        if ('vibrate' in navigator) {
+          navigator.vibrate(200);
+        }
+      } else if (payload.new.player !== this.currentUser && chatActuallyVisible) {
+        console.log('💬 New message from other user but chat is visible - marking as read v2025.06.03.2');
+        setTimeout(async () => {
+          await this.markAsRead();
+        }, 100);
       }
-    }
-  } else if (payload.eventType === "DELETE") {
-    const msgIndex = this.messages.findIndex(m => m.id === (payload.old?.id || payload.new?.id));
-    if (msgIndex !== -1) {
-      this.messages.splice(msgIndex, 1);
-      this.renderMessages();
+      
+      await this.updateUnreadBadge();
+      
+    } else if (payload.eventType === "UPDATE") {
+      const msgIndex = this.messages.findIndex(m => m.id === payload.new.id);
+      if (msgIndex !== -1) {
+        this.messages[msgIndex] = payload.new;
+        this.renderMessages();
+        
+        if (payload.new.read_by_adam !== payload.old?.read_by_adam || 
+            payload.new.read_by_jonathan !== payload.old?.read_by_jonathan) {
+          console.log('💬 Read status updated in real-time v2025.06.03.2');
+          await this.updateUnreadBadge();
+        }
+      }
+    } else if (payload.eventType === "DELETE") {
+      const msgIndex = this.messages.findIndex(m => m.id === (payload.old?.id || payload.new?.id));
+      if (msgIndex !== -1) {
+        this.messages.splice(msgIndex, 1);
+        this.renderMessages();
+      }
     }
   }
-}
 
   escapeHtml(text) {
     if (!text) return '';
