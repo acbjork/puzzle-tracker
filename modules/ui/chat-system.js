@@ -1037,9 +1037,15 @@ if (chatExpanded) {
       const existingMessage = this.messages.find(m => m.id === payload.new.id);
       if (!existingMessage) {
         // Only add if message is within our 30-day window
-        const messageDate = payload.new.date;
-        const thirtyDaysAgo = this.dateHelpers.getDaysAgo(30);
-        if (messageDate >= thirtyDaysAgo) {
+        const messageDate = payload.new.date || payload.new.created_at?.split('T')[0];
+        if (messageDate) {
+          const thirtyDaysAgo = this.dateHelpers.getDaysAgo(30);
+          if (messageDate >= thirtyDaysAgo) {
+            this.messages.push(payload.new);
+            this.renderMessages();
+          }
+        } else {
+          // No date found, add message anyway (shouldn't happen)
           this.messages.push(payload.new);
           this.renderMessages();
         }
