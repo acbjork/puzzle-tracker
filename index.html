@@ -266,7 +266,7 @@
   padding: 1em;
   padding-bottom: 1em; /* Match left/right padding */
   overflow-y: auto;
-  position: absolute;
+  position: fixed; /* Use fixed positioning */
   top: 140px;
   left: 0;
   right: 0;
@@ -278,6 +278,7 @@
   transform: translateY(20px);
   pointer-events: none;
   transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 999; /* Below strips */
 }
 
 /* Make all direct children have white background */
@@ -537,20 +538,22 @@
 
     /* FIXED: Chat expanded with proper height and bottom padding */
 .chat-expanded {
-  display: flex !important; /* Always display */
-  padding: 1em;
-  padding-top: 1em; /* Normal padding since we have a real header now */
-  padding-bottom: 1.5em;
-  height: 100%;
-  flex-direction: column;
-  overflow: hidden;
-  justify-content: space-between;
-  opacity: 0;
-  transition: opacity 0.3s ease 0.1s;
-}
+      display: flex !important; /* Always display */
+      padding: 1em;
+      padding-top: 1em; /* Normal padding since we have a real header now */
+      padding-bottom: 1.5em;
+      height: 100%;
+      flex-direction: column;
+      overflow: hidden;
+      justify-content: space-between;
+      opacity: 0;
+      pointer-events: none; /* Prevent iPad keyboard trigger */
+      transition: opacity 0.3s ease 0.1s;
+    }
 
     .bottom-strip.expanded .chat-expanded {
       opacity: 1;
+      pointer-events: auto; /* Re-enable when visible */
     }
     
     /* Override chat-system.js inline styles */
@@ -660,6 +663,7 @@
       flex: 1 1 0;
       min-height: 0;
       overflow-y: auto;
+      overflow-x: hidden;
       text-align: center;
       padding: 1em;
       background: white;
@@ -667,8 +671,9 @@
       margin-top: 10px;
       margin-bottom: 10px;
       box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-      /* FIXED: Ensure chat content is visible */
+      /* FIXED: Ensure chat content is visible and scrollable */
       min-height: 200px;
+      max-height: calc(100vh - 300px);
     }
     
     /* Fix iOS scrolling issues */
@@ -1176,9 +1181,11 @@
   }
   
   .history-expanded {
-    bottom: 70px;
-    height: calc(100vh - 210px); /* 140px top + 70px bottom */
-    height: calc(100dvh - 210px); /* Dynamic viewport for iOS */
+    position: fixed !important;
+    top: 140px !important;
+    bottom: 70px !important;
+    max-height: calc(100vh - 210px) !important; /* 140px top + 70px bottom */
+    max-height: calc(100dvh - 210px) !important; /* Dynamic viewport for iOS */
   }
 
 /* NUCLEAR FIX: Force chat-mini visibility when history expanded */
@@ -1428,7 +1435,7 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       </tbody>
     </table>
 
-    <div class="version">v2025.06.07.3 Updated tap targets 🎯</div>
+    <div class="version">v2025.06.07.4 Updated tap targets 🎯</div>
   </div>
 
   <!-- ENHANCED: Bottom Strip with edge-to-edge expansion -->
@@ -1458,7 +1465,7 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       </div>
         
         <div class="chat-input-container">
-          <textarea class="chat-input" id="chatInput" placeholder="Type your trash talk..." rows="2" disabled></textarea>
+          <textarea class="chat-input" id="chatInput" placeholder="Type your trash talk..." rows="2" disabled tabindex="-1"></textarea>
           <button class="chat-send-btn" id="chatSendBtn" disabled>🚮</button>
         </div>
       </div>
@@ -1587,6 +1594,14 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
       bottomStripExpanded = false;
       hideOverlay();
       
+      // Force badge update after closing chat
+      setTimeout(() => {
+        const badge = document.getElementById('unreadBadge');
+        if (badge && window.chatSystem) {
+          window.chatSystem.updateUnreadBadge();
+        }
+      }, 300);
+      
       console.log('💬 Bottom strip collapsed');
     }
 
@@ -1656,18 +1671,25 @@ body .top-strip.expanded ~ .bottom-strip:not(.expanded) .chat-expanded {
   
   // Handle taps on TOP strip
   const handleTopStripTap = (e) => {
+    // Don't trigger if clicking inside expanded history content
+    if (e.target.closest('.history-expanded')) {
+      return;
+    }
+    
     // If chat is expanded, collapse it
     if (window.bottomStripExpanded) {
-      // Don't trigger if clicking inside expanded history content
-      if (e.target.closest('.history-expanded')) {
-        return;
-      }
       e.preventDefault();
       e.stopPropagation();
       window.toggleBottomStrip();
     } 
-    // If nothing expanded, expand history
+    // If history is collapsed, expand it
     else if (!window.topStripExpanded) {
+      e.preventDefault();
+      e.stopPropagation();
+      window.toggleTopStrip();
+    }
+    // If history is expanded, collapse it
+    else if (window.topStripExpanded) {
       e.preventDefault();
       e.stopPropagation();
       window.toggleTopStrip();

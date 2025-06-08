@@ -72,15 +72,28 @@ class ChatSystem {
     
     try {
       const today = this.dateHelpers.getToday();
-      const data = await this.supabaseClient.loadChatMessages(today);
+      // Load last 30 days of messages
+      const thirtyDaysAgo = this.dateHelpers.getDaysAgo(30);
+      
+      const data = await this.supabaseClient.loadChatMessagesRange(thirtyDaysAgo, today);
       this.messages = data || [];
       this.renderMessages();
       await this.updateUnreadBadge();
       
-      if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages v2025.06.03.2`);
+      if (this.debugMode) console.log(`✅ Loaded ${this.messages.length} messages from last 30 days v2025.06.03.2`);
     } catch (error) {
       console.error("Failed to load chat messages:", error);
-      this.messages = [];
+      // Fallback to loading just today if range fails
+      try {
+        const todayData = await this.supabaseClient.loadChatMessages(today);
+        this.messages = todayData || [];
+        this.renderMessages();
+        await this.updateUnreadBadge();
+        console.log('📋 Fallback: Loaded today\'s messages only');
+      } catch (fallbackError) {
+        console.error("Failed to load any messages:", fallbackError);
+        this.messages = [];
+      }
     }
   }
 
@@ -1026,6 +1039,17 @@ if (chatExpanded) {
       this.messages.push(payload.new);
       this.renderMessages();
     }
+    // Check if message already exists (to prevent duplicates)
+      const existingMessage = this.messages.find(m => m.id === payload.new.id);
+      if (!existingMessage) {
+        // Only add if message is within our 30-day window
+        const messageDate = payload.new.date;
+        const thirtyDaysAgo = this.dateHelpers.getDaysAgo(30);
+        if (messageDate >= thirtyDaysAgo) {
+          this.messages.push(payload.new);
+          this.renderMessages();
+        }
+      } 
     
     const chatActuallyVisible = this.isVisible && window.bottomStripExpanded;
     

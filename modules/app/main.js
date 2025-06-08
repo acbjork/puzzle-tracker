@@ -115,7 +115,10 @@ class App {
       this.handleResultsUpdate(payload);
     });
 
-    // Subscribe to chat message changes
+    // Subscribe to chat message changes for the last 30 days
+    const thirtyDaysAgo = dateHelpers.getDaysAgo(30);
+    // Note: We still subscribe to today's messages for real-time updates
+    // but the initial load will get 30 days of history
     supabaseClient.subscribeToChatMessages(this.today, (payload) => {
       chatSystem.handleRealtimeUpdate(payload);
     });

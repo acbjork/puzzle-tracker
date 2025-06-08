@@ -133,6 +133,28 @@ class SupabaseClient {
     return data || [];
   }
 
+  // NEW: Load chat messages for a date range
+  async loadChatMessagesRange(startDate, endDate) {
+    if (!this.client) throw new Error('Supabase not initialized');
+    
+    console.log(`📋 Loading chat messages from ${startDate} to ${endDate}`);
+    
+    const { data, error } = await this.client
+      .from("chat_messages")
+      .select("*")
+      .gte("date", startDate)
+      .lte("date", endDate)
+      .order("created_at", { ascending: true });
+    
+    if (error) {
+      console.error("Error loading chat messages range:", error.message);
+      throw error;
+    }
+    
+    console.log(`✅ Loaded ${data?.length || 0} chat messages from date range`);
+    return data || [];
+  }
+
   async sendChatMessage(date, player, message) {
     if (!this.client) throw new Error('Supabase not initialized');
     
